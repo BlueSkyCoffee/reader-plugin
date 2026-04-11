@@ -3,8 +3,9 @@
  * 显示侧边栏导航菜单
  */
 
-import { Icon } from '@iconify/react'
-import { Link } from 'react-router'
+import type { NavigationItem } from "../../types"
+import { Icon } from "@iconify/react"
+import { Link } from "react-router"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -12,9 +13,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar'
-import { useGroupedNavigation, useIsActive } from '../../hooks'
-import type { NavigationItem } from '../../types'
+} from "@/shared/components/ui/sidebar"
+import { useGroupedNavigation, useIsActive } from "../../hooks"
 
 /**
  * 导航项渲染组件
@@ -50,7 +50,7 @@ function NavigationGroup({
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {items.map((item) => (
+          {items.map(item => (
             <NavigationItemButton key={item.path} item={item} />
           ))}
         </SidebarMenu>

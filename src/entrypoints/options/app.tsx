@@ -3,9 +3,9 @@
  * 处理路由和页面渲染
  */
 
-import { Route, Routes } from 'react-router'
-import { SidebarInset } from '@/components/ui/sidebar'
-import { ROUTE_CONFIG } from './constants'
+import { Route, Routes } from "react-router"
+import { SidebarInset } from "@/shared/components/ui/sidebar"
+import { ROUTE_CONFIG } from "./constants"
 
 /**
  * 应用主组件

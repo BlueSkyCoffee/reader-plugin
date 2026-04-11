@@ -1,8 +1,8 @@
-import React from "react"
-import ReactDOM from "react-dom/client"
-import { Provider as JotaiProvider } from "jotai"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { ThemeProvider } from "@/components/providers/theme-provider"
+import { Provider as JotaiProvider } from "jotai"
+import * as React from "react"
+import ReactDOM from "react-dom/client"
+import { ThemeProvider } from "@/shared/components/providers/theme-provider"
 import App from "./app.tsx"
 import "@/assets/styles/theme.css"
 

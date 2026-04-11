@@ -5,7 +5,4 @@
 export type {
   NavigationItem,
   RouteConfig,
-  PageLayoutProps,
-  ConfigCardProps,
-  SettingItemProps,
-} from './navigation'
+} from "./navigation"

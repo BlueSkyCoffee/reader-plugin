@@ -1,11 +1,12 @@
-import { i18n } from "#imports"
 import { Icon } from "@iconify/react"
+import { browser } from "wxt/browser"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/shared/components/ui/dropdown-menu"
+import { i18n } from "@/shared/i18n"
 
 export function MoreMenu() {
   return (
@@ -21,27 +22,27 @@ export function MoreMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="top" className="w-fit">
         <DropdownMenuItem
-          onClick={() => window.open("https://discord.gg/ej45e3PezJ", "_blank", "noopener,noreferrer")}
-          className="cursor-pointer"
-        >
-          <Icon icon="logos:discord-icon" className="size-4" />
-          {i18n.t("popup.more.joinDiscord")}
-        </DropdownMenuItem>
-
-        <DropdownMenuItem
-          onClick={() => window.open("https://github.com/mengxi-ream/read-frog", "_blank", "noopener,noreferrer")}
-          className="cursor-pointer"
-        >
-          <Icon icon="fa7-brands:github" className="size-4" />
-          {i18n.t("popup.more.starGithub")}
-        </DropdownMenuItem>
-
-        <DropdownMenuItem
-          onClick={() => window.open("https://readfrog.app/tutorial/", "_blank", "noopener,noreferrer")}
+          onClick={() => browser.runtime.openOptionsPage()}
           className="cursor-pointer"
         >
           <Icon icon="tabler:help-circle" className="size-4" />
-          {i18n.t("popup.more.tutorial")}
+          {i18n.t("popup.more.help")}
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() => window.open("https://github.com", "_blank", "noopener,noreferrer")}
+          className="cursor-pointer"
+        >
+          <Icon icon="fa7-brands:github" className="size-4" />
+          {i18n.t("popup.more.project")}
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() => window.open("mailto:support@example.com", "_blank")}
+          className="cursor-pointer"
+        >
+          <Icon icon="tabler:mail" className="size-4" />
+          {i18n.t("popup.more.feedback")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

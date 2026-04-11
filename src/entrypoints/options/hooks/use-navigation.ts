@@ -2,10 +2,10 @@
  * 导航相关 Hook
  */
 
-import { useMemo } from 'react'
-import { useLocation } from 'react-router'
-import { NAVIGATION_GROUPS } from '../constants'
-import type { NavigationItem } from '../types'
+import type { NavigationItem } from "../types"
+import { useMemo } from "react"
+import { useLocation } from "react-router"
+import { NAVIGATION_GROUPS } from "../constants"
 
 /**
  * 获取分组导航项
@@ -17,7 +17,7 @@ export function useGroupedNavigation() {
       reading: NAVIGATION_GROUPS.reading,
       settings: NAVIGATION_GROUPS.settings,
     }),
-    []
+    [],
   )
 }
 
@@ -41,6 +41,6 @@ export function useActiveNavigation(): NavigationItem | undefined {
 
   return useMemo(() => {
     const allItems = [...reading, ...settings]
-    return allItems.find((item) => item.path === pathname)
+    return allItems.find(item => item.path === pathname)
   }, [pathname, reading, settings])
 }

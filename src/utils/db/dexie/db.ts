@@ -1,3 +1,1 @@
-import AppDB from "./app-db"
-
-export const db = new AppDB()
+export { db } from "@/shared/db/app-db"

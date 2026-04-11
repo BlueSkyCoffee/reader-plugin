@@ -3,13 +3,13 @@
  * 显示应用 Logo 和导航菜单
  */
 
-import { browser } from 'wxt/browser'
+import { browser } from "wxt/browser"
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
-} from '@/components/ui/sidebar'
-import { SettingsNav } from './components'
+} from "@/shared/components/ui/sidebar"
+import { SettingsNav } from "./components"
 
 /**
  * 侧边栏 Logo 部分
@@ -27,7 +27,10 @@ function SidebarLogo() {
       </div>
       <div className="grid flex-1 text-left text-sm leading-tight ml-1">
         <span className="truncate font-semibold text-base">Novel Frog</span>
-        <span className="truncate text-xs text-muted-foreground">v{version}</span>
+        <span className="truncate text-xs text-muted-foreground">
+          v
+          {version}
+        </span>
       </div>
     </a>
   )

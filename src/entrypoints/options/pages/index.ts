@@ -2,9 +2,11 @@
  * Options 页面导出
  */
 
-export { BookshelfPage } from './bookshelf'
-export { SearchPage } from './search'
-export { DownloadPage } from './download'
-export { RulesPage } from './rules'
-export { GeneralPage } from './general'
-export { LightNovelPage } from './lightnovel'
+export { AboutPage } from "./about"
+export { BookshelfPage } from "./bookshelf"
+export { DownloadPage } from "./download"
+export { GeneralPage } from "./general"
+export { HelpPage } from "./help"
+export { LightNovelPage } from "./lightnovel"
+export { RulesPage } from "./rules"
+export { SearchPage } from "./search"
