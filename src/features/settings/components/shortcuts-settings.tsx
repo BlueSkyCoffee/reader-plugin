@@ -20,6 +20,7 @@ import {
   SHORTCUT_DEFINITIONS,
   useShortcuts,
 } from "@/shared/hooks/use-shortcuts"
+import { i18n } from "@/shared/i18n"
 
 export function ShortcutsSettings() {
   const { shortcuts, updateShortcut, resetToDefaults } = useShortcuts()
@@ -50,11 +51,10 @@ export function ShortcutsSettings() {
       return
 
     if (!isValidKeyCombo(recordingKeys)) {
-      toast.error("无效的快捷键组合")
+      toast.error(i18n.t("settings.shortcuts.toast.invalid"))
       return
     }
 
-    // 检查是否与其他快捷键冲突
     const isDuplicate = shortcuts.some(
       s =>
         s.id !== editingId
@@ -62,12 +62,12 @@ export function ShortcutsSettings() {
     )
 
     if (isDuplicate) {
-      toast.error("此快捷键已被其他功能使用")
+      toast.error(i18n.t("settings.shortcuts.toast.conflict"))
       return
     }
 
     updateShortcut(editingId, recordingKeys)
-    toast.success("快捷键已更新")
+    toast.success(i18n.t("settings.shortcuts.toast.updated"))
     setEditingId(null)
     setIsRecording(false)
     setRecordingKeys([])
@@ -81,7 +81,7 @@ export function ShortcutsSettings() {
 
   const handleResetAll = () => {
     resetToDefaults()
-    toast.success("已重置为默认快捷键")
+    toast.success(i18n.t("settings.shortcuts.toast.reset"))
   }
 
   const currentShortcut = editingId
@@ -92,9 +92,9 @@ export function ShortcutsSettings() {
     <div className="space-y-4">
       <Alert>
         <Keyboard className="h-4 w-4" />
-        <AlertTitle>快捷键设置</AlertTitle>
+        <AlertTitle>{i18n.t("settings.shortcuts.alertTitle")}</AlertTitle>
         <AlertDescription>
-          自定义应用快捷键。点击编辑按钮后，按下你想要的按键组合。
+          {i18n.t("settings.shortcuts.alertDesc")}
         </AlertDescription>
       </Alert>
 
@@ -119,7 +119,7 @@ export function ShortcutsSettings() {
                   variant="outline"
                   onClick={() => handleStartRecording(shortcut.id)}
                 >
-                  编辑
+                  {i18n.t("settings.shortcuts.edit")}
                 </Button>
               </div>
             </SettingItem>
@@ -135,7 +135,7 @@ export function ShortcutsSettings() {
           className="gap-2"
         >
           <RotateCcw className="w-4 h-4" />
-          重置为默认
+          {i18n.t("settings.shortcuts.reset")}
         </Button>
       </div>
 
@@ -143,47 +143,45 @@ export function ShortcutsSettings() {
       <Dialog open={isRecording} onOpenChange={setIsRecording}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>编辑快捷键</DialogTitle>
+            <DialogTitle>{i18n.t("settings.shortcuts.editDialogTitle")}</DialogTitle>
             <DialogDescription>
               {currentShortcut
-                ? `编辑 "${SHORTCUT_DEFINITIONS[currentShortcut.id as keyof typeof SHORTCUT_DEFINITIONS]?.name}" 的快捷键`
-                : "编辑快捷键"}
+                ? i18n.t("settings.shortcuts.editDialogDesc", { name: SHORTCUT_DEFINITIONS[currentShortcut.id as keyof typeof SHORTCUT_DEFINITIONS]?.name })
+                : i18n.t("settings.shortcuts.editDialogTitle")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div>
               <label className="text-sm font-medium mb-2 block">
-                按下你想要的按键组合
+                {i18n.t("settings.shortcuts.editDialogDesc")}
               </label>
               <Input
                 autoFocus
                 onKeyDown={handleKeyDown}
                 value={formatKeyCombo(recordingKeys)}
                 readOnly
-                placeholder="按下按键..."
+                placeholder={i18n.t("settings.shortcuts.editDialogPlaceholder")}
                 className="text-center font-mono text-lg h-12"
               />
             </div>
 
             <Alert>
               <AlertDescription className="text-xs">
-                支持的修饰键：Ctrl/⌘, Shift, Alt/⌥
-                <br />
-                支持的按键：A-Z, 0-9, F1-F12
+                {i18n.t("settings.shortcuts.editDialogHint")}
               </AlertDescription>
             </Alert>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={handleCancel}>
-              取消
+              {i18n.t("settings.shortcuts.editDialogCancel")}
             </Button>
             <Button
               onClick={handleSaveShortcut}
               disabled={recordingKeys.length === 0}
             >
-              保存
+              {i18n.t("settings.shortcuts.editDialogSave")}
             </Button>
           </DialogFooter>
         </DialogContent>

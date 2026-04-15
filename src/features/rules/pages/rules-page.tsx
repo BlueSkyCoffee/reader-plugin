@@ -25,6 +25,7 @@ import {
 } from "@/shared/components/ui/dialog"
 import { Label } from "@/shared/components/ui/label"
 import { Textarea } from "@/shared/components/ui/textarea"
+import { i18n } from "@/shared/i18n"
 import { StorageManager } from "@/shared/infra/storage"
 import { confirmAction } from "@/shared/utils/browser-dialog"
 
@@ -45,7 +46,7 @@ export function RulesPage() {
     }
     catch (error) {
       console.error("Failed to load rules:", error)
-      toast.error("加载书源规则失败")
+      toast.error(i18n.t("rules.error.loadFailed"))
     }
     finally {
       setLoading(false)
@@ -59,7 +60,7 @@ export function RulesPage() {
   const handleImport = async () => {
     setImportError(null)
     if (!importContent.trim()) {
-      setImportError("请输入书源内容")
+      setImportError(i18n.t("rules.import.toast.error"))
       return
     }
 
@@ -74,14 +75,14 @@ export function RulesPage() {
         newRules = [parsed as ScraperRule]
       }
       else {
-        throw new Error("无效的 JSON 格式")
+        throw new Error(i18n.t("rules.import.toast.invalidJson"))
       }
 
       const isValid = newRules.every(
         r => r.name && r.url && r.search && r.book && r.chapter,
       )
       if (!isValid) {
-        throw new Error("书源格式不正确，缺少必要字段(如 search, book 或是 chapter选择器)")
+        throw new Error(i18n.t("rules.import.toast.invalidFormat"))
       }
 
       const mergedRules = [...rules]
@@ -108,21 +109,21 @@ export function RulesPage() {
       setRules(mergedRules)
       setIsImportOpen(false)
       setImportContent("")
-      toast.success(`成功导入 ${newRules.length} 个书源配置`)
+      toast.success(i18n.t("rules.import.toast.success", { count: newRules.length }))
     }
     catch (e: any) {
-      setImportError(e.message || "解析失败，请检查 JSON 格式是否有语法错误")
+      setImportError(e.message || i18n.t("rules.import.toast.parseFailed"))
     }
   }
 
   const handleDelete = async (id: string, name: string) => {
-    if (!await confirmAction(`确定要删除书源「${name}」吗？`))
+    if (!await confirmAction(i18n.t("rules.delete.confirm", { name })))
       return
 
     const newRules = rules.filter(r => r.id !== id)
     await StorageManager.saveRules(newRules)
     setRules(newRules)
-    toast.success("书源已删除")
+    toast.success(i18n.t("rules.delete.success"))
   }
 
   const handleRuleCreate = async (newRule: ScraperRule) => {
@@ -134,11 +135,11 @@ export function RulesPage() {
 
       if (existingIndex >= 0) {
         mergedRules[existingIndex] = newRule
-        toast.success("书源已更新")
+        toast.success(i18n.t("rules.update.success"))
       }
       else {
         mergedRules.push(newRule)
-        toast.success("书源已添加")
+        toast.success(i18n.t("rules.create.success"))
       }
 
       await StorageManager.saveRules(mergedRules)
@@ -146,7 +147,7 @@ export function RulesPage() {
     }
     catch (error) {
       console.error("Failed to create rule:", error)
-      toast.error("创建书源失败")
+      toast.error(i18n.t("rules.create.error"))
     }
   }
 
@@ -166,13 +167,13 @@ export function RulesPage() {
   const customRulesCount = rules.length - defaultRulesCount
 
   return (
-    <PageLayout title="书源规则中心">
+    <PageLayout title={i18n.t("rules.title")}>
       <div className="space-y-6">
         {/* 统计信息 */}
         <StatGrid className="grid-cols-1 md:grid-cols-3">
-          <StatCard label="书源总数" value={rules.length} />
-          <StatCard label="内置书源" value={defaultRulesCount} valueClassName="text-blue-600" />
-          <StatCard label="自定义书源" value={customRulesCount} valueClassName="text-emerald-600" />
+          <StatCard label={i18n.t("rules.stats.total")} value={rules.length} />
+          <StatCard label={i18n.t("rules.stats.builtin")} value={defaultRulesCount} valueClassName="text-blue-600" />
+          <StatCard label={i18n.t("rules.stats.custom")} value={customRulesCount} valueClassName="text-emerald-600" />
         </StatGrid>
 
         {/* 操作栏 */}
@@ -180,7 +181,7 @@ export function RulesPage() {
           <SearchInput
             className="w-full sm:w-64"
             inputClassName="h-10"
-            placeholder="搜索书源..."
+            placeholder={i18n.t("rules.search.placeholder")}
             value={searchTerm}
             onChange={setSearchTerm}
           />
@@ -192,24 +193,24 @@ export function RulesPage() {
               <DialogTrigger asChild>
                 <Button variant="outline" className="gap-2">
                   <Upload className="w-4 h-4" />
-                  导入
+                  {i18n.t("rules.actions.import")}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                  <DialogTitle>从剪贴板导入书源</DialogTitle>
+                  <DialogTitle>{i18n.t("rules.import.dialogTitle")}</DialogTitle>
                   <DialogDescription>
-                    粘贴标准 JSON 格式的书源配置
+                    {i18n.t("rules.import.description")}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
                     <Label htmlFor="json" className="text-xs font-semibold">
-                      JSON 内容
+                      {i18n.t("rules.import.label")}
                     </Label>
                     <Textarea
                       id="json"
-                      placeholder="粘贴 JSON 内容..."
+                      placeholder={i18n.t("rules.import.placeholder")}
                       className="h-[250px] font-mono text-xs"
                       value={importContent}
                       onChange={e => setImportContent(e.target.value)}
@@ -218,7 +219,7 @@ export function RulesPage() {
                   {importError && (
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>格式错误</AlertTitle>
+                      <AlertTitle>{i18n.t("rules.import.errorTitle")}</AlertTitle>
                       <AlertDescription>{importError}</AlertDescription>
                     </Alert>
                   )}
@@ -228,9 +229,9 @@ export function RulesPage() {
                     variant="ghost"
                     onClick={() => setIsImportOpen(false)}
                   >
-                    取消
+                    {i18n.t("rules.import.cancel")}
                   </Button>
-                  <Button onClick={handleImport}>导入</Button>
+                  <Button onClick={handleImport}>{i18n.t("rules.import.submit")}</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -254,8 +255,8 @@ export function RulesPage() {
           {filteredRules.length === 0 && !loading && (
             <div className="col-span-full">
               <EmptyState
-                title="查无匹配书源"
-                description="尝试换个关键词或通过导入添加新的书源"
+                title={i18n.t("rules.empty.title")}
+                description={i18n.t("rules.empty.description")}
               />
             </div>
           )}
@@ -264,13 +265,9 @@ export function RulesPage() {
         {/* 帮助提示 */}
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>提示</AlertTitle>
+          <AlertTitle>{i18n.t("rules.hint.title")}</AlertTitle>
           <AlertDescription>
-            系统已预装
-            {" "}
-            {defaultRulesCount}
-            {" "}
-            个常用书源。你可以通过"新建书源"按钮添加自定义书源，或通过"导入"按钮批量导入书源配置。
+            {i18n.t("rules.hint.description", { count: defaultRulesCount })}
           </AlertDescription>
         </Alert>
       </div>

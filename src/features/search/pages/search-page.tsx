@@ -15,6 +15,7 @@ import { SearchBar } from "@/shared/components/app/search-bar"
 import { PageLayout } from "@/shared/components/layout/page-layout"
 import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
+import { i18n } from "@/shared/i18n"
 import { StorageManager } from "@/shared/infra/storage"
 import { EpubGenerator } from "@/shared/services/epub-generator"
 
@@ -27,7 +28,7 @@ export function SearchPage() {
 
   const handleSearch = async () => {
     if (!query.trim()) {
-      toast.error("请输入搜索关键词")
+      toast.error(i18n.t("search.toast.emptyQuery"))
       return
     }
 
@@ -48,7 +49,7 @@ export function SearchPage() {
         const engine = new ScraperEngine(directRule)
         const { info, toc } = await engine.getBookInfo(trimmedQuery)
         if (!toc || toc.length === 0) {
-          toast.error("抓取目录失败，该源目前可能拦截了请求")
+          toast.error(i18n.t("search.toast.tocFailedBlocked"))
           return
         }
 
@@ -57,7 +58,7 @@ export function SearchPage() {
             sourceId: directRule.id,
             url: trimmedQuery,
             bookName: info.bookName,
-            author: info.author || "未知",
+            author: info.author || i18n.t("common.unknown"),
             latestChapter: info.latestChapter,
             lastUpdateTime: info.lastUpdateTime,
             category: info.category,
@@ -65,7 +66,7 @@ export function SearchPage() {
             wordCount: info.wordCount,
           },
         ])
-        toast.success(`已解析《${info.bookName}》目录，共 ${toc.length} 章`)
+        toast.success(i18n.t("search.toast.parsedToc", { title: info.bookName, count: toc.length }))
         return
       }
 
@@ -78,7 +79,7 @@ export function SearchPage() {
           return res
         }
         catch (e) {
-          console.error(`[Search] ${rule.name} 搜索失败:`, e)
+          console.error(`[Search] ${rule.name} failed:`, e)
           failedSources.push(rule.name)
           return []
         }
@@ -95,19 +96,19 @@ export function SearchPage() {
 
       if (allResults.length === 0) {
         if (failedSources.length > 0) {
-          toast.error(`搜索失败或受限: ${failedSources.join(", ")}`)
+          toast.error(i18n.t("search.toast.searchFailed", { sources: failedSources.join(", ") }))
         }
         else {
-          toast.info("未找到相关小说，请尝试更换关键词")
+          toast.info(i18n.t("search.toast.noResults"))
         }
       }
       else {
-        toast.success(`找到 ${allResults.length} 个搜索结果`)
+        toast.success(i18n.t("search.toast.resultsFound", { count: allResults.length }))
       }
     }
     catch (error) {
       console.error("Search error:", error)
-      toast.error("搜索出错，请稍后重试")
+      toast.error(i18n.t("search.toast.error"))
     }
     finally {
       setIsLoading(false)
@@ -121,18 +122,18 @@ export function SearchPage() {
         || BUILTIN_RULES.find(r => r.id === result.sourceId)
 
     if (!rule) {
-      toast.error("找不到对应的书源规则")
+      toast.error(i18n.t("search.toast.ruleNotFound"))
       return
     }
 
-    toast.info(`正在获取《${result.bookName}》详情与目录...`)
+    toast.info(i18n.t("search.toast.fetchInfo", { title: result.bookName }))
 
     try {
       const engine = new ScraperEngine(rule)
       const { info, toc } = await engine.getBookInfo(result.url)
 
       if (!toc || !toc.length) {
-        toast.error("抓取目录失败，该源目前可能拦截了请求")
+        toast.error(i18n.t("search.toast.tocFailedBlocked"))
         return
       }
 
@@ -143,7 +144,7 @@ export function SearchPage() {
           b => b.title === info.bookName && b.author === info.author,
         )
       ) {
-        toast.warning("书架中已存在此书")
+        toast.warning(i18n.t("search.toast.duplicateBook"))
         return
       }
 
@@ -173,12 +174,12 @@ export function SearchPage() {
       await StorageManager.saveBook(newBook, unifiedChapters)
       await StorageManager.switchBook(newBookId)
 
-      toast.success(`《${info.bookName}》已入库，开始后台下载全本...`)
+      toast.success(i18n.t("search.toast.addedToShelf", { title: info.bookName }))
       void DownloadManager.getInstance().startDownload(newBook, result.sourceId)
     }
     catch (error) {
       console.error("Add to shelf error:", error)
-      toast.error("添加失败，请尝试其他来源")
+      toast.error(i18n.t("search.toast.addFailed"))
     }
   }
 
@@ -189,19 +190,19 @@ export function SearchPage() {
         || BUILTIN_RULES.find(r => r.id === result.sourceId)
 
     if (!rule) {
-      toast.error("找不到对应的书源规则")
+      toast.error(i18n.t("search.toast.ruleNotFound"))
       return
     }
 
     setDownloadingId(result.url)
-    toast.info(`正在准备《${result.bookName}》下载任务...`)
+    toast.info(i18n.t("search.toast.prepareDownload", { title: result.bookName }))
 
     try {
       const engine = new ScraperEngine(rule)
       const { info, toc } = await engine.getBookInfo(result.url)
 
       if (!toc || !toc.length) {
-        toast.error("抓取目录失败")
+        toast.error(i18n.t("search.toast.tocFailed"))
         return
       }
 
@@ -245,14 +246,17 @@ export function SearchPage() {
           }
           else {
             toast.message(
-              `正在下载: ${task.downloadedChapters}/${task.totalChapters}`,
+              i18n.t("search.toast.downloading", {
+                current: task.downloadedChapters,
+                total: task.totalChapters,
+              }),
               { id: "direct-download" },
             )
           }
         })
       })
 
-      toast.success("下载完成，正在打包 EPUB...", { id: "direct-download" })
+      toast.success(i18n.t("search.toast.packEpub"), { id: "direct-download" })
 
       const fullChapters = await StorageManager.getBookChapters(tempBookId)
       const generator = new EpubGenerator(book, fullChapters)
@@ -260,11 +264,11 @@ export function SearchPage() {
 
       await StorageManager.deleteBook(tempBookId)
 
-      toast.success(`《${info.bookName}》已导出到本地`)
+      toast.success(i18n.t("search.toast.exported", { title: info.bookName }))
     }
     catch (error) {
       console.error("Direct download error:", error)
-      toast.error("下载失败，请尝试其他来源")
+      toast.error(i18n.t("search.toast.downloadFailed"))
     }
     finally {
       setDownloadingId(null)
@@ -272,12 +276,12 @@ export function SearchPage() {
   }
 
   return (
-    <PageLayout title="全网小说大搜索">
+    <PageLayout title={i18n.t("search.title")}>
       <div className="space-y-6">
         <SearchBar
           value={query}
           onChange={setQuery}
-          placeholder="输入作品名、作者或关键词..."
+          placeholder={i18n.t("search.placeholder")}
           className="w-full"
           inputClassName="w-full pr-24 py-6 text-base bg-background"
           onSubmit={(event) => {
@@ -291,7 +295,7 @@ export function SearchPage() {
               size="sm"
               type="submit"
             >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "搜索"}
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : i18n.t("search.action")}
             </Button>
           )}
         />
@@ -300,7 +304,7 @@ export function SearchPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-semibold">
-                搜索结果
+                {i18n.t("search.results.title")}
                 {" "}
                 <span className="text-muted-foreground">
                   (
@@ -310,7 +314,7 @@ export function SearchPage() {
               </h2>
               {isLoading && (
                 <span className="text-xs text-muted-foreground animate-pulse">
-                  正在从多源并行抓取...
+                  {i18n.t("search.results.loading")}
                 </span>
               )}
             </div>
@@ -321,7 +325,7 @@ export function SearchPage() {
                     {results.map((result) => {
                       const sourceName
                         = BUILTIN_RULES.find(r => r.id === result.sourceId)?.name
-                          || "自定义源"
+                          || i18n.t("search.source.custom")
                       return (
                         <div
                           key={`${result.sourceId}-${result.url}`}
@@ -336,7 +340,7 @@ export function SearchPage() {
                                 {result.bookName}
                               </h3>
                               <p className="text-xs text-muted-foreground mt-0.5">
-                                {result.author || "佚名"}
+                                {result.author || i18n.t("common.anonymous")}
                               </p>
                             </div>
                             <Badge variant="secondary" className="text-[10px] shrink-0">
@@ -347,13 +351,13 @@ export function SearchPage() {
                           <div className="text-xs text-muted-foreground space-y-1 bg-muted/50 p-2 rounded border border-border/50">
                             {result.latestChapter && (
                               <p className="line-clamp-1" title={result.latestChapter}>
-                                最新：
+                                {i18n.t("search.result.latest")}
                                 {result.latestChapter}
                               </p>
                             )}
                             {result.lastUpdateTime && (
                               <p>
-                                更新：
+                                {i18n.t("search.result.updated")}
                                 {result.lastUpdateTime}
                               </p>
                             )}
@@ -367,7 +371,7 @@ export function SearchPage() {
                                 onClick={() => handleAddToShelf(result)}
                               >
                                 <BookPlus className="w-3.5 h-3.5 mr-1" />
-                                加入书架
+                                {i18n.t("search.actions.addToShelf")}
                               </Button>
                               <Button
                                 size="sm"
@@ -399,7 +403,7 @@ export function SearchPage() {
                                 target="_blank"
                                 rel="noreferrer"
                               >
-                                去源网站
+                                {i18n.t("search.actions.sourceSite")}
                                 <ExternalLink className="w-3 h-3 ml-1" />
                               </a>
                             </Button>
@@ -413,9 +417,9 @@ export function SearchPage() {
                   !isLoading && (
                     <div className="py-16 text-center">
                       <Info className="w-8 h-8 text-muted-foreground mx-auto mb-3 opacity-50" />
-                      <h3 className="font-medium text-sm mb-1">未找到匹配小说</h3>
+                      <h3 className="font-medium text-sm mb-1">{i18n.t("search.empty.title")}</h3>
                       <p className="text-xs text-muted-foreground">
-                        换个关键词，或者去规则页启用更多书源吧
+                        {i18n.t("search.empty.description")}
                       </p>
                     </div>
                   )

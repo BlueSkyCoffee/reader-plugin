@@ -22,31 +22,31 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
   // 小说阅读组
   {
     path: "/",
-    label: "我的书架",
+    label: i18n.t("nav.bookshelf"),
     icon: "lucide:library",
     group: "reading",
   },
   {
     path: "/search",
-    label: "全网搜索",
+    label: i18n.t("nav.search"),
     icon: "lucide:search",
     group: "reading",
   },
   {
     path: "/downloads",
-    label: "下载管理",
+    label: i18n.t("nav.downloads"),
     icon: "lucide:download",
     group: "reading",
   },
   {
     path: "/lightnovel",
-    label: "轻小说下载",
+    label: i18n.t("nav.lightnovel"),
     icon: "lucide:book-open",
     group: "reading",
   },
   {
     path: "/rules",
-    label: "书源规则",
+    label: i18n.t("nav.rules"),
     icon: "lucide:book-key",
     group: "reading",
   },

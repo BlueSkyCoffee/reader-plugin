@@ -6,6 +6,7 @@ import { SettingItem } from "@/shared/components/settings/setting-item"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
+import { i18n } from "@/shared/i18n"
 import { settingsAtom } from "@/shared/state/store"
 import { DEFAULT_USER_SETTINGS } from "@/types/config"
 
@@ -39,13 +40,13 @@ function ReaderStylePreview({
 
   return (
     <div className="rounded-xl border border-dashed border-border bg-muted/30 p-4">
-      <div className="text-xs text-muted-foreground mb-2">阅读区域预览</div>
+      <div className="text-xs text-muted-foreground mb-2">{i18n.t("settings.readerEmbed.preview.label")}</div>
       <div className="relative flex justify-center">
         <div className="border shadow-sm flex flex-col" style={previewStyle}>
           {isFloating && (
             <div className="flex items-center justify-between border-b px-3 py-1 text-[10px] uppercase tracking-wide">
-              <span className="opacity-70">拖动区</span>
-              <span className="opacity-50">浮动模式</span>
+              <span className="opacity-70">{i18n.t("settings.readerEmbed.preview.dragZone")}</span>
+              <span className="opacity-50">{i18n.t("settings.readerEmbed.preview.floatingMode")}</span>
             </div>
           )}
           <div
@@ -53,12 +54,12 @@ function ReaderStylePreview({
             style={{ fontSize: `${fontSize}px`, lineHeight }}
           >
             <p className="line-clamp-3">
-              这里会显示正在阅读的章节内容。你可以调整背景、字体、透明度以及尺寸。
+              {i18n.t("settings.readerEmbed.preview.content")}
             </p>
           </div>
           <div className="border-t px-3 py-1 text-[10px] flex items-center justify-between">
             <span>1 / 80</span>
-            <span style={{ color: styleConfig.accent }}>上一章 · 下一章</span>
+            <span style={{ color: styleConfig.accent }}>{i18n.t("settings.readerEmbed.preview.nav")}</span>
           </div>
         </div>
       </div>
@@ -96,13 +97,13 @@ export function ReaderEmbedSettings() {
 
   return (
     <ConfigCard
-      title="嵌入式阅读区域"
-      description="在当前网页内嵌阅读面板，支持固定或浮动显示"
+      title={i18n.t("settings.readerEmbed.title")}
+      description={i18n.t("settings.readerEmbed.desc")}
     >
       <SettingItem
         icon={<Move className="w-4 h-4" />}
-        title="显示位置"
-        description="可固定在页面顶部、底部，或使用可拖动的浮动面板"
+        title={i18n.t("settings.readerEmbed.position.title")}
+        description={i18n.t("settings.readerEmbed.position.desc")}
       >
         <Tabs
           value={settings.position ?? DEFAULT_USER_SETTINGS.position}
@@ -110,21 +111,21 @@ export function ReaderEmbedSettings() {
           className="w-[260px]"
         >
           <TabsList className="w-full grid grid-cols-3">
-            <TabsTrigger value="top">顶部</TabsTrigger>
-            <TabsTrigger value="bottom">底部</TabsTrigger>
-            <TabsTrigger value="floating">浮动</TabsTrigger>
+            <TabsTrigger value="top">{i18n.t("settings.readerEmbed.position.top")}</TabsTrigger>
+            <TabsTrigger value="bottom">{i18n.t("settings.readerEmbed.position.bottom")}</TabsTrigger>
+            <TabsTrigger value="floating">{i18n.t("settings.readerEmbed.position.floating")}</TabsTrigger>
           </TabsList>
         </Tabs>
       </SettingItem>
 
       <SettingItem
         icon={<Palette className="w-4 h-4" />}
-        title="颜色与透明度"
-        description="自定义阅读区域的背景、文字、边框和强调色"
+        title={i18n.t("settings.readerEmbed.colors.title")}
+        description={i18n.t("settings.readerEmbed.colors.desc")}
       >
         <div className="grid grid-cols-2 gap-3">
           <Label className="flex items-center justify-between gap-3">
-            背景
+            {i18n.t("settings.readerEmbed.colors.background")}
             <Input
               type="color"
               className="h-9 w-14 p-1"
@@ -133,7 +134,7 @@ export function ReaderEmbedSettings() {
             />
           </Label>
           <Label className="flex items-center justify-between gap-3">
-            文字
+            {i18n.t("settings.readerEmbed.colors.foreground")}
             <Input
               type="color"
               className="h-9 w-14 p-1"
@@ -142,7 +143,7 @@ export function ReaderEmbedSettings() {
             />
           </Label>
           <Label className="flex items-center justify-between gap-3">
-            边框
+            {i18n.t("settings.readerEmbed.colors.border")}
             <Input
               type="color"
               className="h-9 w-14 p-1"
@@ -151,7 +152,7 @@ export function ReaderEmbedSettings() {
             />
           </Label>
           <Label className="flex items-center justify-between gap-3">
-            强调
+            {i18n.t("settings.readerEmbed.colors.accent")}
             <Input
               type="color"
               className="h-9 w-14 p-1"
@@ -160,7 +161,7 @@ export function ReaderEmbedSettings() {
             />
           </Label>
           <Label className="flex items-center justify-between gap-3">
-            透明度
+            {i18n.t("settings.readerEmbed.colors.opacity")}
             <Input
               type="number"
               min="0.5"
@@ -172,7 +173,7 @@ export function ReaderEmbedSettings() {
             />
           </Label>
           <Label className="flex items-center justify-between gap-3">
-            圆角
+            {i18n.t("settings.readerEmbed.colors.radius")}
             <Input
               type="number"
               min="0"
@@ -188,12 +189,12 @@ export function ReaderEmbedSettings() {
 
       <SettingItem
         icon={<Ruler className="w-4 h-4" />}
-        title="尺寸与排版"
-        description="调整阅读区域的高度与字体排版"
+        title={i18n.t("settings.readerEmbed.size.title")}
+        description={i18n.t("settings.readerEmbed.size.desc")}
       >
         <div className="grid grid-cols-2 gap-3">
           <Label className="flex items-center justify-between gap-3">
-            条形高度
+            {i18n.t("settings.readerEmbed.size.barHeight")}
             <Input
               type="number"
               min="48"
@@ -205,7 +206,7 @@ export function ReaderEmbedSettings() {
             />
           </Label>
           <Label className="flex items-center justify-between gap-3">
-            浮动宽度
+            {i18n.t("settings.readerEmbed.size.floatingWidth")}
             <Input
               type="number"
               min="260"
@@ -217,7 +218,7 @@ export function ReaderEmbedSettings() {
             />
           </Label>
           <Label className="flex items-center justify-between gap-3">
-            浮动高度
+            {i18n.t("settings.readerEmbed.size.floatingHeight")}
             <Input
               type="number"
               min="120"
@@ -229,7 +230,7 @@ export function ReaderEmbedSettings() {
             />
           </Label>
           <Label className="flex items-center justify-between gap-3">
-            字号
+            {i18n.t("settings.readerEmbed.size.fontSize")}
             <Input
               type="number"
               min="12"
@@ -241,7 +242,7 @@ export function ReaderEmbedSettings() {
             />
           </Label>
           <Label className="flex items-center justify-between gap-3">
-            行高
+            {i18n.t("settings.readerEmbed.size.lineHeight")}
             <Input
               type="number"
               min="1"
@@ -257,8 +258,8 @@ export function ReaderEmbedSettings() {
 
       <SettingItem
         icon={<BookOpenText className="w-4 h-4" />}
-        title="效果预览"
-        description="实时查看嵌入式阅读区域的样式效果"
+        title={i18n.t("settings.readerEmbed.preview.title")}
+        description={i18n.t("settings.readerEmbed.preview.desc")}
       >
         <ReaderStylePreview
           position={settings.position ?? DEFAULT_USER_SETTINGS.position}

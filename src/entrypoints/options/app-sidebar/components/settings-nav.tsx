@@ -14,6 +14,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/shared/components/ui/sidebar"
+import { i18n } from "@/shared/i18n"
 import { useGroupedNavigation, useIsActive } from "../../hooks"
 
 /**
@@ -67,8 +68,8 @@ export function SettingsNav() {
 
   return (
     <>
-      <NavigationGroup label="小说阅读" items={reading} />
-      <NavigationGroup label="设置" items={settings} />
+      <NavigationGroup label={i18n.t("sidebar.group.reading")} items={reading} />
+      <NavigationGroup label={i18n.t("sidebar.group.settings")} items={settings} />
     </>
   )
 }

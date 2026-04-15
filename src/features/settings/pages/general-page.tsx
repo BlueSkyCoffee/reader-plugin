@@ -8,6 +8,7 @@ import { SettingItem } from "@/shared/components/settings/setting-item"
 import { Input } from "@/shared/components/ui/input"
 import { Switch } from "@/shared/components/ui/switch"
 import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
+import { i18n } from "@/shared/i18n"
 
 export function GeneralPage() {
   const { theme, setTheme } = useTheme()
@@ -19,16 +20,16 @@ export function GeneralPage() {
   }
 
   return (
-    <PageLayout title="通用设置">
+    <PageLayout title={i18n.t("settings.general")}>
       <div className="space-y-0 divide-y">
         <ConfigCard
-          title="外观与主题"
-          description="自定义应用的视觉外观"
+          title={i18n.t("settings.general.appearance.title")}
+          description={i18n.t("settings.general.appearance.desc")}
         >
           <SettingItem
             icon={<Sun className="w-4 h-4" />}
-            title="主题模式"
-            description="浅色、深色或跟随系统"
+            title={i18n.t("settings.general.theme.title")}
+            description={i18n.t("settings.general.theme.desc")}
           >
             <Tabs
               value={theme}
@@ -38,15 +39,15 @@ export function GeneralPage() {
               <TabsList className="w-full grid grid-cols-3">
                 <TabsTrigger value="light" className="gap-1">
                   <Sun className="w-3.5 h-3.5" />
-                  浅色
+                  {i18n.t("settings.general.theme.light")}
                 </TabsTrigger>
                 <TabsTrigger value="dark" className="gap-1">
                   <Moon className="w-3.5 h-3.5" />
-                  深色
+                  {i18n.t("settings.general.theme.dark")}
                 </TabsTrigger>
                 <TabsTrigger value="system" className="gap-1">
                   <Zap className="w-3.5 h-3.5" />
-                  系统
+                  {i18n.t("settings.general.theme.system")}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -56,24 +57,24 @@ export function GeneralPage() {
         <ReaderEmbedSettings />
 
         <ConfigCard
-          title="书源更新与自动化"
-          description="配置书源和规则的更新行为"
+          title={i18n.t("settings.general.rules.title")}
+          description={i18n.t("settings.general.rules.desc")}
         >
           <SettingItem
-            title="自动检测默认规则更新"
-            description="当检测到内置书源失效时，在启动时自动获取最新社区修复节点"
+            title={i18n.t("settings.general.rules.autoUpdate.title")}
+            description={i18n.t("settings.general.rules.autoUpdate.desc")}
           >
-            <Switch defaultChecked aria-label="启用自动规则更新" />
+            <Switch defaultChecked aria-label={i18n.t("settings.general.rules.autoUpdate.aria")} />
           </SettingItem>
         </ConfigCard>
 
         <ConfigCard
-          title="下载设置"
-          description="配置下载行为和性能参数"
+          title={i18n.t("settings.general.download.title")}
+          description={i18n.t("settings.general.download.desc")}
         >
           <SettingItem
-            title="最大并发下载数"
-            description="决定同时发起的网络请求数。过高可能增加被风控的风险"
+            title={i18n.t("settings.general.download.concurrent.title")}
+            description={i18n.t("settings.general.download.concurrent.desc")}
           >
             <div className="flex items-center gap-2">
               <Input
@@ -83,14 +84,16 @@ export function GeneralPage() {
                 defaultValue="3"
                 className="w-16 h-9"
               />
-              <span className="text-xs text-muted-foreground whitespace-nowrap">线程</span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {i18n.t("settings.general.download.concurrent.unit")}
+              </span>
             </div>
           </SettingItem>
         </ConfigCard>
 
         <ConfigCard
-          title="快捷键设置"
-          description="自定义应用快捷键，提高工作效率"
+          title={i18n.t("settings.general.shortcuts.title")}
+          description={i18n.t("settings.general.shortcuts.desc")}
         >
           <ShortcutsSettings />
         </ConfigCard>

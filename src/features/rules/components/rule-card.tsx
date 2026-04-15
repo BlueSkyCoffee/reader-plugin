@@ -2,6 +2,7 @@ import type { ScraperRule } from "@/types/novel"
 import { Check, Copy, ExternalLink, Globe, Trash2 } from "lucide-react"
 import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
+import { i18n } from "@/shared/i18n"
 
 interface RuleCardProps {
   rule: ScraperRule
@@ -40,7 +41,7 @@ export function RuleCard({
                   variant="secondary"
                   className="text-[10px] shrink-0 bg-[oklch(0.9788_0.1212_108.45_/_0.9)] text-black border border-black/10"
                 >
-                  内置
+                  {i18n.t("rules.card.builtin")}
                 </Badge>
               )}
             </div>
@@ -67,17 +68,17 @@ export function RuleCard({
       <div className="flex flex-wrap gap-1.5">
         {rule.search && (
           <Badge variant="secondary" className="text-[10px] bg-primary/10 text-slate-950 border border-primary/20">
-            搜索
+            {i18n.t("rules.card.search")}
           </Badge>
         )}
         {rule.toc && (
           <Badge variant="secondary" className="text-[10px] bg-emerald-500/10 text-slate-950 border border-emerald-500/20">
-            目录
+            {i18n.t("rules.card.toc")}
           </Badge>
         )}
         {rule.chapter && (
           <Badge variant="secondary" className="text-[10px] bg-amber-500/10 text-slate-950 border border-amber-500/20">
-            正文
+            {i18n.t("rules.card.content")}
           </Badge>
         )}
       </div>
@@ -86,13 +87,13 @@ export function RuleCard({
         <button
           className="font-mono hover:text-primary transition-colors flex items-center gap-1"
           onClick={() => onCopyId(rule.id)}
-          title="复制 ID"
+          title={i18n.t("rules.card.copyId")}
         >
           {copiedId === rule.id
             ? (
                 <>
                   <Check className="w-3 h-3" />
-                  已复制
+                  {i18n.t("rules.card.copied")}
                 </>
               )
             : (

@@ -9,6 +9,7 @@ import { PageLayout } from "@/shared/components/layout/page-layout"
 import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
 import { ScrollArea } from "@/shared/components/ui/scroll-area"
+import { i18n } from "@/shared/i18n"
 import { StorageManager } from "@/shared/infra/storage"
 import { EpubGenerator } from "@/shared/services/epub-generator"
 import { confirmAction } from "@/shared/utils/browser-dialog"
@@ -18,7 +19,7 @@ export function DownloadPage() {
   const [downloadRecords, setDownloadRecords] = useState<DownloadRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
-  const [storageUsed, setStorageUsed] = useState<string>("计算中...")
+  const [storageUsed, setStorageUsed] = useState<string>(i18n.t("download.stats.calculating"))
   const [downloadStats, setDownloadStats] = useState({
     totalRecords: 0,
     totalSize: 0,
@@ -44,7 +45,7 @@ export function DownloadPage() {
     }
     catch (error) {
       console.error("Load data error:", error)
-      toast.error("加载数据失败")
+      toast.error(i18n.t("download.toast.loadFailed"))
     }
     finally {
       setIsLoading(false)
@@ -61,7 +62,7 @@ export function DownloadPage() {
       const chapters = await StorageManager.getBookChapters(book.id)
 
       if (!chapters || chapters.length === 0) {
-        toast.error("书籍内容为空，无法下载")
+        toast.error(i18n.t("download.toast.emptyBook"))
         return
       }
 
@@ -86,11 +87,11 @@ export function DownloadPage() {
       setDownloadRecords(records)
       setDownloadStats(stats)
 
-      toast.success(`《${book.title}》导出EPUB成功`)
+      toast.success(i18n.t("download.toast.exportSuccess", { title: book.title }))
     }
     catch (error) {
       console.error("Download error:", error)
-      toast.error("下载失败，请稍后重试")
+      toast.error(i18n.t("download.toast.exportFailed"))
     }
     finally {
       setDownloadingId(null)
@@ -98,7 +99,7 @@ export function DownloadPage() {
   }
 
   const handleDeleteRecord = async (recordId: string, recordTitle: string) => {
-    if (!await confirmAction(`确定要删除下载记录《${recordTitle}》吗？`)) {
+    if (!await confirmAction(i18n.t("download.confirm.deleteRecord", { title: recordTitle }))) {
       return
     }
 
@@ -109,16 +110,16 @@ export function DownloadPage() {
       setDownloadRecords(records)
       setDownloadStats(stats)
 
-      toast.success("下载记录已删除")
+      toast.success(i18n.t("download.toast.recordDeleted"))
     }
     catch (error) {
       console.error("Delete record error:", error)
-      toast.error("删除失败")
+      toast.error(i18n.t("download.toast.deleteFailed"))
     }
   }
 
   const handleClearAllRecords = async () => {
-    if (!await confirmAction("确定要清空所有下载记录吗？此操作不可撤销。")) {
+    if (!await confirmAction(i18n.t("download.confirm.clearAll"))) {
       return
     }
 
@@ -132,35 +133,35 @@ export function DownloadPage() {
         recentCount: 0,
       })
 
-      toast.success("所有下载记录已清空")
+      toast.success(i18n.t("download.toast.cleared"))
     }
     catch (error) {
       console.error("Clear records error:", error)
-      toast.error("清空失败")
+      toast.error(i18n.t("download.toast.clearFailed"))
     }
   }
 
   return (
     <PageLayout
-      title="下载中心"
+      title={i18n.t("download.title")}
     >
       <div className="space-y-6">
         {/* Stats Cards */}
         <StatGrid>
-          <StatCard label="已缓存书籍" value={books.length} />
-          <StatCard label="下载记录总数" value={downloadStats.totalRecords} />
+          <StatCard label={i18n.t("download.stats.cached")} value={books.length} />
+          <StatCard label={i18n.t("download.stats.totalRecords")} value={downloadStats.totalRecords} />
           <StatCard
-            label="最近 7 天活跃"
+            label={i18n.t("download.stats.recent")}
             value={downloadStats.recentCount}
             valueClassName="text-emerald-600"
           />
-          <StatCard label="已用存储空间" value={isLoading ? "..." : storageUsed} />
+          <StatCard label={i18n.t("download.stats.storage")} value={isLoading ? i18n.t("download.stats.ellipsis") : storageUsed} />
         </StatGrid>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Books To Download List */}
           <div className="lg:col-span-2 space-y-4">
-            <h2 className="text-base font-semibold">可导出书籍</h2>
+            <h2 className="text-base font-semibold">{i18n.t("download.section.exportable")}</h2>
 
             {books.length > 0
               ? (
@@ -178,12 +179,12 @@ export function DownloadPage() {
                             {book.title}
                           </h3>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {book.author || "未知"}
+                            {book.author || i18n.t("common.unknown")}
                             {" "}
                             •
                             {book.totalChapters}
                             {" "}
-                            章
+                            {i18n.t("download.unit.chapter")}
                           </p>
                         </div>
                         <Button
@@ -193,7 +194,7 @@ export function DownloadPage() {
                           onClick={() => handleDownloadBook(book)}
                           disabled={downloadingId === book.id}
                         >
-                          {downloadingId === book.id ? "导出中..." : "导出"}
+                          {downloadingId === book.id ? i18n.t("download.actions.exporting") : i18n.t("download.actions.export")}
                         </Button>
                       </MiniCard>
                     ))}
@@ -201,8 +202,8 @@ export function DownloadPage() {
                 )
               : (
                   <EmptyState
-                    title="书架暂无缓存书籍可导出"
-                    description="先到书架缓存章节后再进行导出"
+                    title={i18n.t("download.empty.exportable.title")}
+                    description={i18n.t("download.empty.exportable.desc")}
                   />
                 )}
           </div>
@@ -210,7 +211,7 @@ export function DownloadPage() {
           {/* Download Records Sidebar */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold">最近记录</h2>
+              <h2 className="text-base font-semibold">{i18n.t("download.section.recent")}</h2>
               {downloadStats.totalRecords > 0 && (
                 <Button
                   variant="ghost"
@@ -219,7 +220,7 @@ export function DownloadPage() {
                   className="h-7 text-xs text-destructive hover:bg-destructive/10"
                 >
                   <Trash className="w-3 h-3 mr-1" />
-                  清空
+                  {i18n.t("download.actions.clear")}
                 </Button>
               )}
             </div>
@@ -259,7 +260,7 @@ export function DownloadPage() {
                                 className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive/60 hover:text-destructive"
                                 onClick={() =>
                                   handleDeleteRecord(record.id, record.title)}
-                                title="删除记录"
+                                title={i18n.t("download.actions.deleteRecord")}
                               >
                                 <Trash2 className="w-3 h-3" />
                               </button>
@@ -273,8 +274,8 @@ export function DownloadPage() {
               : (
                   <EmptyState
                     icon={<Info className="w-4 h-4" />}
-                    title="还没有任何导出记录"
-                    description="导出完成的书籍会在这里展示"
+                    title={i18n.t("download.empty.records.title")}
+                    description={i18n.t("download.empty.records.desc")}
                     className="border-0 bg-transparent"
                   />
                 )}

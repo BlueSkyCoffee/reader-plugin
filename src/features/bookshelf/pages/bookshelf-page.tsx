@@ -7,6 +7,7 @@ import { SearchInput } from "@/shared/components/app/search-input"
 import { PageLayout } from "@/shared/components/layout/page-layout"
 import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
+import { i18n } from "@/shared/i18n"
 import { StorageManager } from "@/shared/infra/storage"
 import { EpubGenerator } from "@/shared/services/epub-generator"
 import { EpubService } from "@/shared/services/epub-service"
@@ -22,26 +23,26 @@ export function BookshelfPage() {
     try {
       await StorageManager.switchBook(id)
       refresh()
-      toast.success("已切换到当前书籍")
+      toast.success(i18n.t("bookshelf.toast.switchSuccess"))
     }
     catch {
-      toast.error("书籍切换失败")
+      toast.error(i18n.t("bookshelf.toast.switchFailed"))
     }
   }
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!await confirmAction("确定要删除这本书及其所有缓存的章节内容吗？")) {
+    if (!await confirmAction(i18n.t("bookshelf.confirm.deleteBook"))) {
       return
     }
 
     try {
       await StorageManager.deleteBook(id)
       refresh()
-      toast.success("删除成功")
+      toast.success(i18n.t("bookshelf.toast.deleteSuccess"))
     }
     catch {
-      toast.error("删除失败")
+      toast.error(i18n.t("bookshelf.toast.deleteFailed"))
     }
   }
 
@@ -50,10 +51,10 @@ export function BookshelfPage() {
       const chapters = await StorageManager.getBookChapters(book.id)
       const generator = new EpubGenerator(book, chapters)
       await generator.generateAndDownload()
-      toast.success("EPUB 导出成功，已开始下载")
+      toast.success(i18n.t("bookshelf.toast.exportSuccess"))
     }
     catch {
-      toast.error("导出生成失败")
+      toast.error(i18n.t("bookshelf.toast.exportFailed"))
     }
   }
 
@@ -66,11 +67,11 @@ export function BookshelfPage() {
       const { book, chapters } = await EpubService.parseEpub(file)
       await StorageManager.saveBook(book, chapters)
       refresh()
-      toast.success("本地书籍导入成功")
+      toast.success(i18n.t("bookshelf.toast.importSuccess"))
     }
     catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "未知错误"
-      toast.error(`导入失败: ${message}`)
+      const message = error instanceof Error ? error.message : i18n.t("common.unknownError")
+      toast.error(i18n.t("bookshelf.toast.importFailed", { message }))
     }
     finally {
       setIsImporting(false)
@@ -99,8 +100,8 @@ export function BookshelfPage() {
 
   return (
     <PageLayout
-      title="我的书架"
-      description={`共收藏了 ${books.length} 本书籍`}
+      title={i18n.t("bookshelf.title")}
+      description={i18n.t("bookshelf.description", { count: books.length })}
       action={(
         <Button
           onClick={handleImportClick}
@@ -114,7 +115,7 @@ export function BookshelfPage() {
             : (
                 <Plus className="w-4 h-4" />
               )}
-          离线导入
+          {i18n.t("bookshelf.actions.importOffline")}
         </Button>
       )}
     >
@@ -128,16 +129,18 @@ export function BookshelfPage() {
         >
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">导入本地 EPUB</p>
+              <p className="text-sm font-medium text-foreground">
+                {i18n.t("bookshelf.import.title")}
+              </p>
               <p className="text-xs text-muted-foreground">
-                拖拽文件到此处或点击选择
+                {i18n.t("bookshelf.import.desc")}
               </p>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary">.epub</Badge>
               <Button size="sm" variant="outline" className="gap-2">
                 <Plus className="w-4 h-4" />
-                选择文件
+                {i18n.t("bookshelf.import.chooseFile")}
               </Button>
             </div>
           </div>
@@ -145,7 +148,7 @@ export function BookshelfPage() {
         </div>
 
         <SearchInput
-          placeholder="搜索书架..."
+          placeholder={i18n.t("bookshelf.search.placeholder")}
           value={searchQuery}
           onChange={setSearchQuery}
         />

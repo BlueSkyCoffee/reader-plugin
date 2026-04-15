@@ -27,6 +27,7 @@ import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { ScrollArea } from "@/shared/components/ui/scroll-area"
 import { Switch } from "@/shared/components/ui/switch"
+import { i18n } from "@/shared/i18n"
 
 /**
  * 来源选择器
@@ -45,14 +46,14 @@ function SourceSelector({
         onClick={() => onSourceChange("bili")}
         className="flex-1"
       >
-        哔哩轻小说
+        {i18n.t("lightnovel.source.bili")}
       </Button>
       <Button
         variant={source === "wenku" ? "default" : "outline"}
         onClick={() => onSourceChange("wenku")}
         className="flex-1"
       >
-        轻小说文库
+        {i18n.t("lightnovel.source.wenku")}
       </Button>
     </div>
   )
@@ -79,8 +80,8 @@ function SearchInput({
       <Input
         placeholder={
           source === "bili"
-            ? "输入小说 ID 或链接（如：123456）"
-            : "输入小说 ID 或链接"
+            ? i18n.t("lightnovel.search.placeholder.bili")
+            : i18n.t("lightnovel.search.placeholder.wenku")
         }
         value={input}
         onChange={e => onInputChange(e.target.value)}
@@ -97,13 +98,13 @@ function SearchInput({
           ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                解析中
+                {i18n.t("lightnovel.search.parsing")}
               </>
             )
           : (
               <>
                 <Search className="w-4 h-4" />
-                解析
+                {i18n.t("lightnovel.search.parse")}
               </>
             )}
       </Button>
@@ -129,7 +130,7 @@ function UsageExample({ source }: { source: "bili" | "wenku" }) {
     <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm">
       <div className="flex items-center gap-2 mb-2">
         <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-        <span className="font-medium text-blue-900 dark:text-blue-100">使用示例</span>
+        <span className="font-medium text-blue-900 dark:text-blue-100">{i18n.t("lightnovel.example.title")}</span>
       </div>
       <div className="flex items-center gap-2">
         <code className="bg-white dark:bg-slate-900 px-2 py-1 rounded text-xs font-mono">
@@ -176,18 +177,20 @@ function NovelInfoCard({ novelInfo }: { novelInfo: LightNovelInfo }) {
         <div className="flex-1">
           <h2 className="text-xl font-bold">{novelInfo.title}</h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            作者：
+            {i18n.t("lightnovel.info.author")}
             {novelInfo.author}
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            状态：
+            {i18n.t("lightnovel.info.status")}
             {novelInfo.status}
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            卷数：
+            {i18n.t("lightnovel.info.volumes")}
             {novelInfo.volumes.length}
             {" "}
-            | 章节：
+            |
+            {" "}
+            {i18n.t("lightnovel.info.chapters")}
             {totalChapters}
           </p>
           {novelInfo.description && (
@@ -220,13 +223,13 @@ function VolumeSelector({
   return (
     <div className="border rounded-lg p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold">选择卷</h3>
+        <h3 className="font-semibold">{i18n.t("lightnovel.volume.title")}</h3>
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={onSelectAll}>
-            全选
+            {i18n.t("lightnovel.volume.selectAll")}
           </Button>
           <Button size="sm" variant="outline" onClick={onClearSelection}>
-            清空
+            {i18n.t("lightnovel.volume.clear")}
           </Button>
         </div>
       </div>
@@ -249,7 +252,8 @@ function VolumeSelector({
                 (
                 {volume.chapters.length}
                 {" "}
-                章)
+                {i18n.t("lightnovel.volume.chapterUnit")}
+                )
               </span>
             </label>
           ))}
@@ -286,10 +290,10 @@ function ChapterRangeInput({
 
   return (
     <div className="border rounded-lg p-4 space-y-3">
-      <h3 className="font-semibold">章节范围</h3>
+      <h3 className="font-semibold">{i18n.t("lightnovel.range.title")}</h3>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">起始章节</label>
+          <label className="text-sm font-medium">{i18n.t("lightnovel.range.start")}</label>
           <Input
             type="number"
             min="1"
@@ -300,7 +304,7 @@ function ChapterRangeInput({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">结束章节</label>
+          <label className="text-sm font-medium">{i18n.t("lightnovel.range.end")}</label>
           <Input
             type="number"
             min="1"
@@ -338,7 +342,7 @@ function DownloadProgressBar({
   return (
     <div className="border rounded-lg p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold">下载进度</h3>
+        <h3 className="font-semibold">{i18n.t("lightnovel.download.title")}</h3>
         <div className="flex gap-2">
           {isDownloading && (
             <>
@@ -346,18 +350,18 @@ function DownloadProgressBar({
                 ? (
                     <Button size="sm" variant="outline" onClick={onResume} className="gap-2">
                       <Play className="w-4 h-4" />
-                      恢复
+                      {i18n.t("lightnovel.download.resume")}
                     </Button>
                   )
                 : (
                     <Button size="sm" variant="outline" onClick={onPause} className="gap-2">
                       <Pause className="w-4 h-4" />
-                      暂停
+                      {i18n.t("lightnovel.download.pause")}
                     </Button>
                   )}
               <Button size="sm" variant="outline" onClick={onStop} className="gap-2">
                 <X className="w-4 h-4" />
-                停止
+                {i18n.t("lightnovel.download.stop")}
               </Button>
             </>
           )}
@@ -385,7 +389,7 @@ function DownloadProgressBar({
         </div>
         {progress.currentChapter && (
           <p className="text-xs text-gray-600 dark:text-gray-400">
-            当前：
+            {i18n.t("lightnovel.download.current")}
             {progress.currentChapter}
           </p>
         )}
@@ -428,7 +432,7 @@ export function LightNovelPage() {
 
   const handleSearch = async () => {
     if (!input.trim()) {
-      toast.error("请输入小说 ID 或链接")
+      toast.error(i18n.t("lightnovel.toast.inputRequired"))
       return
     }
 
@@ -446,11 +450,11 @@ export function LightNovelPage() {
 
   const handleDownload = async () => {
     if (!novelInfo || selectedVolumes.size === 0) {
-      toast.error("请选择至少一卷")
+      toast.error(i18n.t("lightnovel.toast.selectVolume"))
       return
     }
     if (!packer) {
-      toast.error("请先解析小说信息")
+      toast.error(i18n.t("lightnovel.toast.parseFirst"))
       return
     }
 
@@ -463,7 +467,7 @@ export function LightNovelPage() {
       )
 
       if (totalChapters === 0) {
-        toast.error("没有选择任何章节")
+        toast.error(i18n.t("lightnovel.toast.noChapters"))
         return
       }
 
@@ -481,7 +485,7 @@ export function LightNovelPage() {
         },
       )
 
-      toast.success("下载完成")
+      toast.success(i18n.t("lightnovel.toast.downloadComplete"))
     }
     catch (error) {
       console.error("Download error:", error)
@@ -491,9 +495,9 @@ export function LightNovelPage() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">轻小说下载</h1>
+        <h1 className="text-3xl font-bold mb-2">{i18n.t("lightnovel.title")}</h1>
         <p className="text-gray-600 dark:text-gray-400">
-          支持哔哩轻小说和轻小说文库的下载
+          {i18n.t("lightnovel.description")}
         </p>
       </div>
 
@@ -538,12 +542,12 @@ export function LightNovelPage() {
 
           {/* 打包选项 */}
           <div className="border rounded-lg p-4 space-y-3">
-            <h3 className="font-semibold">打包选项</h3>
+            <h3 className="font-semibold">{i18n.t("lightnovel.options.title")}</h3>
             <div className="flex items-center justify-between text-sm">
               <div>
-                <p className="font-medium">合并分卷为一个文件</p>
+                <p className="font-medium">{i18n.t("lightnovel.options.combineVolume")}</p>
                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                  仅当选择多卷时可用
+                  {i18n.t("lightnovel.options.combineVolume.desc")}
                 </p>
               </div>
               <Switch
@@ -554,9 +558,9 @@ export function LightNovelPage() {
             </div>
             <div className="flex items-center justify-between text-sm">
               <div>
-                <p className="font-medium">章节标题插入正文</p>
+                <p className="font-medium">{i18n.t("lightnovel.options.chapterTitle")}</p>
                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                  每章顶部自动添加标题
+                  {i18n.t("lightnovel.options.chapterTitle.desc")}
                 </p>
               </div>
               <Switch
@@ -589,13 +593,13 @@ export function LightNovelPage() {
               ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    下载中...
+                    {i18n.t("lightnovel.download.downloading")}
                   </>
                 )
               : (
                   <>
                     <Download className="w-4 h-4" />
-                    开始下载
+                    {i18n.t("lightnovel.download.button")}
                   </>
                 )}
           </Button>

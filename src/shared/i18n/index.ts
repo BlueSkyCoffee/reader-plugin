@@ -24,14 +24,16 @@ const FALLBACK_MESSAGES: Record<string, string> = {
   "help.toc.desc": "按需跳转到对应章节",
 }
 
-function resolveMessage(key: string): string {
+function resolveMessage(key: string, params?: Record<string, string | number>): string {
   const getMessage = browser?.i18n?.getMessage as ((messageName: string) => string) | undefined
   const raw = getMessage?.(key)
-  if (raw) {
-    return raw
+  const message = raw || FALLBACK_MESSAGES[key] || key
+  if (!params) {
+    return message
   }
-
-  return FALLBACK_MESSAGES[key] ?? key
+  return Object.entries(params).reduce((acc, [name, value]) => {
+    return acc.replaceAll(`{${name}}`, String(value))
+  }, message)
 }
 
 export const i18n = {

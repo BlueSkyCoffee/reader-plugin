@@ -18,6 +18,7 @@ import { Label } from "@/shared/components/ui/label"
 import { ScrollArea } from "@/shared/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
 import { Textarea } from "@/shared/components/ui/textarea"
+import { i18n } from "@/shared/i18n"
 
 interface CreateRuleDialogProps {
   onRuleCreate: (rule: ScraperRule) => Promise<void> | void
@@ -72,29 +73,29 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
 
   const validateRule = (rule: any): string | null => {
     if (!rule.name?.trim())
-      return "书源名称不能为空"
+      return i18n.t("rules.create.validation.nameRequired")
     if (!rule.url?.trim())
-      return "书源URL不能为空"
+      return i18n.t("rules.create.validation.urlRequired")
     if (!rule.search?.url?.trim())
-      return "搜索URL不能为空"
+      return i18n.t("rules.create.validation.searchUrlRequired")
     if (!rule.search?.result?.trim())
-      return "搜索结果选择器不能为空"
+      return i18n.t("rules.create.validation.searchResultRequired")
     if (!rule.search?.bookName?.trim())
-      return "书名选择器不能为空"
+      return i18n.t("rules.create.validation.searchBooknameRequired")
     if (!rule.search?.author?.trim())
-      return "作者选择器不能为空"
+      return i18n.t("rules.create.validation.searchAuthorRequired")
     if (!rule.book?.bookName?.trim())
-      return "书籍页面书名选择器不能为空"
+      return i18n.t("rules.create.validation.bookNameRequired")
     if (!rule.book?.author?.trim())
-      return "书籍页面作者选择器不能为空"
+      return i18n.t("rules.create.validation.bookAuthorRequired")
     if (!rule.book?.intro?.trim())
-      return "书籍页面简介选择器不能为空"
+      return i18n.t("rules.create.validation.bookIntroRequired")
     if (!rule.toc?.item?.trim())
-      return "目录项选择器不能为空"
+      return i18n.t("rules.create.validation.tocItemRequired")
     if (!rule.chapter?.title?.trim())
-      return "章节标题选择器不能为空"
+      return i18n.t("rules.create.validation.chapterTitleRequired")
     if (!rule.chapter?.content?.trim())
-      return "章节内容选择器不能为空"
+      return i18n.t("rules.create.validation.chapterContentRequired")
     return null
   }
 
@@ -123,7 +124,7 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
   const handleJsonSubmit = async () => {
     setError(null)
     if (!jsonContent.trim()) {
-      setError("请输入JSON内容")
+      setError(i18n.t("rules.create.validation.jsonEmpty"))
       return
     }
 
@@ -132,7 +133,7 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
       const rule = typeof parsed === "object" && parsed !== null ? parsed : null
 
       if (!rule) {
-        throw new Error("无效的JSON格式")
+        throw new Error(i18n.t("rules.create.validation.invalidJson"))
       }
 
       const validationError = validateRule(rule)
@@ -150,7 +151,7 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
       setOpen(false)
     }
     catch (e: any) {
-      setError(e.message || "JSON解析失败")
+      setError(e.message || i18n.t("rules.create.validation.jsonFailed"))
     }
   }
 
@@ -188,41 +189,48 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
       <DialogTrigger asChild>
         <Button className="gap-2 h-10 shadow-sm px-6">
           <Plus className="w-4 h-4" />
-          新建书源
+          {i18n.t("rules.create.title")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col bg-background text-foreground border-border">
         <DialogHeader>
-          <DialogTitle>新建书源规则</DialogTitle>
-          <DialogDescription>通过表单或JSON创建新的书源解析规则，支持复杂页面提取。</DialogDescription>
+          <DialogTitle>{i18n.t("rules.create.dialogTitle")}</DialogTitle>
+          <DialogDescription>{i18n.t("rules.create.description")}</DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="flex-1 pr-4">
           <Tabs value={mode} onValueChange={v => setMode(v as "form" | "json")} className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-muted/70 border border-border">
-              <TabsTrigger value="form" className="data-[state=active]:bg-background data-[state=active]:text-foreground">表单可视化编辑</TabsTrigger>
-              <TabsTrigger value="json" className="data-[state=active]:bg-background data-[state=active]:text-foreground">JSON 源码编辑</TabsTrigger>
+              <TabsTrigger value="form" className="data-[state=active]:bg-background data-[state=active]:text-foreground">{i18n.t("rules.create.tabForm")}</TabsTrigger>
+              <TabsTrigger value="json" className="data-[state=active]:bg-background data-[state=active]:text-foreground">{i18n.t("rules.create.tabJson")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="form" className="space-y-6 py-4">
-              {/* 基本信息 */}
-              <FormSection title="基本信息">
+              <FormSection title={i18n.t("rules.create.section.basic")}>
                 <div className="grid gap-4">
                   <div>
-                    <Label htmlFor="name" className="text-xs font-semibold text-muted-foreground">书源名称 *</Label>
+                    <Label htmlFor="name" className="text-xs font-semibold text-muted-foreground">
+                      {i18n.t("rules.create.field.name")}
+                      {" "}
+                      *
+                    </Label>
                     <Input
                       id="name"
-                      placeholder="如：香书小说"
+                      placeholder={i18n.t("rules.create.field.name.placeholder")}
                       value={formData.name || ""}
                       onChange={e => handleFormChange("name", e.target.value)}
                       className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="url" className="text-xs font-semibold text-muted-foreground">主页 URL *</Label>
+                    <Label htmlFor="url" className="text-xs font-semibold text-muted-foreground">
+                      {i18n.t("rules.create.field.url")}
+                      {" "}
+                      *
+                    </Label>
                     <Input
                       id="url"
-                      placeholder="如：http://www.example.la/"
+                      placeholder={i18n.t("rules.create.field.url.placeholder")}
                       value={formData.url || ""}
                       onChange={e => handleFormChange("url", e.target.value)}
                       className="mt-1"
@@ -231,21 +239,28 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                 </div>
               </FormSection>
 
-              {/* 搜索配置 */}
-              <FormSection title="搜索提取配置">
+              <FormSection title={i18n.t("rules.create.section.search")}>
                 <FieldGroup>
                   <div>
-                    <Label htmlFor="search-url" className="text-xs font-semibold text-muted-foreground">搜索请求 API URL *</Label>
+                    <Label htmlFor="search-url" className="text-xs font-semibold text-muted-foreground">
+                      {i18n.t("rules.create.field.searchUrl")}
+                      {" "}
+                      *
+                    </Label>
                     <Input
                       id="search-url"
-                      placeholder="如：http://example.com/search"
+                      placeholder={i18n.t("rules.create.field.searchUrl.placeholder")}
                       value={formData.search?.url || ""}
                       onChange={e => handleFormChange("search.url", e.target.value)}
                       className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="search-method" className="text-xs font-semibold text-muted-foreground">HTTP 请求方法 *</Label>
+                    <Label htmlFor="search-method" className="text-xs font-semibold text-muted-foreground">
+                      {i18n.t("rules.create.field.method")}
+                      {" "}
+                      *
+                    </Label>
                     <select
                       id="search-method"
                       value={formData.search?.method || "post"}
@@ -257,20 +272,24 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                     </select>
                   </div>
                   <div>
-                    <Label htmlFor="search-data" className="text-xs font-semibold text-muted-foreground">请求 Payload (表单字段)</Label>
+                    <Label htmlFor="search-data" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.payload")}</Label>
                     <Input
                       id="search-data"
-                      placeholder="如：searchkey=%s"
+                      placeholder={i18n.t("rules.create.field.payload.placeholder")}
                       value={formData.search?.data || ""}
                       onChange={e => handleFormChange("search.data", e.target.value)}
                       className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="search-result" className="text-xs font-semibold text-muted-foreground">列表结果容器选择器 *</Label>
+                    <Label htmlFor="search-result" className="text-xs font-semibold text-muted-foreground">
+                      {i18n.t("rules.create.field.searchResult")}
+                      {" "}
+                      *
+                    </Label>
                     <Input
                       id="search-result"
-                      placeholder="CSS 选择器，如：#resultList > div"
+                      placeholder={i18n.t("rules.create.field.searchResult.placeholder")}
                       value={formData.search?.result || ""}
                       onChange={e => handleFormChange("search.result", e.target.value)}
                       className="mt-1"
@@ -278,7 +297,11 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="search-bookname" className="text-xs font-semibold text-muted-foreground">书名节点选择器 *</Label>
+                      <Label htmlFor="search-bookname" className="text-xs font-semibold text-muted-foreground">
+                        {i18n.t("rules.create.field.searchBookname")}
+                        {" "}
+                        *
+                      </Label>
                       <Input
                         id="search-bookname"
                         placeholder=".title > a"
@@ -288,7 +311,11 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="search-author" className="text-xs font-semibold text-muted-foreground">作者节点选择器 *</Label>
+                      <Label htmlFor="search-author" className="text-xs font-semibold text-muted-foreground">
+                        {i18n.t("rules.create.field.searchAuthor")}
+                        {" "}
+                        *
+                      </Label>
                       <Input
                         id="search-author"
                         placeholder=".author"
@@ -300,7 +327,7 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="search-latest" className="text-xs font-semibold text-muted-foreground">最新章节 (可选)</Label>
+                      <Label htmlFor="search-latest" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.searchLatest")}</Label>
                       <Input
                         id="search-latest"
                         placeholder=".latest-chapter"
@@ -310,7 +337,7 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="search-update" className="text-xs font-semibold text-muted-foreground">更新时间 (可选)</Label>
+                      <Label htmlFor="search-update" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.searchUpdate")}</Label>
                       <Input
                         id="search-update"
                         placeholder=".update-time"
@@ -323,12 +350,15 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                 </FieldGroup>
               </FormSection>
 
-              {/* 书籍详情页面 */}
-              <FormSection title="详情页提取配置">
+              <FormSection title={i18n.t("rules.create.section.book")}>
                 <FieldGroup>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="book-name" className="text-xs font-semibold text-muted-foreground">书名提取选择器 *</Label>
+                      <Label htmlFor="book-name" className="text-xs font-semibold text-muted-foreground">
+                        {i18n.t("rules.create.field.bookName")}
+                        {" "}
+                        *
+                      </Label>
                       <Input
                         id="book-name"
                         placeholder="meta[property='og:novel:book_name']"
@@ -338,7 +368,11 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="book-author" className="text-xs font-semibold text-muted-foreground">作者提取选择器 *</Label>
+                      <Label htmlFor="book-author" className="text-xs font-semibold text-muted-foreground">
+                        {i18n.t("rules.create.field.bookAuthor")}
+                        {" "}
+                        *
+                      </Label>
                       <Input
                         id="book-author"
                         placeholder="meta[property='og:novel:author']"
@@ -349,7 +383,11 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="book-intro" className="text-xs font-semibold text-muted-foreground">书籍简介选择器 *</Label>
+                    <Label htmlFor="book-intro" className="text-xs font-semibold text-muted-foreground">
+                      {i18n.t("rules.create.field.bookIntro")}
+                      {" "}
+                      *
+                    </Label>
                     <Input
                       id="book-intro"
                       placeholder="meta[property='og:description']"
@@ -360,7 +398,7 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="book-category" className="text-xs font-semibold text-muted-foreground">书籍分类 (可选)</Label>
+                      <Label htmlFor="book-category" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.bookCategory")}</Label>
                       <Input
                         id="book-category"
                         placeholder="meta[property='og:novel:category']"
@@ -370,7 +408,7 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="book-cover" className="text-xs font-semibold text-muted-foreground">书籍封面图片 (可选)</Label>
+                      <Label htmlFor="book-cover" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.bookCover")}</Label>
                       <Input
                         id="book-cover"
                         placeholder="meta[property='og:image']"
@@ -383,21 +421,24 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                 </FieldGroup>
               </FormSection>
 
-              {/* 目录与正文提取 */}
-              <FormSection title="目录与正文提取" className="border-b-0 pb-2">
+              <FormSection title={i18n.t("rules.create.section.toc")} className="border-b-0 pb-2">
                 <FieldGroup>
                   <div>
-                    <Label htmlFor="toc-url" className="text-xs font-semibold text-muted-foreground">独立目录页 URL (如果有)</Label>
+                    <Label htmlFor="toc-url" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.tocUrl")}</Label>
                     <Input
                       id="toc-url"
-                      placeholder="留空则使用详情页URL"
+                      placeholder={i18n.t("rules.create.field.tocUrl.placeholder")}
                       value={formData.toc?.url || ""}
                       onChange={e => handleFormChange("toc.url", e.target.value)}
                       className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="toc-item" className="text-xs font-semibold text-muted-foreground">章节链接 &lt;a&gt; 选择器 *</Label>
+                    <Label htmlFor="toc-item" className="text-xs font-semibold text-muted-foreground">
+                      {i18n.t("rules.create.field.tocItem")}
+                      {" "}
+                      *
+                    </Label>
                     <Input
                       id="toc-item"
                       placeholder="#list > dl > dd > a"
@@ -407,7 +448,11 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="chapter-title" className="text-xs font-semibold text-muted-foreground">正文页标题选择器 *</Label>
+                    <Label htmlFor="chapter-title" className="text-xs font-semibold text-muted-foreground">
+                      {i18n.t("rules.create.field.chapterTitle")}
+                      {" "}
+                      *
+                    </Label>
                     <Input
                       id="chapter-title"
                       placeholder=".bookname h1"
@@ -417,7 +462,11 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="chapter-content" className="text-xs font-semibold text-muted-foreground">正文页段落容器选择器 *</Label>
+                    <Label htmlFor="chapter-content" className="text-xs font-semibold text-muted-foreground">
+                      {i18n.t("rules.create.field.chapterContent")}
+                      {" "}
+                      *
+                    </Label>
                     <Input
                       id="chapter-content"
                       placeholder="#content"
@@ -427,10 +476,10 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="chapter-filter" className="text-xs font-semibold text-muted-foreground">垃圾文本清洗正则 (可选)</Label>
+                    <Label htmlFor="chapter-filter" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.chapterFilter")}</Label>
                     <Textarea
                       id="chapter-filter"
-                      placeholder="例如: /无弹窗.*阅读/g"
+                      placeholder={i18n.t("rules.create.field.chapterFilter.placeholder")}
                       value={formData.chapter?.filterTxt || ""}
                       onChange={e => handleFormChange("chapter.filterTxt", e.target.value)}
                       className="mt-1 h-20 bg-background"
@@ -443,13 +492,11 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
             <TabsContent value="json" className="space-y-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="json-content" className="text-xs font-semibold text-muted-foreground">
-                  JSON 数据结构
+                  {i18n.t("rules.create.jsonLabel")}
                 </Label>
                 <Textarea
                   id="json-content"
-                  placeholder={`{"name":"香书小说","url":"http://example.com/","search": { ... },
-  ...
-}`}
+                  placeholder={i18n.t("rules.create.jsonPlaceholder")}
                   value={jsonContent}
                   onChange={e => setJsonContent(e.target.value)}
                   className="h-[400px] font-mono text-sm"
@@ -461,7 +508,7 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
           {error && (
             <Alert variant="destructive" className="mt-4">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>验证失败</AlertTitle>
+              <AlertTitle>{i18n.t("rules.create.validationErrorTitle")}</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
@@ -469,10 +516,10 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
 
         <DialogFooter className="pt-4 mt-6 border-t border-border">
           <Button variant="ghost" onClick={() => setOpen(false)}>
-            取消操作
+            {i18n.t("rules.create.cancel")}
           </Button>
           <Button onClick={() => void (mode === "form" ? handleFormSubmit() : handleJsonSubmit())} className="shadow-sm">
-            保存配置
+            {i18n.t("rules.create.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>
