@@ -22,7 +22,7 @@ function App() {
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <h1 className="text-lg font-bold leading-tight">Novel Frog</h1>
+              <h1 className="text-lg font-bold leading-tight">Reader</h1>
               <Badge variant="secondary" className="text-[10px]">Beta</Badge>
             </div>
             <p className="text-[11px] text-muted-foreground font-medium">

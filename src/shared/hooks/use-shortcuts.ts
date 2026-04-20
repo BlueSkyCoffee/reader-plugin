@@ -1,19 +1,8 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useMemo } from "react"
+import { useAtom } from "jotai"
+import { settingsAtom } from "@/shared/state/store"
+import { DEFAULT_SHORTCUTS, DEFAULT_USER_SETTINGS, type ShortcutConfig } from "@/types/config"
 
-export interface Shortcut {
-  id: string
-  name: string
-  description: string
-  keys: string[]
-  action: () => void
-}
-
-export interface ShortcutConfig {
-  id: string
-  keys: string[]
-}
-
-const STORAGE_KEY = "app_shortcuts_config"
 const IS_MAC = /Mac|iPhone|iPad|iPod/i.test(navigator?.platform ?? "")
 
 const MODIFIER_KEYS = {
@@ -29,85 +18,6 @@ const MODIFIER_ORDER = [
   MODIFIER_KEYS.shift,
   MODIFIER_KEYS.alt,
 ] as const
-
-// 默认快捷键配置
-const DEFAULT_SHORTCUTS: ShortcutConfig[] = [
-  { id: "open_search", keys: [IS_MAC ? "Cmd" : "Ctrl", "K"] },
-  { id: "open_settings", keys: [IS_MAC ? "Cmd" : "Ctrl", ","] },
-  { id: "toggle_theme", keys: [IS_MAC ? "Cmd" : "Ctrl", "Shift", "L"] },
-  { id: "refresh_sources", keys: [IS_MAC ? "Cmd" : "Ctrl", "R"] },
-]
-
-export function useShortcuts() {
-  const [shortcuts, setShortcuts] = useState<ShortcutConfig[]>(DEFAULT_SHORTCUTS)
-  const [isLoading, setIsLoading] = useState(true)
-
-  // 从存储加载快捷键配置
-  useEffect(() => {
-    const loadShortcuts = async () => {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY)
-        if (stored) {
-          const parsed = JSON.parse(stored) as ShortcutConfig[]
-          setShortcuts(parsed.map(entry => ({
-            ...entry,
-            keys: normalizeKeyCombo(entry.keys),
-          })))
-        }
-      }
-      catch (error) {
-        console.error("Failed to load shortcuts:", error)
-      }
-      finally {
-        setIsLoading(false)
-      }
-    }
-
-    void loadShortcuts()
-  }, [])
-
-  // 保存快捷键配置
-  const saveShortcuts = useCallback((newShortcuts: ShortcutConfig[]) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newShortcuts))
-      setShortcuts(newShortcuts)
-    }
-    catch (error) {
-      console.error("Failed to save shortcuts:", error)
-    }
-  }, [])
-
-  // 重置为默认快捷键
-  const resetToDefaults = useCallback(() => {
-    saveShortcuts(DEFAULT_SHORTCUTS)
-  }, [saveShortcuts])
-
-  // 更新单个快捷键
-  const updateShortcut = useCallback(
-    (id: string, keys: string[]) => {
-      const updated = shortcuts.map(s => (s.id === id ? { ...s, keys } : s))
-      saveShortcuts(updated)
-    },
-    [shortcuts, saveShortcuts],
-  )
-
-  // 获取快捷键配置
-  const getShortcut = useCallback(
-    (id: string) => {
-      return shortcuts.find(s => s.id === id)
-    },
-    [shortcuts],
-  )
-
-  return {
-    shortcuts,
-    isLoading,
-    saveShortcuts,
-    resetToDefaults,
-    updateShortcut,
-    getShortcut,
-  }
-}
 
 // 快捷键定义
 export const SHORTCUT_DEFINITIONS = {
@@ -129,6 +39,50 @@ export const SHORTCUT_DEFINITIONS = {
   },
 } as const
 
+export function useShortcuts() {
+  const [settings, setSettings] = useAtom(settingsAtom)
+
+  const shortcuts = useMemo(() => {
+    return settings.shortcuts ?? DEFAULT_USER_SETTINGS.shortcuts
+  }, [settings.shortcuts])
+
+  // 更新单个快捷键
+  const updateShortcut = useCallback(
+    (id: string, keys: string[]) => {
+      setSettings(prev => ({
+        ...prev,
+        shortcuts: (prev.shortcuts ?? DEFAULT_USER_SETTINGS.shortcuts).map(s =>
+          s.id === id ? { ...s, keys } : s,
+        ),
+      }))
+    },
+    [setSettings],
+  )
+
+  // 重置为默认快捷键
+  const resetToDefaults = useCallback(() => {
+    setSettings(prev => ({
+      ...prev,
+      shortcuts: DEFAULT_SHORTCUTS.map(s => ({ id: s.id, keys: [...s.keys] })),
+    }))
+  }, [setSettings])
+
+  // 获取快捷键配置
+  const getShortcut = useCallback(
+    (id: string) => {
+      return shortcuts.find(s => s.id === id)
+    },
+    [shortcuts],
+  )
+
+  return {
+    shortcuts,
+    updateShortcut,
+    resetToDefaults,
+    getShortcut,
+  }
+}
+
 // 检查按键组合是否有效
 export function isValidKeyCombo(keys: string[]): boolean {
   if (keys.length === 0 || keys.length > 4)
@@ -139,54 +93,9 @@ export function isValidKeyCombo(keys: string[]): boolean {
     "Shift",
     "Alt",
     ",",
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "J",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-    "W",
-    "X",
-    "Y",
-    "Z",
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "F1",
-    "F2",
-    "F3",
-    "F4",
-    "F5",
-    "F6",
-    "F7",
-    "F8",
-    "F9",
-    "F10",
-    "F11",
-    "F12",
+    ...Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)), // A-Z
+    ...Array.from({ length: 10 }, (_, i) => String(i)), // 0-9
+    ...Array.from({ length: 12 }, (_, i) => `F${i + 1}`), // F1-F12
   ])
   return keys.every(k => validKeys.has(k))
 }

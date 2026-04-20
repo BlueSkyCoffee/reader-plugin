@@ -23,10 +23,10 @@ function SidebarLogo() {
       className="flex items-center gap-2 ring-sidebar-ring focus-visible:ring-2 outline-hidden rounded-md px-1 py-1 hover:bg-sidebar-accent transition-colors"
     >
       <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-        <span className="font-bold text-sm">NF</span>
+        <span className="font-bold text-sm">R</span>
       </div>
       <div className="grid flex-1 text-left text-sm leading-tight ml-1">
-        <span className="truncate font-semibold text-base">Novel Frog</span>
+        <span className="truncate font-semibold text-base">Reader</span>
         <span className="truncate text-xs text-muted-foreground">
           v
           {version}
@@ -41,7 +41,7 @@ function SidebarLogo() {
  */
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="offcanvas">
       <SidebarHeader className="group-data-[state=expanded]:px-5 group-data-[state=expanded]:pt-4 transition-all pb-2">
         <SidebarLogo />
       </SidebarHeader>

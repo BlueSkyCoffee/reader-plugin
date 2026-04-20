@@ -1,36 +1,55 @@
 import { browser } from "wxt/browser"
 
-const FALLBACK_MESSAGES: Record<string, string> = {
-  "popup.options": "设置",
-  "popup.tagline": "书源搜索、轻小说打包与阅读管理",
-  "popup.quickAccess": "快速入口",
-  "popup.search": "搜索",
-  "popup.library": "书架",
-  "popup.downloads": "下载",
-  "popup.lightnovel": "轻小说",
-  "popup.rules": "书源",
-  "popup.help": "帮助",
-  "popup.settings": "设置",
-  "popup.more.title": "更多",
-  "popup.more.help": "帮助中心",
-  "popup.more.project": "项目主页",
-  "popup.more.feedback": "问题反馈",
-  "settings.general": "通用设置",
-  "settings.help": "帮助中心",
-  "settings.about": "关于",
-  "help.title": "帮助中心",
-  "help.description": "常见问题、使用指南与排错建议",
-  "help.toc.title": "文档导航",
-  "help.toc.desc": "按需跳转到对应章节",
+import type { LocaleMessages } from "@/types/i18n"
+
+// Import from public/_locales via alias - WXT copies public/ to extension root
+// Used as fallback when browser.i18n API unavailable (tests, SSR)
+import enMessages from "@locales/en/messages.json"
+import zhMessages from "@locales/zh_CN/messages.json"
+
+// Type assertion for imported JSON structure
+const EN_MESSAGES = enMessages as LocaleMessages
+const ZH_MESSAGES = zhMessages as LocaleMessages
+
+// Convert JSON format { "key": { "message": "value" } } to flat Record<string, string>
+function flattenMessages(messages: Record<string, { message: string }>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(messages).map(([key, value]) => [key, value.message]),
+  )
+}
+
+function normalizeMessageKey(key: string): string {
+  return key.replaceAll(".", "_")
+}
+
+const ZH_FALLBACK = flattenMessages(ZH_MESSAGES)
+const EN_FALLBACK = flattenMessages(EN_MESSAGES)
+
+// Detect user locale preference, fallback to zh_CN for Chinese users
+function getPreferredFallback(): Record<string, string> {
+  const lang = browser?.i18n?.getUILanguage?.() ?? navigator?.language ?? "zh-CN"
+  // Chinese users get Chinese fallback, others get English
+  if (lang.startsWith("zh")) {
+    return ZH_FALLBACK
+  }
+  return EN_FALLBACK
 }
 
 function resolveMessage(key: string, params?: Record<string, string | number>): string {
+  // Primary: use browser.i18n.getMessage (browser extension standard API)
   const getMessage = browser?.i18n?.getMessage as ((messageName: string) => string) | undefined
-  const raw = getMessage?.(key)
-  const message = raw || FALLBACK_MESSAGES[key] || key
+  const normalizedKey = normalizeMessageKey(key)
+  const raw = getMessage?.(normalizedKey)
+
+  // Fallback: use imported JSON messages when browser API unavailable (dev mode, SSR, etc.)
+  const fallbackMessages = getPreferredFallback()
+  const message = raw || fallbackMessages[normalizedKey] || fallbackMessages[key] || key
+
   if (!params) {
     return message
   }
+
+  // Replace placeholders like {count}, {title}, etc. (Chrome extension placeholder syntax)
   return Object.entries(params).reduce((acc, [name, value]) => {
     return acc.replaceAll(`{${name}}`, String(value))
   }, message)

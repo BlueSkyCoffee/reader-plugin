@@ -15,7 +15,7 @@ export class AppDatabase extends Dexie {
   downloads!: Table<DownloadRecord, string>
 
   constructor() {
-    super("NovelFrogDB")
+    super("ReaderDB")
 
     this.version(1).stores({
       books: "id, title, author, source, sourceId, addedAt",

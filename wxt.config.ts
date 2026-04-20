@@ -1,9 +1,12 @@
 import { defineConfig } from "wxt"
+import { resolve } from "node:path"
 
 // See https://wxt.dev/api/config.html
+// public/_locales is automatically copied to extension root by WXT
+// browser.i18n.getMessage API reads from _locales/ at extension root
 export default defineConfig({
   srcDir: "src",
-  modules: ["@wxt-dev/module-react", "@wxt-dev/i18n/module"],
+  modules: ["@wxt-dev/module-react"],
   dev: {
     server: {
       host: "127.0.0.1",
@@ -19,6 +22,7 @@ export default defineConfig({
   },
   alias: {
     "@": "src",
+    "@locales": resolve(__dirname, "public/_locales"),
   },
   vite: () => ({
     server: {

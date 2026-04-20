@@ -28,7 +28,7 @@ export function PageLayout({
             <SidebarTrigger />
             <Separator orientation="vertical" className="mr-1.5 h-4" />
             <div className="min-w-0">
-              <h1 className="font-semibold text-lg">{title}</h1>
+              <h1 className="font-semibold text-lg truncate">{title}</h1>
               {description && (
                 <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
                   {description}
@@ -46,7 +46,7 @@ export function PageLayout({
 
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full w-full">
-          <div className={cn("px-4 py-6", innerClassName)}>
+          <div className={cn("px-4 py-6 w-full max-w-full overflow-x-hidden", innerClassName)}>
             {children}
           </div>
         </ScrollArea>

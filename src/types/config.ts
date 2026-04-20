@@ -36,6 +36,21 @@ const themeSchema = z.preprocess(
   z.enum(["light", "dark", "system"]),
 )
 
+// 快捷键配置 schema
+export const shortcutConfigSchema = z.object({
+  id: z.string(),
+  keys: z.array(z.string()),
+})
+
+// 默认快捷键配置
+const IS_MAC = /Mac|iPhone|iPad|iPod/i.test(navigator?.platform ?? "")
+export const DEFAULT_SHORTCUTS: ShortcutConfig[] = [
+  { id: "open_search", keys: [IS_MAC ? "Cmd" : "Ctrl", "K"] },
+  { id: "open_settings", keys: [IS_MAC ? "Cmd" : "Ctrl", ","] },
+  { id: "toggle_theme", keys: [IS_MAC ? "Cmd" : "Ctrl", "Shift", "L"] },
+  { id: "refresh_sources", keys: [IS_MAC ? "Cmd" : "Ctrl", "R"] },
+]
+
 export const userSettingsSchema = z.object({
   theme: themeSchema.default("system"),
   readerTheme: z.string().default("default"),
@@ -43,12 +58,15 @@ export const userSettingsSchema = z.object({
   lineHeight: z.number().min(1).max(3).default(1.6),
   position: readerPositionSchema.default("bottom"),
   readerStyle: readerStyleSchema.default(defaultReaderStyle),
-  enabledPatterns: z.array(z.string()).default([]),
-  disabledPatterns: z.array(z.string()).default([]),
+  // 新增设置项
+  concurrentDownloads: z.number().min(1).max(10).default(3),
+  autoUpdateRules: z.boolean().default(true),
+  shortcuts: z.array(shortcutConfigSchema).default(DEFAULT_SHORTCUTS),
 })
 
 export type ReaderPosition = z.infer<typeof readerPositionSchema>
 export type ReaderStyle = z.infer<typeof readerStyleSchema>
+export type ShortcutConfig = z.infer<typeof shortcutConfigSchema>
 export type UserSettings = z.infer<typeof userSettingsSchema>
 
 export const DEFAULT_USER_SETTINGS: UserSettings = userSettingsSchema.parse({})

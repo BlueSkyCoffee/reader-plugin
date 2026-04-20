@@ -1,9 +1,9 @@
 {
-  "name": "wxt-react-starter",
+  "name": "reader",
   "type": "module",
   "version": "0.0.0",
   "private": true,
-  "description": "manifest.json description",
+  "description": "书源搜索、小说下载与阅读管理",
   "scripts": {
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
@@ -16,6 +16,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
+    "test:e2e": "playwright test --config=tests/e2e/playwright.config.ts",
     "type-check": "tsc --noEmit",
     "lint": "eslint",
     "lint:fix": "eslint --fix"
@@ -36,7 +37,6 @@
     "@tanstack/react-query": "^5.90.21",
     "@uiw/react-codemirror": "^4.25.4",
     "@webext-core/messaging": "^2.3.0",
-    "@wxt-dev/i18n": "^0.2.5",
     "case-anything": "^3.1.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -66,6 +66,7 @@
     "@changesets/changelog-github": "^0.5.2",
     "@changesets/cli": "^2.29.8",
     "@eslint-react/eslint-plugin": "^2.13.0",
+    "@playwright/test": "^1.52.0",
     "@tailwindcss/postcss": "^4.2.1",
     "@tanstack/eslint-plugin-query": "^5.91.4",
     "@testing-library/jest-dom": "^6.9.1",

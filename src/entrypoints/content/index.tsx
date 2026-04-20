@@ -17,7 +17,7 @@ export default defineContentScript({
   matches: ["<all_urls>"],
   main(context) {
     const containerElement = document.createElement("div")
-    containerElement.id = "novel-frog-root"
+    containerElement.id = "reader-root"
     document.body.appendChild(containerElement)
 
     const root = ReactDOM.createRoot(containerElement)

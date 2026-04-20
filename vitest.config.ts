@@ -6,7 +6,7 @@ export default defineConfig({
   // TODO: remove any
   plugins: [WxtVitest() as any, react()],
   test: {
-    exclude: [...configDefaults.exclude, "demo/**"],
+    exclude: [...configDefaults.exclude, "demo/**", "tests/e2e/**"],
     environment: "node",
     globals: true,
     setupFiles: "vitest.setup.ts",

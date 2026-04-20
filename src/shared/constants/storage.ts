@@ -1,4 +1,4 @@
 export const STORAGE_KEYS = {
-  activeReaderSession: "novel-frog:active-reader-session",
-  appSettings: "novel-frog:app-settings",
+  activeReaderSession: "reader:active-reader-session",
+  appSettings: "reader:app-settings",
 } as const

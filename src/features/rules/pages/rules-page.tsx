@@ -151,6 +151,15 @@ export function RulesPage() {
     }
   }
 
+  const handleToggleEnabled = async (id: string, name: string, enabled: boolean) => {
+    const newRules = rules.map(r =>
+      r.id === id ? { ...r, disabled: !enabled } : r,
+    )
+    await StorageManager.saveRules(newRules)
+    setRules(newRules)
+    toast.success(i18n.t(enabled ? "rules.toggle.enabled" : "rules.toggle.disabled", { name }))
+  }
+
   const handleCopyId = (id: string) => {
     void navigator.clipboard.writeText(id)
     setCopiedId(id)
@@ -177,16 +186,16 @@ export function RulesPage() {
         </StatGrid>
 
         {/* 操作栏 */}
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <SearchInput
-            className="w-full sm:w-64"
+            className="w-full md:max-w-64 md:flex-1"
             inputClassName="h-10"
             placeholder={i18n.t("rules.search.placeholder")}
             value={searchTerm}
             onChange={setSearchTerm}
           />
 
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="flex w-full flex-wrap gap-2 md:w-auto md:justify-end">
             <CreateRuleDialog onRuleCreate={handleRuleCreate} />
 
             <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
@@ -239,7 +248,7 @@ export function RulesPage() {
         </div>
 
         {/* 书源列表 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="space-y-2">
           {filteredRules.map(rule => (
             <RuleCard
               key={rule.id}
@@ -249,16 +258,15 @@ export function RulesPage() {
               onCopyId={handleCopyId}
               onOpenUrl={url => window.open(url, "_blank")}
               onDelete={handleDelete}
+              onToggleEnabled={handleToggleEnabled}
             />
           ))}
 
           {filteredRules.length === 0 && !loading && (
-            <div className="col-span-full">
-              <EmptyState
-                title={i18n.t("rules.empty.title")}
-                description={i18n.t("rules.empty.description")}
-              />
-            </div>
+            <EmptyState
+              title={i18n.t("rules.empty.title")}
+              description={i18n.t("rules.empty.description")}
+            />
           )}
         </div>
 

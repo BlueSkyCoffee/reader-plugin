@@ -1,6 +1,6 @@
-# Novel Frog
+# Reader
 
-Novel Frog 是一个基于 `WXT + React + TypeScript` 的浏览器插件项目，聚焦小说搜索、抓取、缓存、阅读和导出。
+Reader 是一个基于 `WXT + React + TypeScript` 的浏览器插件项目，聚焦小说搜索、抓取、缓存、阅读和导出。
 
 当前仓库正在做工程化收敛，重构目标是：
 

@@ -1,6 +1,15 @@
-import type { Theme } from "@/utils/theme"
-import { createContext, use, useEffect, useMemo, useState } from "react"
-import { getSystemTheme, getThemeFromStorage, setThemeInStorage } from "@/utils/theme"
+import { createContext, use, useEffect, useMemo } from "react"
+import { useAtom } from "jotai"
+import { settingsAtom } from "@/shared/state/store"
+import { DEFAULT_USER_SETTINGS } from "@/types/config"
+
+type Theme = "light" | "dark" | "system"
+
+function getSystemTheme(): "light" | "dark" {
+  if (typeof window === "undefined" || !window.matchMedia)
+    return "light"
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+}
 
 interface ThemeContextI {
   theme: Theme
@@ -17,7 +26,8 @@ export function ThemeProvider({
   children: React.ReactNode
   container?: HTMLElement
 }) {
-  const [theme, setTheme] = useState<Theme>(() => getThemeFromStorage())
+  const [settings, setSettings] = useAtom(settingsAtom)
+  const theme = settings.theme ?? DEFAULT_USER_SETTINGS.theme
 
   const resolvedTheme = useMemo(() => {
     if (theme === "system")
@@ -25,9 +35,8 @@ export function ThemeProvider({
     return theme
   }, [theme])
 
-  const updateTheme = (newTheme: Theme) => {
-    setThemeInStorage(newTheme)
-    setTheme(newTheme)
+  const setTheme = (newTheme: Theme) => {
+    setSettings(prev => ({ ...prev, theme: newTheme }))
   }
 
   // Apply theme to document or shadow root container
@@ -48,19 +57,18 @@ export function ThemeProvider({
       return
 
     const onChange = () => {
-      // Force re-calculation of resolvedTheme via state update if needed,
-      // but here we just need to trigger a re-render if system theme changed
-      setTheme("system")
+      // Force re-calculation of resolvedTheme via state update
+      setSettings(prev => ({ ...prev, theme: "system" }))
     }
 
     mq.addEventListener?.("change", onChange)
     return () => mq.removeEventListener?.("change", onChange)
-  }, [theme])
+  }, [theme, setSettings])
 
   const contextValue = useMemo(() => ({
     theme,
     resolvedTheme,
-    setTheme: updateTheme,
+    setTheme,
   }), [theme, resolvedTheme])
 
   return (

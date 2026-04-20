@@ -163,7 +163,7 @@ export class BiliNovelSource implements LightNovelSource {
     return match[1]
   }
 
-  private async getChapterUrl(chapter: Chapter): Promise<string | null> {
+  private async getChapterUrl(chapter: Chapter): Promise<string | undefined> {
     if (chapter.chapterUrl) {
       return chapter.chapterUrl
     }
@@ -181,12 +181,12 @@ export class BiliNovelSource implements LightNovelSource {
       for (let i = 0; i < 20; i++) {
         const next = page.nextPageUrl
         if (!next) {
-          return page.nextChapterUrl ?? null
+          return page.nextChapterUrl ?? undefined
         }
         page = await this.getChapterPage(next)
       }
     }
-    return null
+    return undefined
   }
 
   private getPrevChapter(catalog: Catalog, chapter: Chapter) {
@@ -376,8 +376,8 @@ export class BiliNovelSource implements LightNovelSource {
     image.setAttribute("alt", alt ?? "")
   }
 
-  private async httpGetString(url: string) {
-    return scheduler.run(async (controller) => {
+  private async httpGetString(url: string): Promise<string> {
+    return scheduler.run(async (controller): Promise<string> => {
       const html = await httpGetString(url, {
         credentials: "include",
       })
