@@ -1,9 +1,10 @@
 import type { Chapter } from "@/types/novel"
 import { List } from "lucide-react"
 import { useState } from "react"
-import { Button } from "@/shared/components/ui/button"
-import { Input } from "@/shared/components/ui/input"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/shared/components/ui/sheet"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { i18n } from "@/i18n"
 import { ChapterList } from "./chapter-list"
 
 interface ChapterSelectorProps {
@@ -39,41 +40,33 @@ export function ChapterSelector({
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
-          <List className="w-4 h-4" />
-          目录
+          <List className="size-4" data-icon="inline-start" />
+          {i18n.t("reader_toc_title")}
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="w-80 flex flex-col p-0">
         <SheetHeader className="px-6 py-4 border-b">
-          <SheetTitle>章节目录</SheetTitle>
+          <SheetTitle>{i18n.t("reader_toc_sheetTitle")}</SheetTitle>
           <p className="text-xs text-muted-foreground mt-2">
-            共
+            {i18n.t("reader_toc_totalChapters", { total: chapters.length })}
             {" "}
-            {chapters.length}
+            ·
             {" "}
-            章 · 当前第
-            {" "}
-            {currentChapterIndex + 1}
-            {" "}
-            章
+            {i18n.t("reader_toc_currentChapter", { current: currentChapterIndex + 1 })}
           </p>
         </SheetHeader>
 
         {/* 搜索框 */}
         <div className="px-6 py-3 border-b">
           <Input
-            placeholder="搜索章节..."
+            placeholder={i18n.t("reader_toc_searchPlaceholder")}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="h-9"
           />
           {searchQuery && (
             <p className="text-xs text-muted-foreground mt-2">
-              找到
-              {" "}
-              {filteredChapters.length}
-              {" "}
-              个结果
+              {i18n.t("reader_toc_searchResult", { count: filteredChapters.length })}
             </p>
           )}
         </div>

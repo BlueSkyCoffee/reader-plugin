@@ -6,16 +6,32 @@ node_modules/
 dist/
 .output/
 .wxt/
+*.tsbuildinfo
+
+# 浏览器扩展打包
+*.crx
+*.xpi
+*.zip
+web-ext-artifacts/
+
+# 测试
+coverage/
+playwright-report/
+test-results/
+.nyc_output/
 
 # 系统文件
 .DS_Store
 Thumbs.db
+*.bak
+*~
 
-# 编辑器
+# 编辑器/IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+.history/
 
 # 环境变量
 .env
@@ -33,6 +49,15 @@ pnpm-debug.log*
 *.tmp
 *.temp
 .cache/
+.local/
 
-# 演示目录（不需要提交）
+# 密钥文件（扩展开发）
+*.pem
+*.key
+
+# 演示目录
 demo/
+
+# AI工具（可选，根据团队约定）
+.agents/
+skills-lock.json

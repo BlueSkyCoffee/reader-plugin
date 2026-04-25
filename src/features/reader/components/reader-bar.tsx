@@ -4,6 +4,7 @@ import { clsx } from "clsx"
 import * as React from "react"
 import { twMerge } from "tailwind-merge"
 import { useDraggable } from "@/features/reader/hooks/use-draggable"
+import { i18n } from "@/i18n"
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -52,8 +53,8 @@ export function ReaderBar({ children, position, styleConfig }: ReaderBarProps) {
           className="flex items-center justify-between border-b px-3 py-1 text-[11px] uppercase tracking-wide cursor-move select-none"
           onPointerDown={handlers.onPointerDown}
         >
-          <span className="opacity-70">阅读面板</span>
-          <span className="opacity-50">拖动</span>
+          <span className="opacity-70">{i18n.t("reader_bar_title")}</span>
+          <span className="opacity-50">{i18n.t("reader_bar_dragHint")}</span>
         </div>
       )}
       {children}
@@ -81,7 +82,7 @@ export function ContentDisplay({
     >
       {isFetching
         ? (
-            <span style={{ color: primaryColor }}>加载中...</span>
+            <span style={{ color: primaryColor }}>{i18n.t("reader_loading")}</span>
           )
         : (
             <span className="animate-in fade-in duration-300">{text}</span>
@@ -123,14 +124,14 @@ export function ReaderControls({
           className="rounded px-2 py-1 transition-colors hover:bg-black/5"
           style={{ color: "var(--reader-accent)" }}
         >
-          上一章
+          {i18n.t("reader_nav_prevChapter")}
         </button>
         <button
           onClick={onNext}
           className="rounded px-2 py-1 transition-colors hover:bg-black/5"
           style={{ color: "var(--reader-accent)" }}
         >
-          下一章
+          {i18n.t("reader_nav_nextChapter")}
         </button>
       </div>
     </div>

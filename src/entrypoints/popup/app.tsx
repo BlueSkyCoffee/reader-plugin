@@ -1,19 +1,95 @@
 import { Icon } from "@iconify/react"
-import { BookOpen, Download, HelpCircle, Library, Search, ShieldCheck } from "lucide-react"
+import { BookOpen, Download, ExternalLink, HelpCircle, Library, Search, ShieldCheck } from "lucide-react"
+import { useEffect, useState } from "react"
 import { browser } from "wxt/browser"
+import { ModeToggle } from "@/components/app/mode-toggle"
+import { MoreMenu } from "@/components/app/more-menu"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 import { NovelSearchCard } from "@/features/search"
-import { ModeToggle } from "@/shared/components/mode-toggle"
-import { Badge } from "@/shared/components/ui/badge"
-import { Button } from "@/shared/components/ui/button"
-import { Separator } from "@/shared/components/ui/separator"
-import { i18n } from "@/shared/i18n"
+import { i18n } from "@/i18n"
+import { StorageManager } from "@/lib/storage"
+import { log } from "@/utils/logger"
 import { version } from "../../../package.json"
-import { MoreMenu } from "./components/more-menu"
+
+interface ActiveBookInfo {
+  bookId: string
+  title: string
+  author: string
+  totalChapters: number
+  chapterIndex: number
+}
 
 function App() {
+  const [activeBook, setActiveBook] = useState<ActiveBookInfo | null>(null)
+  const [isHttpPage, setIsHttpPage] = useState(false)
+
   const openOptions = (path: string) => {
     const url = browser.runtime.getURL(`/options.html#${path}`)
     return browser.tabs.create({ url })
+  }
+
+  useEffect(() => {
+    const loadActiveBook = async () => {
+      try {
+        const session = await StorageManager.getActiveReaderSession()
+        const activeBookId = await StorageManager.getActiveBookId()
+
+        if (session && activeBookId) {
+          setActiveBook({
+            bookId: activeBookId,
+            title: session.title,
+            author: session.author,
+            totalChapters: session.totalChapters,
+            chapterIndex: session.chapterIndex,
+          })
+        }
+      }
+      catch (error) {
+        log.popup.error("Load active book failed", error)
+      }
+    }
+
+    const checkCurrentPage = async () => {
+      try {
+        const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+        if (tab?.url) {
+          setIsHttpPage(tab.url.startsWith("http://") || tab.url.startsWith("https://"))
+        }
+      }
+      catch (error) {
+        log.popup.error("Check current page failed", error)
+      }
+    }
+
+    void loadActiveBook()
+    void checkCurrentPage()
+  }, [])
+
+  const handleOpenReader = async () => {
+    if (!activeBook || !isHttpPage)
+      return
+
+    try {
+      const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+      if (!tab?.id)
+        return
+
+      await browser.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: (bookId, chapterIndex, scroll) => {
+          window.dispatchEvent(new CustomEvent("show-reader", {
+            detail: { bookId, chapterIndex, scroll },
+          }))
+        },
+        args: [activeBook.bookId, activeBook.chapterIndex, 0],
+      })
+      window.close()
+    }
+    catch (error) {
+      log.popup.error("Open reader failed", error)
+    }
   }
 
   return (
@@ -37,11 +113,35 @@ function App() {
               onClick={() => openOptions("/settings/help")}
               aria-label="帮助中心"
             >
-              <HelpCircle className="w-4 h-4" />
+              <HelpCircle className="size-4" />
             </Button>
             <ModeToggle />
           </div>
         </div>
+
+        {activeBook && isHttpPage && (
+          <div className="bg-muted/50 rounded-md p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-semibold">{activeBook.title}</span>
+                <span className="text-xs text-muted-foreground">
+                  {activeBook.author}
+                  {" · "}
+                  {i18n.t("popup.reader.chapterProgress", { current: activeBook.chapterIndex + 1, total: activeBook.totalChapters })}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1"
+                onClick={handleOpenReader}
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                {i18n.t("popup.reader.open")}
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">

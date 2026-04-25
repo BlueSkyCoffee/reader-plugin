@@ -4,7 +4,7 @@ describe("i18n", () => {
   async function loadI18n(mockedBrowser: any) {
     vi.resetModules()
     vi.doMock("wxt/browser", () => mockedBrowser)
-    const { i18n } = await import("@/shared/i18n")
+    const { i18n } = await import("@/i18n")
     return i18n
   }
 
@@ -18,7 +18,7 @@ describe("i18n", () => {
     const i18n = await loadI18n({
       browser: {
         i18n: {
-          getMessage: (key: string) => (key === "popup.options" ? "Options" : ""),
+          getMessage: (key: string) => (key === "popup_options" ? "Options" : ""),
         },
       },
     })

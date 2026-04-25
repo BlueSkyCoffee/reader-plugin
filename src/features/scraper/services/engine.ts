@@ -1,5 +1,8 @@
 import type { BookInfo, Chapter, ScraperRule, SearchResult } from "@/types/novel"
-import { requestMessage } from "@/shared/infra/messaging"
+import type { ChineseLocale } from "@/utils/chinese-converter"
+import { requestMessage } from "@/lib/messaging"
+import { convertChinese } from "@/utils/chinese-converter"
+import { log } from "@/utils/logger"
 
 type ContentType = "text" | "html" | "attr"
 
@@ -49,7 +52,7 @@ export class ScraperEngine {
       return responseHtml
     }
     catch (error) {
-      console.error(`[ScraperEngine] Fetch error for ${absoluteUrl}:`, error)
+      log.scraper.error(`Fetch failed: ${absoluteUrl}`, error)
       throw error
     }
   }
@@ -136,7 +139,7 @@ export class ScraperEngine {
         return nodes
       }
       catch (error) {
-        console.warn("XPath parse error:", query, error)
+        log.scraper.warn(`XPath parse failed: ${query}`, error)
         return []
       }
     }
@@ -145,7 +148,7 @@ export class ScraperEngine {
       return Array.from(root.querySelectorAll(query))
     }
     catch (error) {
-      console.warn("CSS selector parse error:", query, error)
+      log.scraper.warn(`CSS selector parse failed: ${query}`, error)
       return []
     }
   }
@@ -183,7 +186,7 @@ export class ScraperEngine {
       return fn(input)
     }
     catch (error) {
-      console.error("Custom rule JS error:", jsCode, error)
+      log.scraper.error(`Custom rule JS failed: ${jsCode}`, error)
       return input
     }
   }
@@ -210,7 +213,7 @@ export class ScraperEngine {
       })
     }
     catch (error) {
-      console.error(`[ScraperEngine] Network error during search:`, error)
+      log.scraper.error("Network error during search", error)
       return []
     }
 
@@ -243,7 +246,7 @@ export class ScraperEngine {
           return this.parseSearchResults(pageDoc, url)
         }
         catch (error) {
-          console.warn(`[ScraperEngine] Pagination search failed: ${url}`, error)
+          log.scraper.warn(`Pagination search failed: ${url}`, error)
           return []
         }
       }),
@@ -303,7 +306,7 @@ export class ScraperEngine {
         })
       }
       catch (error) {
-        console.error(`[ScraperEngine] Parse item error`, error)
+        log.scraper.error("Parse search item failed", error)
       }
     }
 
@@ -312,12 +315,16 @@ export class ScraperEngine {
 
   /**
    * 获取书籍详情及章节目录
+   * @param bookUrl 书籍详情页 URL
+   * @param targetLanguage 目标语言（可选），用于简繁转换
    */
-  async getBookInfo(bookUrl: string): Promise<{ info: BookInfo, toc: Chapter[] }> {
+  async getBookInfo(bookUrl: string, targetLanguage?: ChineseLocale): Promise<{ info: BookInfo, toc: Chapter[] }> {
     const html = await this.fetchHtml(bookUrl, "get", undefined, { baseUri: this.rule.book.baseUri || this.rule.url })
     const doc = new DOMParser().parseFromString(html, "text/html")
 
     const bookRule = this.rule.book
+    const sourceLanguage = this.rule.language as ChineseLocale || "cn"
+
     const info: BookInfo = {
       url: bookUrl,
       bookName: this.parseContent(doc, bookRule.bookName, "text", undefined, bookRule.baseUri),
@@ -338,8 +345,21 @@ export class ScraperEngine {
       info.coverUrl = this.resolveUrl(info.coverUrl, bookUrl)
     }
 
+    // 应用简繁转换
+    if (targetLanguage && sourceLanguage !== targetLanguage) {
+      info.bookName = convertChinese(info.bookName, sourceLanguage, targetLanguage)
+      info.author = convertChinese(info.author, sourceLanguage, targetLanguage)
+      info.intro = convertChinese(info.intro, sourceLanguage, targetLanguage)
+      if (info.category) {
+        info.category = convertChinese(info.category, sourceLanguage, targetLanguage)
+      }
+      if (info.latestChapter) {
+        info.latestChapter = convertChinese(info.latestChapter, sourceLanguage, targetLanguage)
+      }
+    }
+
     const tocPages = await this.fetchTocPages(bookUrl, doc)
-    const toc = this.extractToc(tocPages, bookUrl)
+    const toc = this.extractToc(tocPages, bookUrl, sourceLanguage, targetLanguage)
 
     return { info, toc }
   }
@@ -374,14 +394,19 @@ export class ScraperEngine {
         pages.push({ url, doc: pageDoc })
       }
       catch (error) {
-        console.warn(`[ScraperEngine] Toc pagination failed: ${url}`, error)
+        log.scraper.warn(`TOC pagination failed: ${url}`, error)
       }
     }
 
     return pages
   }
 
-  private extractToc(pages: Array<{ url: string, doc: Document }>, bookUrl: string): Chapter[] {
+  private extractToc(
+    pages: Array<{ url: string, doc: Document }>,
+    bookUrl: string,
+    sourceLanguage?: ChineseLocale,
+    targetLanguage?: ChineseLocale,
+  ): Chapter[] {
     const tocRule = this.rule.toc
     const toc: Chapter[] = []
     const seen = new Set<string>()
@@ -391,7 +416,7 @@ export class ScraperEngine {
       const items = this.selectAll(container, tocRule.item)
 
       items.forEach((item) => {
-        const title = item.textContent?.trim() || ""
+        let title = item.textContent?.trim() || ""
         const rawUrl = item.getAttribute("href") || item.getAttribute("value") || ""
         const resolvedUrl = this.resolveUrl(rawUrl, tocRule.baseUri || page.url || bookUrl)
 
@@ -399,6 +424,12 @@ export class ScraperEngine {
           return
 
         seen.add(resolvedUrl)
+
+        // 应用简繁转换到章节标题
+        if (targetLanguage && sourceLanguage && sourceLanguage !== targetLanguage) {
+          title = convertChinese(title, sourceLanguage, targetLanguage)
+        }
+
         toc.push({
           bookId: this.rule.name,
           title,
@@ -408,7 +439,7 @@ export class ScraperEngine {
       })
 
       if (items.length === 0 && pageIndex === 0) {
-        console.warn(`[ScraperEngine] Toc items empty for ${page.url}`)
+        log.scraper.warn(`TOC items empty: ${page.url}`)
       }
     })
 
@@ -460,13 +491,16 @@ export class ScraperEngine {
 
   /**
    * 获取并过滤章节正文内容
+   * @param chapterUrl 章节页面 URL
+   * @param targetLanguage 目标语言（可选），用于简繁转换
    */
-  async getChapterContent(chapterUrl: string): Promise<string> {
+  async getChapterContent(chapterUrl: string, targetLanguage?: ChineseLocale): Promise<string> {
     const chapterRule = this.rule.chapter
     const baseUri = chapterRule.baseUri || this.rule.url
+    const sourceLanguage = this.rule.language as ChineseLocale || "cn"
 
     if (chapterRule.pagination) {
-      return this.fetchPaginatedChapterContent(chapterUrl, baseUri)
+      return this.fetchPaginatedChapterContent(chapterUrl, baseUri, sourceLanguage, targetLanguage)
     }
 
     const html = await this.fetchHtml(chapterUrl, "get", undefined, { baseUri })
@@ -478,10 +512,22 @@ export class ScraperEngine {
     }
 
     content = this.applyChapterFilters(content)
-    return this.formatChapterContent(content)
+    content = this.formatChapterContent(content)
+
+    // 应用简繁转换
+    if (targetLanguage && sourceLanguage !== targetLanguage) {
+      content = convertChinese(content, sourceLanguage, targetLanguage)
+    }
+
+    return content
   }
 
-  private async fetchPaginatedChapterContent(startUrl: string, baseUri: string): Promise<string> {
+  private async fetchPaginatedChapterContent(
+    startUrl: string,
+    baseUri: string,
+    sourceLanguage?: ChineseLocale,
+    targetLanguage?: ChineseLocale,
+  ): Promise<string> {
     const chapterRule = this.rule.chapter
     let nextUrl: string | null = startUrl
     const contentParts: string[] = []
@@ -513,8 +559,15 @@ export class ScraperEngine {
       throw new Error("正文内容为空")
     }
 
-    const filtered = this.applyChapterFilters(merged)
-    return this.formatChapterContent(filtered)
+    let content = this.applyChapterFilters(merged)
+    content = this.formatChapterContent(content)
+
+    // 应用简繁转换
+    if (targetLanguage && sourceLanguage && sourceLanguage !== targetLanguage) {
+      content = convertChinese(content, sourceLanguage, targetLanguage)
+    }
+
+    return content
   }
 
   private resolveNextPageUrl(doc: Document, baseUri: string): string | null {

@@ -260,6 +260,12 @@
   "help_contact_email": {
     "message": "Send Email"
   },
+  "help_contact_githubDesc": {
+    "message": "View project source, submit issues, or join discussions on GitHub"
+  },
+  "help_contact_emailDesc": {
+    "message": "Send feedback or suggestions via email. Include detailed information for easier troubleshooting"
+  },
   "about_description": {
     "message": "Version info, feature overview, and usage guidelines"
   },
@@ -596,6 +602,9 @@
   "search_empty_description": {
     "message": "Try different keywords or sources"
   },
+  "search_card_noCover": {
+    "message": "No cover"
+  },
   "common_anonymous": {
     "message": "Anonymous"
   },
@@ -615,7 +624,7 @@
     "message": "Search rules..."
   },
   "rules_actions_import": {
-    "message": "Import"
+    "message": "Import Rules"
   },
   "rules_actions_create": {
     "message": "New Rule"
@@ -1147,5 +1156,170 @@
   },
   "nav_rules": {
     "message": "Rules"
+  },
+  "popup_more_excludeSite": {
+    "message": "Exclude Current Site"
+  },
+  "popup_more_cancelExclude": {
+    "message": "Cancel Exclusion"
+  },
+  "popup_reader_open": {
+    "message": "Open Reader"
+  },
+  "popup_reader_chapterProgress": {
+    "message": "Ch. {current}/{total}"
+  },
+  "reader_error_noBookSelected": {
+    "message": "No book selected"
+  },
+  "reader_error_bookNotFound": {
+    "message": "Book not found"
+  },
+  "reader_error_emptyContent": {
+    "message": "Chapter content is empty"
+  },
+  "reader_error_loadFailed": {
+    "message": "Failed to load book"
+  },
+  "reader_loading": {
+    "message": "Loading..."
+  },
+  "reader_error_notFound": {
+    "message": "Book or chapter not found"
+  },
+  "reader_nav_prevChapter": {
+    "message": "Previous Chapter"
+  },
+  "reader_nav_nextChapter": {
+    "message": "Next Chapter"
+  },
+  "reader_nav_closeReader": {
+    "message": "Close Reader"
+  },
+  "reader_bar_title": {
+    "message": "Reader Panel"
+  },
+  "reader_bar_dragHint": {
+    "message": "Drag"
+  },
+  "reader_toc_title": {
+    "message": "TOC"
+  },
+  "reader_toc_sheetTitle": {
+    "message": "Chapter List"
+  },
+  "reader_toc_totalChapters": {
+    "message": "{total} chapters"
+  },
+  "reader_toc_currentChapter": {
+    "message": "Current: Ch. {current}"
+  },
+  "reader_toc_searchPlaceholder": {
+    "message": "Search chapters..."
+  },
+  "reader_toc_searchResult": {
+    "message": "Found {count} results"
+  },
+  "reader_list_noMatch": {
+    "message": "No matching chapters found"
+  },
+  "reader_list_reading": {
+    "message": "Reading"
+  },
+  "reader_toast_readerOpened": {
+    "message": "Reader opened"
+  },
+  "reader_toast_openFailed": {
+    "message": "Failed to open reader"
+  },
+  "reader_toast_continueFailed": {
+    "message": "Failed to continue reading"
+  },
+  "shortcuts_openSearch_name": {
+    "message": "Open Search"
+  },
+  "shortcuts_openSearch_desc": {
+    "message": "Quickly open search functionality"
+  },
+  "shortcuts_openSettings_name": {
+    "message": "Open Settings"
+  },
+  "shortcuts_openSettings_desc": {
+    "message": "Quickly open settings page"
+  },
+  "shortcuts_toggleTheme_name": {
+    "message": "Toggle Theme"
+  },
+  "shortcuts_toggleTheme_desc": {
+    "message": "Switch between light and dark themes"
+  },
+  "shortcuts_refreshRules_name": {
+    "message": "Refresh Rules"
+  },
+  "shortcuts_refreshRules_desc": {
+    "message": "Refresh all rule data"
+  },
+  "epub_error_readFailed": {
+    "message": "Cannot read file, it may not be a valid EPUB."
+  },
+  "epub_error_containerNotFound": {
+    "message": "Cannot find META-INF/container.xml"
+  },
+  "epub_error_opfPathNotFound": {
+    "message": "Cannot find OPF file path in container.xml"
+  },
+  "epub_error_opfNotFound": {
+    "message": "Cannot find OPF file: {path}"
+  },
+  "epub_default_chapterTitle": {
+    "message": "Chapter {order}"
+  },
+  "epub_toc_title": {
+    "message": "Table of Contents"
+  },
+  "storage_unknown": {
+    "message": "Unknown"
+  },
+  "settings_general_excludedSites_title": {
+    "message": "Site Blacklist"
+  },
+  "settings_general_excludedSites_desc": {
+    "message": "Exclude sites where the embedded reader should not activate"
+  },
+  "settings_general_excludedSites_empty": {
+    "message": "No excluded sites"
+  },
+  "settings_general_excludedSites_addPlaceholder": {
+    "message": "Enter domain (e.g. example.com)"
+  },
+  "settings_general_excludedSites_addButton": {
+    "message": "Add"
+  },
+  "settings_general_excludedSites_removeButton": {
+    "message": "Remove"
+  },
+  "settings_general_excludedSites_toast_added": {
+    "message": "Added to blacklist"
+  },
+  "settings_general_excludedSites_toast_removed": {
+    "message": "Removed from blacklist"
+  },
+  "settings_general_excludedSites_toast_invalid": {
+    "message": "Please enter a valid domain"
+  },
+  "settings_general_excludedSites_toast_duplicate": {
+    "message": "This domain is already in the blacklist"
+  },
+  "error_boundary_title": {
+    "message": "Something went wrong"
+  },
+  "error_boundary_description": {
+    "message": "An unexpected error occurred. Please try again or navigate to another page"
+  },
+  "error_boundary_retry": {
+    "message": "Retry"
+  },
+  "error_boundary_details": {
+    "message": "View error details"
   }
 }

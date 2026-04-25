@@ -260,6 +260,12 @@
   "help_contact_email": {
     "message": "发送邮件"
   },
+  "help_contact_githubDesc": {
+    "message": "在 GitHub 上查看项目源码、提交 Issue 或参与讨论"
+  },
+  "help_contact_emailDesc": {
+    "message": "通过邮件反馈问题或提出建议，建议附带详细信息以便排查"
+  },
   "about_description": {
     "message": "版本信息、功能概览与使用规范"
   },
@@ -596,6 +602,9 @@
   "search_empty_description": {
     "message": "尝试更换关键词或书源"
   },
+  "search_card_noCover": {
+    "message": "暂无封面"
+  },
   "common_anonymous": {
     "message": "匿名"
   },
@@ -615,7 +624,7 @@
     "message": "搜索书源..."
   },
   "rules_actions_import": {
-    "message": "导入"
+    "message": "导入书源"
   },
   "rules_actions_create": {
     "message": "新建书源"
@@ -1147,5 +1156,170 @@
   },
   "nav_rules": {
     "message": "书源规则"
+  },
+  "popup_more_excludeSite": {
+    "message": "排除当前网站"
+  },
+  "popup_more_cancelExclude": {
+    "message": "取消排除"
+  },
+  "popup_reader_open": {
+    "message": "打开阅读器"
+  },
+  "popup_reader_chapterProgress": {
+    "message": "第 {current}/{total} 章"
+  },
+  "reader_error_noBookSelected": {
+    "message": "没有选中的书籍"
+  },
+  "reader_error_bookNotFound": {
+    "message": "书籍不存在"
+  },
+  "reader_error_emptyContent": {
+    "message": "章节内容为空"
+  },
+  "reader_error_loadFailed": {
+    "message": "加载书籍失败"
+  },
+  "reader_loading": {
+    "message": "加载中..."
+  },
+  "reader_error_notFound": {
+    "message": "书籍或章节不存在"
+  },
+  "reader_nav_prevChapter": {
+    "message": "上一章"
+  },
+  "reader_nav_nextChapter": {
+    "message": "下一章"
+  },
+  "reader_nav_closeReader": {
+    "message": "关闭阅读器"
+  },
+  "reader_bar_title": {
+    "message": "阅读面板"
+  },
+  "reader_bar_dragHint": {
+    "message": "拖动"
+  },
+  "reader_toc_title": {
+    "message": "目录"
+  },
+  "reader_toc_sheetTitle": {
+    "message": "章节目录"
+  },
+  "reader_toc_totalChapters": {
+    "message": "共 {total} 章"
+  },
+  "reader_toc_currentChapter": {
+    "message": "当前第 {current} 章"
+  },
+  "reader_toc_searchPlaceholder": {
+    "message": "搜索章节..."
+  },
+  "reader_toc_searchResult": {
+    "message": "找到 {count} 个结果"
+  },
+  "reader_list_noMatch": {
+    "message": "没有找到匹配的章节"
+  },
+  "reader_list_reading": {
+    "message": "阅读中"
+  },
+  "reader_toast_readerOpened": {
+    "message": "已打开阅读器"
+  },
+  "reader_toast_openFailed": {
+    "message": "打开阅读器失败"
+  },
+  "reader_toast_continueFailed": {
+    "message": "继续阅读失败"
+  },
+  "shortcuts_openSearch_name": {
+    "message": "打开搜索"
+  },
+  "shortcuts_openSearch_desc": {
+    "message": "快速打开搜索功能"
+  },
+  "shortcuts_openSettings_name": {
+    "message": "打开设置"
+  },
+  "shortcuts_openSettings_desc": {
+    "message": "快速打开设置页面"
+  },
+  "shortcuts_toggleTheme_name": {
+    "message": "切换主题"
+  },
+  "shortcuts_toggleTheme_desc": {
+    "message": "在浅色和深色主题之间切换"
+  },
+  "shortcuts_refreshRules_name": {
+    "message": "刷新书源"
+  },
+  "shortcuts_refreshRules_desc": {
+    "message": "刷新所有书源数据"
+  },
+  "epub_error_readFailed": {
+    "message": "无法读取文件，它可能不是一个有效的 EPUB。"
+  },
+  "epub_error_containerNotFound": {
+    "message": "无法找到 META-INF/container.xml"
+  },
+  "epub_error_opfPathNotFound": {
+    "message": "无法在 container.xml 中找到 OPF 文件路径"
+  },
+  "epub_error_opfNotFound": {
+    "message": "找不到 OPF 文件: {path}"
+  },
+  "epub_default_chapterTitle": {
+    "message": "第 {order} 章"
+  },
+  "epub_toc_title": {
+    "message": "目录"
+  },
+  "storage_unknown": {
+    "message": "未知"
+  },
+  "settings_general_excludedSites_title": {
+    "message": "网站黑名单"
+  },
+  "settings_general_excludedSites_desc": {
+    "message": "在以下网站中不启用嵌入式阅读器"
+  },
+  "settings_general_excludedSites_empty": {
+    "message": "暂无排除的网站"
+  },
+  "settings_general_excludedSites_addPlaceholder": {
+    "message": "输入域名（如 example.com）"
+  },
+  "settings_general_excludedSites_addButton": {
+    "message": "添加"
+  },
+  "settings_general_excludedSites_removeButton": {
+    "message": "移除"
+  },
+  "settings_general_excludedSites_toast_added": {
+    "message": "已添加到黑名单"
+  },
+  "settings_general_excludedSites_toast_removed": {
+    "message": "已从黑名单移除"
+  },
+  "settings_general_excludedSites_toast_invalid": {
+    "message": "请输入有效的域名"
+  },
+  "settings_general_excludedSites_toast_duplicate": {
+    "message": "该域名已在黑名单中"
+  },
+  "error_boundary_title": {
+    "message": "页面出错了"
+  },
+  "error_boundary_description": {
+    "message": "当前页面遇到意外错误，请尝试刷新或返回其他页面"
+  },
+  "error_boundary_retry": {
+    "message": "重试"
+  },
+  "error_boundary_details": {
+    "message": "查看错误详情"
   }
 }

@@ -2,8 +2,9 @@ import type { Chapter } from "@/types/novel"
 import { defineBackground } from "#imports"
 import { browser } from "wxt/browser"
 import { ParserProvider } from "@/features/lightnovel/services"
-import { db } from "@/shared/db/app-db"
-import { registerHandlers } from "@/shared/infra/messaging"
+import { db } from "@/lib/db"
+import { registerHandlers } from "@/lib/messaging"
+import { log } from "@/utils/logger"
 
 export default defineBackground({
   type: "module",
@@ -58,7 +59,7 @@ export default defineBackground({
             await new Promise(resolve => setTimeout(resolve, 800))
           }
           catch (error) {
-            console.error(`[Download Error] Failed to download "${chapter.title}"`, error)
+            log.background.error(`Download chapter failed: ${chapter.title}`, error)
           }
         }
       },

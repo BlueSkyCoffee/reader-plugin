@@ -62,6 +62,9 @@ export const userSettingsSchema = z.object({
   concurrentDownloads: z.number().min(1).max(10).default(3),
   autoUpdateRules: z.boolean().default(true),
   shortcuts: z.array(shortcutConfigSchema).default(DEFAULT_SHORTCUTS),
+  excludedSites: z.array(z.string()).default([]),
+  // 简繁转换设置
+  language: z.enum(["cn", "tw", "hk", "twp", "jp"]).default("cn"),
 })
 
 export type ReaderPosition = z.infer<typeof readerPositionSchema>

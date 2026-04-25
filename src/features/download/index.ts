@@ -1,2 +1,2 @@
-export { DownloadPage } from "./pages/download-page"
-export { DownloadManager } from "./services/download-manager"
+export { DownloadManager } from "./download-manager"
+export { DownloadPage } from "./download-page"

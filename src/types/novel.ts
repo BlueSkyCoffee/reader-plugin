@@ -190,6 +190,18 @@ export interface SearchResult {
 }
 
 /**
+ * VS Code 主题 Token 颜色规则
+ */
+export interface VSCodeTokenColor {
+  scope?: string | string[]
+  settings?: {
+    foreground?: string
+    background?: string
+    fontStyle?: string
+  }
+}
+
+/**
  * VS Code 主题格式 (用于阅读器主题)
  */
 export interface VSCodeTheme {
@@ -197,7 +209,7 @@ export interface VSCodeTheme {
   name: string
   type: "dark" | "light"
   colors: Record<string, string>
-  tokenColors?: any[]
+  tokenColors?: VSCodeTokenColor[]
 }
 
 /**

@@ -16,7 +16,7 @@ const mockSetMetadata = vi.fn()
 const mockGetRules = vi.fn()
 const mockSaveRules = vi.fn()
 
-vi.mock("@/shared/infra/idb", () => ({
+vi.mock("@/lib/idb", () => ({
   IndexedDBManager: {
     getBooks: mockGetBooks,
     getBook: mockGetBook,
@@ -54,7 +54,7 @@ describe("book Management Integration", () => {
 
   describe("bookshelf operations", () => {
     it("adds book to bookshelf and retrieves it", async () => {
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
 
       const newBook: Book = {
         id: "book-integration-1",
@@ -86,7 +86,7 @@ describe("book Management Integration", () => {
     })
 
     it("adds book with chapters", async () => {
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
 
       const book: Book = {
         id: "book-with-chapters",
@@ -114,7 +114,7 @@ describe("book Management Integration", () => {
     })
 
     it("retrieves chapters for a book", async () => {
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
 
       const chapters: Chapter[] = [
         { bookId: "book-chapters-test", title: "Chapter 1", url: "https://example.com/ch1", order: 1 },
@@ -131,7 +131,7 @@ describe("book Management Integration", () => {
     })
 
     it("deletes book", async () => {
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
 
       mockDeleteBook.mockResolvedValue(undefined)
 
@@ -141,7 +141,7 @@ describe("book Management Integration", () => {
     })
 
     it("switches active book and sets session", async () => {
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
       const { browser } = await import("wxt/browser")
 
       const book: Book = {
@@ -172,7 +172,7 @@ describe("book Management Integration", () => {
 
   describe("bookshelf sorting", () => {
     it("sorts books by addedAt descending", async () => {
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
 
       const books: Book[] = [
         {

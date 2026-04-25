@@ -7,7 +7,15 @@ import { extractBiliNovelId, resolveUrl } from "./url"
 const BILI_DOMAIN = "https://www.bilinovel.com"
 const scheduler = new Scheduler(15, 60000)
 
-function getShuffleParams(doc: Document) {
+interface ShuffleParams {
+  fixedLength: number
+  seed: number
+  a: number
+  c: number
+  mod: number
+}
+
+function getShuffleParams(doc: Document): ShuffleParams | null {
   const chapterIdMatch = doc.documentElement.outerHTML.match(/chapterid:'(\d+)'/)
   const chapterId = chapterIdMatch ? Number.parseInt(chapterIdMatch[1]) : null
   if (!chapterId)
@@ -15,7 +23,7 @@ function getShuffleParams(doc: Document) {
   return { fixedLength: 20, seed: chapterId * 126 + 232, a: 9302, c: 49397, mod: 233280 }
 }
 
-function shuffleArray(arr: number[], params: any) {
+function shuffleArray(arr: number[], params: ShuffleParams) {
   let seed = params.seed
   for (let i = arr.length - 1; i > 0; i--) {
     seed = (seed * params.a + params.c) % params.mod
@@ -24,7 +32,7 @@ function shuffleArray(arr: number[], params: any) {
   }
 }
 
-function shuffleContent(content: Element, params: any) {
+function shuffleContent(content: Element, params: ShuffleParams) {
   const pElements = Array.from(content.querySelectorAll("p")).filter(p => p.textContent?.trim())
   if (pElements.length === 0)
     return

@@ -1,6 +1,7 @@
 import type { Chapter } from "@/types/novel"
-import { Badge } from "@/shared/components/ui/badge"
-import { ScrollArea } from "@/shared/components/ui/scroll-area"
+import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { i18n } from "@/i18n"
 
 interface ChapterListProps {
   chapters: Chapter[]
@@ -20,14 +21,14 @@ export function ChapterList({
   if (chapters.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
-        <p className="text-sm">没有找到匹配的章节</p>
+        <p className="text-sm">{i18n.t("reader_list_noMatch")}</p>
       </div>
     )
   }
 
   return (
     <ScrollArea className="h-full">
-      <div className="space-y-1 p-4">
+      <div className="flex flex-col gap-1 p-4">
         {chapters.map((chapter, index) => (
           <button
             key={chapter.url}
@@ -44,7 +45,7 @@ export function ChapterList({
               </span>
               {index === currentIndex && (
                 <Badge variant="secondary" className="ml-2 shrink-0">
-                  阅读中
+                  {i18n.t("reader_list_reading")}
                 </Badge>
               )}
             </div>

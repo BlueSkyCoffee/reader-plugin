@@ -3,13 +3,15 @@ import { defineContentScript } from "#imports"
 import { Provider, useAtom } from "jotai"
 import * as React from "react"
 import ReactDOM from "react-dom/client"
+import { PageErrorBoundary } from "@/components/app/error-boundary"
 import { ParserProvider } from "@/features/lightnovel/services"
 import { ContentDisplay, ReaderBar, ReaderControls } from "@/features/reader"
 import { ScraperEngine } from "@/features/scraper/services"
-import { db } from "@/shared/db/app-db"
-import { StorageManager } from "@/shared/infra/storage"
-import { activeBookIdAtom, currentChapterIndexAtom, scrollPositionAtom, settingsAtom } from "@/shared/state/store"
+import { db } from "@/lib/db"
+import { StorageManager } from "@/lib/storage"
+import { activeBookIdAtom, currentChapterIndexAtom, scrollPositionAtom, settingsAtom } from "@/state/store"
 import { DEFAULT_USER_SETTINGS } from "@/types/config"
+import { log } from "@/utils/logger"
 import { ShortcutManager } from "@/utils/shortcut-manager"
 import "@/assets/styles/index.css"
 
@@ -23,7 +25,9 @@ export default defineContentScript({
     const root = ReactDOM.createRoot(containerElement)
     root.render(
       <Provider>
-        <ReaderApp />
+        <PageErrorBoundary>
+          <ReaderApp />
+        </PageErrorBoundary>
       </Provider>,
     )
 
@@ -42,6 +46,17 @@ function ReaderApp() {
   const [chapters, setChapters] = React.useState<Chapter[]>([])
   const [isFetching, setIsFetching] = React.useState(false)
   const [isVisible, setIsVisible] = React.useState(true)
+  const [isExcluded, setIsExcluded] = React.useState(false)
+
+  React.useEffect(() => {
+    const checkExclusion = async () => {
+      const currentDomain = window.location.hostname
+      const storedSettings = await StorageManager.getSettings()
+      setSettings(storedSettings)
+      setIsExcluded(storedSettings.excludedSites?.includes(currentDomain) ?? false)
+    }
+    void checkExclusion()
+  }, [setSettings])
 
   React.useEffect(() => {
     const handleShowReader = (event: Event) => {
@@ -60,14 +75,6 @@ function ReaderApp() {
     window.addEventListener("show-reader", handleShowReader)
     return () => window.removeEventListener("show-reader", handleShowReader)
   }, [setActiveBookId, setCurrentChapterIndex, setScrollPosition])
-
-  React.useEffect(() => {
-    const hydrateSettings = async () => {
-      const storedSettings = await StorageManager.getSettings()
-      setSettings(storedSettings)
-    }
-    void hydrateSettings()
-  }, [setSettings])
 
   React.useEffect(() => {
     const hydrateActiveSession = async () => {
@@ -152,7 +159,7 @@ function ReaderApp() {
         })
       }
       catch (error) {
-        console.error("Fetch error:", error)
+        log.content.error("Fetch chapter content failed", error)
       }
       finally {
         setIsFetching(false)
@@ -171,7 +178,7 @@ function ReaderApp() {
     },
   }), [settings])
 
-  if (!activeBookId || !isVisible) {
+  if (isExcluded || !activeBookId || !isVisible) {
     return null
   }
 

@@ -1,5 +1,6 @@
 export { ChapterList } from "./components/chapter-list"
 export { ChapterSelector } from "./components/chapter-selector"
 export { ContentDisplay, ReaderBar, ReaderControls } from "./components/reader-bar"
+export { ReaderEmbedSettings } from "./embed-settings"
 export { useReaderNavigation } from "./hooks/use-reader-navigation"
-export { ReaderPage } from "./pages/reader-page"
+export { ReaderPage } from "./reader-page"

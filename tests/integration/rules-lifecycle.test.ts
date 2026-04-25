@@ -5,7 +5,7 @@ import type { ScraperRule } from "@/types/novel"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 // Mock IndexedDB
-vi.mock("@/shared/db/app-db", () => ({
+vi.mock("@/lib/db", () => ({
   db: {
     books: {
       toArray: vi.fn(),
@@ -88,8 +88,8 @@ describe("rules Lifecycle Integration", () => {
 
   describe("rule management flow", () => {
     it("saves and retrieves rules correctly", async () => {
-      const { StorageManager } = await import("@/shared/infra/storage")
-      const { db } = await import("@/shared/db/app-db")
+      const { StorageManager } = await import("@/lib/storage")
+      const { db } = await import("@/lib/db")
 
       const testRules: ScraperRule[] = [
         {
@@ -130,8 +130,8 @@ describe("rules Lifecycle Integration", () => {
     })
 
     it("toggles rule enabled/disabled state", async () => {
-      const { StorageManager } = await import("@/shared/infra/storage")
-      const { db } = await import("@/shared/db/app-db")
+      const { StorageManager } = await import("@/lib/storage")
+      const { db } = await import("@/lib/db")
 
       const initialRules: ScraperRule[] = [
         {
@@ -169,8 +169,8 @@ describe("rules Lifecycle Integration", () => {
     })
 
     it("finds rule by ID", async () => {
-      const { StorageManager } = await import("@/shared/infra/storage")
-      const { db } = await import("@/shared/db/app-db")
+      const { StorageManager } = await import("@/lib/storage")
+      const { db } = await import("@/lib/db")
 
       const rules: ScraperRule[] = [
         {

@@ -2,7 +2,7 @@ import type { Book, Chapter, ScraperRule } from "@/types/novel"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 // Mock the IndexedDBManager
-vi.mock("@/shared/infra/idb", () => ({
+vi.mock("@/lib/idb", () => ({
   IndexedDBManager: {
     getBooks: vi.fn(),
     getBook: vi.fn(),
@@ -65,10 +65,10 @@ describe("storageManager", () => {
         },
       ]
 
-      const { IndexedDBManager } = await import("@/shared/infra/idb")
+      const { IndexedDBManager } = await import("@/lib/idb")
       vi.mocked(IndexedDBManager.getBooks).mockResolvedValue(mockBooks)
 
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
       const info = await StorageManager.getStorageInfo()
 
       // Should return storage info object with expected fields
@@ -93,10 +93,10 @@ describe("storageManager", () => {
         },
       ]
 
-      const { IndexedDBManager } = await import("@/shared/infra/idb")
+      const { IndexedDBManager } = await import("@/lib/idb")
       vi.mocked(IndexedDBManager.getBooks).mockResolvedValue(mockBooks)
 
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
       const books = await StorageManager.getBookshelf()
 
       expect(books).toEqual(mockBooks)
@@ -121,10 +121,10 @@ describe("storageManager", () => {
         },
       ]
 
-      const { IndexedDBManager } = await import("@/shared/infra/idb")
+      const { IndexedDBManager } = await import("@/lib/idb")
       vi.mocked(IndexedDBManager.getRules).mockResolvedValue(mockRules)
 
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
       const rules = await StorageManager.getRules()
 
       expect(rules).toEqual(mockRules)
@@ -149,10 +149,10 @@ describe("storageManager", () => {
         },
       ]
 
-      const { IndexedDBManager } = await import("@/shared/infra/idb")
+      const { IndexedDBManager } = await import("@/lib/idb")
       vi.mocked(IndexedDBManager.saveRules).mockResolvedValue(undefined)
 
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
       await StorageManager.saveRules(mockRules)
 
       expect(IndexedDBManager.saveRules).toHaveBeenCalledWith(mockRules)
@@ -170,10 +170,10 @@ describe("storageManager", () => {
         totalChapters: 0,
       }
 
-      const { IndexedDBManager } = await import("@/shared/infra/idb")
+      const { IndexedDBManager } = await import("@/lib/idb")
       vi.mocked(IndexedDBManager.saveBook).mockResolvedValue(undefined)
 
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
       await StorageManager.saveBook(mockBook)
 
       expect(IndexedDBManager.saveBook).toHaveBeenCalledWith(mockBook)
@@ -195,11 +195,11 @@ describe("storageManager", () => {
         { bookId: "book-1", title: "Chapter 2", url: "https://example.com/ch2", order: 2 },
       ]
 
-      const { IndexedDBManager } = await import("@/shared/infra/idb")
+      const { IndexedDBManager } = await import("@/lib/idb")
       vi.mocked(IndexedDBManager.saveBook).mockResolvedValue(undefined)
       vi.mocked(IndexedDBManager.saveChapters).mockResolvedValue(undefined)
 
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
       await StorageManager.saveBook(mockBook, mockChapters)
 
       expect(IndexedDBManager.saveBook).toHaveBeenCalledWith(mockBook)
@@ -209,10 +209,10 @@ describe("storageManager", () => {
 
   describe("deleteBook", () => {
     it("deletes book from IndexedDB", async () => {
-      const { IndexedDBManager } = await import("@/shared/infra/idb")
+      const { IndexedDBManager } = await import("@/lib/idb")
       vi.mocked(IndexedDBManager.deleteBook).mockResolvedValue(undefined)
 
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
       await StorageManager.deleteBook("book-1")
 
       expect(IndexedDBManager.deleteBook).toHaveBeenCalledWith("book-1")
@@ -221,13 +221,13 @@ describe("storageManager", () => {
 
   describe("clearAll", () => {
     it("clears all storage", async () => {
-      const { IndexedDBManager } = await import("@/shared/infra/idb")
+      const { IndexedDBManager } = await import("@/lib/idb")
       vi.mocked(IndexedDBManager.clearAll).mockResolvedValue(undefined)
 
       const { browser } = await import("wxt/browser")
       vi.mocked(browser.storage.local.remove).mockResolvedValue(undefined)
 
-      const { StorageManager } = await import("@/shared/infra/storage")
+      const { StorageManager } = await import("@/lib/storage")
       await StorageManager.clearAll()
 
       expect(IndexedDBManager.clearAll).toHaveBeenCalledOnce()

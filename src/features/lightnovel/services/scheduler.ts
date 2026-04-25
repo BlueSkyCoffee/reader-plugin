@@ -4,6 +4,7 @@
  */
 
 import type { SchedulerConfig } from "./types"
+import { log } from "@/utils/logger"
 
 export class RequestScheduler {
   private delayMs: number
@@ -52,10 +53,7 @@ export class RequestScheduler {
       }
       catch (error) {
         lastError = error
-        console.warn(
-          `[RequestScheduler] ${operationName} failed (attempt ${attempt}/${this.maxRetries}):`,
-          error,
-        )
+        log.lightnovel.warn(`${operationName} failed (attempt ${attempt}/${this.maxRetries})`, error)
 
         if (attempt < this.maxRetries) {
           const backoffDelay = this.retryDelayMs * 2 ** (attempt - 1)

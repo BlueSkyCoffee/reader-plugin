@@ -1,3 +1,3 @@
-export { BookCard } from "./components/bookshelf-card"
-export { useBookshelf } from "./hooks/use-bookshelf"
-export { BookshelfPage } from "./pages/bookshelf-page"
+export { BookCard } from "./bookshelf-card"
+export { BookshelfPage } from "./bookshelf-page"
+export { useBookshelf } from "./use-bookshelf"

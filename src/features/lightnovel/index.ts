@@ -1,2 +1,2 @@
-export { LightNovelPage } from "./pages/lightnovel-page"
+export { LightNovelPage } from "./lightnovel-page"
 export * from "./services"

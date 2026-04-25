@@ -1,14 +1,14 @@
-import type { LightNovelSource } from "./sources"
+import type { LightNovelSource } from "./sources-index"
 import type { Catalog, Chapter, Novel, PackArgument, PackProgress, PackResult, Volume } from "./types"
 import { saveAs } from "file-saver"
 import { getImageInfo, LightNovelCoverDetector, UnsupportedImageError } from "./cover-detector"
-import { jpeg } from "./epub/media-types"
-import { NavPoint } from "./epub/navigator"
-import { EpubPacker } from "./epub/packer"
+import { jpeg } from "./epub-media-types"
+import { NavPoint } from "./epub-navigator"
+import { EpubPacker } from "./epub-packer"
 import { wrapDuoKanImage } from "./html-util"
 import { Sequence } from "./sequence"
-import { BiliNovelSource } from "./sources/bili"
-import { WenkuNovelSource } from "./sources/wenku"
+import { BiliNovelSource } from "./sources-bili"
+import { WenkuNovelSource } from "./sources-wenku"
 import { getSeriesIndex } from "./volume-util"
 
 const chapterTitleCss = `.chapter-title {
@@ -23,6 +23,8 @@ export class LightNovelPacker {
     new BiliNovelSource(),
     new WenkuNovelSource(),
   ]
+
+  private static initialized = false
 
   url: string
   source: LightNovelSource
@@ -39,6 +41,14 @@ export class LightNovelPacker {
     this.url = url
   }
 
+  static async ensureInitialized() {
+    if (LightNovelPacker.initialized) {
+      return
+    }
+    await BiliNovelSource.init()
+    LightNovelPacker.initialized = true
+  }
+
   static fromUrl(url: string) {
     for (const source of LightNovelPacker.sources) {
       if (source.supportUrl(url)) {
@@ -52,6 +62,7 @@ export class LightNovelPacker {
     novelCallback?: (novel: Novel) => void
     catalogCallback?: (catalog: Catalog) => void
   } = {}) {
+    await LightNovelPacker.ensureInitialized()
     this.novel = await this.getNovel()
     options.novelCallback?.(this.novel)
     this.catalog = await this.getCatalog()

@@ -1,5 +1,5 @@
-import { defineConfig } from "wxt"
 import { resolve } from "node:path"
+import { defineConfig } from "wxt"
 
 // See https://wxt.dev/api/config.html
 // public/_locales is automatically copied to extension root by WXT

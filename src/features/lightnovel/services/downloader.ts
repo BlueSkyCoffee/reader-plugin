@@ -9,6 +9,7 @@ import type {
   LightNovelChapter,
   LightNovelInfo,
 } from "./types"
+import { log } from "@/utils/logger"
 import { RequestScheduler } from "./scheduler"
 
 /**
@@ -70,10 +71,7 @@ export class LightNovelDownloader {
           }
         }
         catch (error) {
-          console.error(
-            `[LightNovelDownloader] Failed to download chapter: ${chapter.title}`,
-            error,
-          )
+          log.lightnovel.error(`Chapter download failed: ${chapter.title}`, error)
 
           // 创建错误章节
           const errorContent = this.createErrorChapter(

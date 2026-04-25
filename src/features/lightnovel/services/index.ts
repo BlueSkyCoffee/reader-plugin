@@ -2,11 +2,11 @@
  * 轻小说下载模块 - 主导出文件
  */
 
+// Hooks 导出（从 hooks 目录）
+export { useNovelDownloader, useNovelParser, useVolumeSelection } from "../hooks"
+
 // 下载管理器导出
 export { LightNovelDownloader } from "./downloader"
-
-// Hooks 导出
-export { useNovelDownloader, useNovelParser, useVolumeSelection } from "./hooks"
 export {
   cleanHtmlContent,
   escapeHtml,
