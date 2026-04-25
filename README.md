@@ -17,6 +17,7 @@
 - **离线阅读** — 基于 IndexedDB 的本地存储，支持章节缓存
 - **EPUB 导出** — 一键生成标准 EPUB 格式电子书
 - **沉浸阅读** — 内置阅读器支持滚动定位、样式自定义
+- **网站黑名单** — 可配置排除特定网站，灵活控制阅读器激活范围
 - **国际化** — 中英文双语界面
 
 ## 技术栈
@@ -25,11 +26,13 @@
 |------|------|
 | 框架 | [Wxt](https://wxt.dev/) + Vite |
 | UI | React 19 + React Router 7 |
-| 样式 | Tailwind CSS v4 + shadcn/ui |
+| 样式 | Tailwind CSS v4 + shadcn/ui + Radix UI |
 | 状态 | Jotai |
+| 数据请求 | TanStack Query v5 |
 | 存储 | Dexie (IndexedDB) |
 | 校验 | Zod + Valibot |
-| 测试 | Vitest + Playwright |
+| 测试 | Vitest + Testing Library |
+| 包管理 | pnpm |
 
 ## 快速开始
 
@@ -87,31 +90,46 @@ pnpm test:cov         # 测试覆盖率
 
 ```
 src/
-├── entrypoints/          # 扩展入口点
+├── assets/               # 静态资源 (样式、图标)
+├── components/           # UI 组件
+│   ├── ui/               # shadcn/ui 基础组件
+│   ├── app/              # 应用级组件
+│   ├── layout/           # 布局组件 (侧边栏)
+│   ├── providers/        # Context providers (主题)
+│   └── settings/         # 设置相关组件
+├── constants/            # 共享常量 (存储键、路由)
+├── entrypoints/          # Wxt 扩展入口点
 │   ├── background/       # Service Worker (消息处理)
 │   ├── content/          # 内容脚本 (页面内阅读器)
 │   ├── popup/            # 弹出窗口 (快捷入口)
-│   └── options/          # 选项页 (完整应用)
-├── features/             # 功能模块
+│   └── options/          # 选项页 (完整应用 + 路由)
+├── features/             # 功能模块 (垂直切片)
 │   ├── bookshelf/        # 书架管理
 │   ├── download/         # 下载管理
-│   ├── lightnovel/       # 小说源解析
+│   ├── lightnovel/       # 轻小说下载
 │   ├── reader/           # 阅读器
-│   ├── rules/            # 爬虫规则
-│   ├── search/           # 搜索功能
-│   └── settings/         # 设置
-├── shared/               # 共享模块
-│   ├── components/       # UI 组件
+│   ├── rules/            # 书源规则
+│   ├── scraper/          # 爬虫引擎
+│   ├── search/           # 全网搜索
+│   └── settings/         # 设置页面
+├── hooks/                # 共享 React Hooks
+├── i18n/                 # 国际化辅助
+├── lib/                  # 基础设施
 │   ├── contracts/        # 消息类型定义
-│   ├── db/               # 数据库配置
-│   ├── hooks/            # React Hooks
-│   ├── i18n/             # 国际化
-│   ├── infra/            # 基础设施
-│   └── state/            # 状态管理
-├── types/                # TypeScript 类型
-└── _locales/             # i18n 翻译文件
-    ├── zh_CN/
-    └── en/
+│   ├── db.ts             # Dexie 数据库配置
+│   ├── idb.ts            # IndexedDB 操作
+│   ├── messaging.ts      # 跨上下文消息
+│   ├── storage.ts        # 统一存储接口
+│   └── epub-*.ts         # EPUB 生成服务
+├── state/                # Jotai atoms
+├── types/                # TypeScript 类型 & Zod schemas
+├── utils/                # 工具函数 (cn, logger, retry 等)
+public/
+└── _locales/             # i18n 翻译文件 (zh_CN, en)
+tests/
+├── unit/                 # 单元测试
+├── integration/          # 集成测试
+└── e2e/                  # E2E 测试 (Playwright)
 ```
 
 ## 架构设计
@@ -122,6 +140,16 @@ src/
 - **单一消息协议** — `ExtensionProtocolMap` 定义跨上下文通信
 - **单一存储实现** — `StorageManager` 统一 IndexedDB + browser.storage
 - **清晰边界** — `entrypoints/` (入口) 与 `features/` (业务) 分离
+
+### 扩展入口点
+
+1. **Background** (`src/entrypoints/background/`) — Service Worker，处理 `fetchHtml`、`fetchNovelMetadata` 等消息
+
+2. **Content Script** (`src/entrypoints/content/`) — 页面内阅读器覆盖层，监听 `show-reader` 自定义事件
+
+3. **Popup** (`src/entrypoints/popup/`) — 快捷入口，支持快速排除当前网站
+
+4. **Options** (`src/entrypoints/options/`) — 完整应用，包含侧边栏 + React Router 路由
 
 ### 消息通信
 
@@ -142,6 +170,11 @@ registerHandlers({
 - **IndexedDB** (`ReaderDB`): 存储 `books`、`chapters`、`rules`、`metadata`、`downloads`
 - **browser.storage.local**: 用户设置 (`reader:app-settings`)
 
+### 小说来源
+
+- **ParserProvider** — 内置解析器：`bili` (bilinovel.com)、`wenku` (wenku8.net)
+- **ScraperEngine** — 通用爬虫引擎，通过 `ScraperRule` 配置支持更多站点
+
 ## 扩展小说源
 
 通过自定义 `ScraperRule` 可支持更多小说站点：
@@ -150,14 +183,21 @@ registerHandlers({
 interface ScraperRule {
   id: string;
   name: string;
-  domain: string;
+  url: string;
   search: SearchConfig;    // 搜索页选择器
   book: BookConfig;        // 书籍页选择器
+  toc: TocConfig;          // 目录选择器
   chapter: ChapterConfig;  // 章节选择器
 }
 ```
 
-规则存储在 IndexedDB 中，可在扩展设置页面管理。
+规则存储在 IndexedDB 中，可在扩展「书源规则」页面管理。
+
+## 网站黑名单
+
+可在设置页面配置网站黑名单，排除特定域名后，嵌入式阅读器将不会在这些网站激活。
+
+配置路径：选项页 → 设置 → 网站黑名单
 
 ## 贡献
 
