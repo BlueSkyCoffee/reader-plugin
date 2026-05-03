@@ -23,6 +23,9 @@ export async function parseWenkuNovel(input: string): Promise<Novel> {
 
   const doc = new DOMParser().parseFromString(html, "text/html")
   const title = doc.querySelector("#content table:nth-child(1) span b")?.textContent?.trim() || "Unknown"
+  const cover = doc.querySelector("#content table img")?.getAttribute("src") || undefined
+  const details = Array.from(doc.querySelectorAll("#content table:nth-child(1) tr:nth-child(2) td"))
+  const author = details[1]?.textContent?.replace("小说作者：", "").trim() || "Unknown"
   const catalogLink = doc.querySelector("legend + div > a")?.getAttribute("href")
 
   if (!catalogLink)
@@ -61,7 +64,8 @@ export async function parseWenkuNovel(input: string): Promise<Novel> {
   return {
     id: novelId,
     title,
-    author: "Unknown", // Simplified for now
+    author,
+    cover: cover ? resolveUrl(infoUrl, cover) : undefined,
     catalogUrl,
     volumes,
     source: "wenku",

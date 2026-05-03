@@ -75,6 +75,18 @@ describe("scraperEngine", () => {
       expect(result).toBe("https://example.com/chapter/1")
     })
 
+    it("extracts attribute value from @attr suffix", () => {
+      const html = `
+        <html>
+          <body>
+            <img class="cover" src="/images/cover.jpg">
+          </body>
+        </html>
+      `
+      const result = engine.parseContent(html, ".cover@src", "text", undefined, "https://example.com/book/123")
+      expect(result).toBe("https://example.com/images/cover.jpg")
+    })
+
     it("extracts meta content attribute", () => {
       const html = `
         <html>
@@ -136,6 +148,34 @@ describe("scraperEngine", () => {
       `
       const result = engine.parseContent(html, ".chapter-content@js: r = r.toUpperCase()", "text")
       expect(result).toBe("ORIGINAL TEXT")
+    })
+
+    it("extracts cover from lazy image attributes", () => {
+      const html = `
+        <html>
+          <body>
+            <div class="book-cover">
+              <img data-original="/covers/lazy.jpg">
+            </div>
+          </body>
+        </html>
+      `
+      const doc = new DOMParser().parseFromString(html, "text/html")
+      const result = (engine as any).extractCoverFromSelector(doc, ".book-cover img", "https://example.com/book/123")
+      expect(result).toBe("https://example.com/covers/lazy.jpg")
+    })
+
+    it("extracts cover from common meta fallbacks", () => {
+      const html = `
+        <html>
+          <head>
+            <meta name="twitter:image" content="//cdn.example.com/cover.webp">
+          </head>
+        </html>
+      `
+      const doc = new DOMParser().parseFromString(html, "text/html")
+      const result = (engine as any).extractCoverUrl(doc, undefined, "https://example.com/book/123")
+      expect(result).toBe("https://cdn.example.com/cover.webp")
     })
   })
 

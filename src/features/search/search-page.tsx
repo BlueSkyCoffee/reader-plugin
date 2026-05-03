@@ -1,6 +1,6 @@
 import type { Book, Chapter, ScraperRule, SearchResult as ScraperSearchResult } from "@/types/novel"
 
-import { Info, Loader2 } from "lucide-react"
+import { Grid2X2, Info, List, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { EmptyState } from "@/components/app/empty-state"
@@ -12,8 +12,26 @@ import { BUILTIN_RULES, ScraperEngine } from "@/features/scraper/services"
 import { i18n } from "@/i18n"
 import { EpubGenerator } from "@/lib/epub-generator"
 import { StorageManager } from "@/lib/storage"
+import { cn } from "@/utils/cn"
 import { log } from "@/utils/logger"
 import { SearchResultCard } from "./search-result-card"
+
+type NovelLayout = "grid" | "list"
+const SEARCH_LAYOUT_STORAGE_KEY = "search-result-layout"
+
+function getInitialSearchLayout(): NovelLayout {
+  if (typeof window === "undefined") {
+    return "grid"
+  }
+
+  try {
+    const savedLayout = window.localStorage.getItem(SEARCH_LAYOUT_STORAGE_KEY)
+    return savedLayout === "list" ? "list" : "grid"
+  }
+  catch {
+    return "grid"
+  }
+}
 
 export function SearchPage() {
   const [query, setQuery] = useState("")
@@ -21,6 +39,17 @@ export function SearchPage() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
   const [results, setResults] = useState<ScraperSearchResult[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [layout, setLayout] = useState<NovelLayout>(getInitialSearchLayout)
+
+  const handleLayoutChange = (nextLayout: NovelLayout) => {
+    setLayout(nextLayout)
+    try {
+      window.localStorage.setItem(SEARCH_LAYOUT_STORAGE_KEY, nextLayout)
+    }
+    catch {
+      // Layout persistence is optional.
+    }
+  }
 
   const handleSearch = async () => {
     if (!query.trim()) {
@@ -298,7 +327,7 @@ export function SearchPage() {
 
         {hasSearched && (
           <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <h2 className="text-base font-semibold">
                 {i18n.t("search.results.title")}
                 {" "}
@@ -316,11 +345,41 @@ export function SearchPage() {
                   </span>
                 </div>
               )}
+              <div className="flex shrink-0 items-center rounded-lg border bg-background p-1">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant={layout === "grid" ? "secondary" : "ghost"}
+                  className={cn("size-8", layout === "grid" && "shadow-sm")}
+                  aria-label={i18n.t("search.layout.grid")}
+                  title={i18n.t("search.layout.grid")}
+                  onClick={() => handleLayoutChange("grid")}
+                >
+                  <Grid2X2 className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant={layout === "list" ? "secondary" : "ghost"}
+                  className={cn("size-8", layout === "list" && "shadow-sm")}
+                  aria-label={i18n.t("search.layout.list")}
+                  title={i18n.t("search.layout.list")}
+                  onClick={() => handleLayoutChange("list")}
+                >
+                  <List className="size-4" />
+                </Button>
+              </div>
             </div>
 
             {results.length > 0
               ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  <div
+                    className={cn(
+                      layout === "grid"
+                        ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                        : "flex flex-col gap-3",
+                    )}
+                  >
                     {results.map((result) => {
                       const sourceName
                         = BUILTIN_RULES.find(r => r.id === result.sourceId)?.name
@@ -330,6 +389,7 @@ export function SearchPage() {
                           key={`${result.sourceId}-${result.url}`}
                           result={result}
                           sourceName={sourceName}
+                          layout={layout}
                           onAddToShelf={handleAddToShelf}
                           onDownload={handleDownloadDirectly}
                           isDownloading={downloadingId === result.url}

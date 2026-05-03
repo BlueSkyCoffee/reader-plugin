@@ -68,6 +68,8 @@ export async function parseBilibiliNovel(input: string): Promise<Novel> {
 
   const doc = new DOMParser().parseFromString(html, "text/html")
   const title = doc.querySelector(".book-title")?.textContent?.trim() || "Unknown"
+  const author = doc.querySelector(".book-rand-a span")?.textContent?.trim() || "Unknown"
+  const cover = doc.querySelector(".book-layout img")?.getAttribute("src") || undefined
 
   const catalogUrl = `${BILI_DOMAIN}/novel/${novelId}/catalog`
   const catalogHtml = await scheduler.run(async () => {
@@ -98,7 +100,15 @@ export async function parseBilibiliNovel(input: string): Promise<Novel> {
   if (currentVolume)
     volumes.push(currentVolume)
 
-  return { id: novelId, title, author: "Unknown", catalogUrl, volumes, source: "bili" }
+  return {
+    id: novelId,
+    title,
+    author,
+    cover: cover ? resolveUrl(BILI_DOMAIN, cover) : undefined,
+    catalogUrl,
+    volumes,
+    source: "bili",
+  }
 }
 
 export async function fetchBiliChapter(url: string): Promise<string> {

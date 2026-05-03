@@ -1,5 +1,5 @@
 import type { Book } from "@/types/novel"
-import { Loader2, Plus } from "lucide-react"
+import { Grid2X2, List, Loader2, Plus } from "lucide-react"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { SearchInput } from "@/components/app/search-input"
@@ -12,12 +12,41 @@ import { EpubGenerator } from "@/lib/epub-generator"
 import { EpubService } from "@/lib/epub-service"
 import { StorageManager } from "@/lib/storage"
 import { confirmAction } from "@/utils/browser-dialog"
+import { cn } from "@/utils/cn"
+
+type BookshelfLayout = "grid" | "list"
+const BOOKSHELF_LAYOUT_STORAGE_KEY = "bookshelf-layout"
+
+function getInitialLayout(): BookshelfLayout {
+  if (typeof window === "undefined") {
+    return "grid"
+  }
+
+  try {
+    const savedLayout = window.localStorage.getItem(BOOKSHELF_LAYOUT_STORAGE_KEY)
+    return savedLayout === "list" ? "list" : "grid"
+  }
+  catch {
+    return "grid"
+  }
+}
 
 export function BookshelfPage() {
   const { books, activeBookId, isLoading, refresh } = useBookshelf()
   const [searchQuery, setSearchQuery] = useState("")
+  const [layout, setLayout] = useState<BookshelfLayout>(getInitialLayout)
   const [isImporting, setIsImporting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleLayoutChange = (nextLayout: BookshelfLayout) => {
+    setLayout(nextLayout)
+    try {
+      window.localStorage.setItem(BOOKSHELF_LAYOUT_STORAGE_KEY, nextLayout)
+    }
+    catch {
+      // Layout persistence is optional.
+    }
+  }
 
   const handleSelect = async (id: string) => {
     try {
@@ -147,11 +176,39 @@ export function BookshelfPage() {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 transition group-hover:opacity-100" />
         </div>
 
-        <SearchInput
-          placeholder={i18n.t("bookshelf.search.placeholder")}
-          value={searchQuery}
-          onChange={setSearchQuery}
-        />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1">
+            <SearchInput
+              placeholder={i18n.t("bookshelf.search.placeholder")}
+              value={searchQuery}
+              onChange={setSearchQuery}
+            />
+          </div>
+          <div className="flex shrink-0 items-center rounded-lg border bg-background p-1">
+            <Button
+              type="button"
+              size="icon"
+              variant={layout === "grid" ? "secondary" : "ghost"}
+              className={cn("size-8", layout === "grid" && "shadow-sm")}
+              aria-label={i18n.t("bookshelf.layout.grid")}
+              title={i18n.t("bookshelf.layout.grid")}
+              onClick={() => handleLayoutChange("grid")}
+            >
+              <Grid2X2 className="size-4" />
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              variant={layout === "list" ? "secondary" : "ghost"}
+              className={cn("size-8", layout === "list" && "shadow-sm")}
+              aria-label={i18n.t("bookshelf.layout.list")}
+              title={i18n.t("bookshelf.layout.list")}
+              onClick={() => handleLayoutChange("list")}
+            >
+              <List className="size-4" />
+            </Button>
+          </div>
+        </div>
 
         {isLoading
           ? (
@@ -161,12 +218,19 @@ export function BookshelfPage() {
             )
           : filteredBooks.length > 0
             ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                <div
+                  className={cn(
+                    layout === "grid"
+                      ? "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+                      : "flex flex-col gap-3",
+                  )}
+                >
                   {filteredBooks.map(book => (
                     <BookCard
                       key={book.id}
                       book={book}
                       isActive={book.id === activeBookId}
+                      layout={layout}
                       onSelect={handleSelect}
                       onDelete={handleDelete}
                       onDownload={handleDownload}

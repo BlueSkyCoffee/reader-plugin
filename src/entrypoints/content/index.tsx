@@ -3,7 +3,10 @@ import { defineContentScript } from "#imports"
 import { Provider, useAtom } from "jotai"
 import * as React from "react"
 import ReactDOM from "react-dom/client"
+import { browser } from "wxt/browser"
+import { createShadowRootUi } from "wxt/utils/content-script-ui/shadow-root"
 import { PageErrorBoundary } from "@/components/app/error-boundary"
+import { STORAGE_KEYS } from "@/constants/storage"
 import { ParserProvider } from "@/features/lightnovel/services"
 import { ContentDisplay, ReaderBar, ReaderControls } from "@/features/reader"
 import { ScraperEngine } from "@/features/scraper/services"
@@ -13,28 +16,37 @@ import { activeBookIdAtom, currentChapterIndexAtom, scrollPositionAtom, settings
 import { DEFAULT_USER_SETTINGS } from "@/types/config"
 import { log } from "@/utils/logger"
 import { ShortcutManager } from "@/utils/shortcut-manager"
-import "@/assets/styles/index.css"
+import "@/assets/styles/theme.css"
 
 export default defineContentScript({
   matches: ["<all_urls>"],
-  main(context) {
-    const containerElement = document.createElement("div")
-    containerElement.id = "reader-root"
-    document.body.appendChild(containerElement)
+  cssInjectionMode: "ui",
+  async main(context) {
+    const ui = await createShadowRootUi(context, {
+      name: "web-novel-reader",
+      position: "modal",
+      zIndex: 2147483647,
+      isolateEvents: true,
+      onMount: (container, _shadow, shadowHost) => {
+        container.id = "reader-root"
+        container.style.pointerEvents = "none"
+        shadowHost.style.pointerEvents = "none"
 
-    const root = ReactDOM.createRoot(containerElement)
-    root.render(
-      <Provider>
-        <PageErrorBoundary>
-          <ReaderApp />
-        </PageErrorBoundary>
-      </Provider>,
-    )
+        const root = ReactDOM.createRoot(container)
+        root.render(
+          <Provider>
+            <PageErrorBoundary>
+              <ReaderApp />
+            </PageErrorBoundary>
+          </Provider>,
+        )
 
-    context.onInvalidated(() => {
-      root.unmount()
-      containerElement.remove()
+        return root
+      },
+      onRemove: root => root?.unmount(),
     })
+
+    ui.mount()
   },
 })
 
@@ -63,12 +75,13 @@ function ReaderApp() {
       const customEvent = event as CustomEvent<{
         bookId: string
         chapterIndex?: number
+        scroll?: number
         scrollPosition?: number
       }>
 
       setActiveBookId(customEvent.detail.bookId)
       setCurrentChapterIndex(customEvent.detail.chapterIndex ?? 0)
-      setScrollPosition(customEvent.detail.scrollPosition ?? 0)
+      setScrollPosition(customEvent.detail.scrollPosition ?? customEvent.detail.scroll ?? 0)
       setIsVisible(true)
     }
 
@@ -93,6 +106,25 @@ function ReaderApp() {
 
     void hydrateActiveSession()
   }, [setActiveBookId, setCurrentChapterIndex, setScrollPosition])
+
+  React.useEffect(() => {
+    const handleStorageChange = (
+      changes: Record<string, { newValue?: unknown }>,
+      areaName: string,
+    ) => {
+      if (areaName !== "local") {
+        return
+      }
+
+      const settingsChange = changes[STORAGE_KEYS.appSettings]
+      if (settingsChange?.newValue) {
+        void StorageManager.getSettings().then(setSettings)
+      }
+    }
+
+    browser.storage.onChanged.addListener(handleStorageChange)
+    return () => browser.storage.onChanged.removeListener(handleStorageChange)
+  }, [setSettings])
 
   React.useEffect(() => {
     if (!isVisible || !activeBookId) {
@@ -178,7 +210,15 @@ function ReaderApp() {
     },
   }), [settings])
 
-  if (isExcluded || !activeBookId || !isVisible) {
+  const shouldRenderReader = !isExcluded && !!activeBookId && isVisible
+
+  useReaderPageInset(
+    resolvedSettings.position,
+    resolvedSettings.readerStyle.barHeight,
+    shouldRenderReader,
+  )
+
+  if (!shouldRenderReader) {
     return null
   }
 
@@ -203,4 +243,45 @@ function ReaderApp() {
       />
     </ReaderBar>
   )
+}
+
+function useReaderPageInset(
+  position: typeof DEFAULT_USER_SETTINGS.position,
+  barHeight: number,
+  enabled: boolean,
+) {
+  const restoreRef = React.useRef<(() => void) | null>(null)
+
+  React.useEffect(() => {
+    restoreRef.current?.()
+    restoreRef.current = null
+
+    if (!enabled || position === "floating") {
+      return
+    }
+
+    const side = position === "top" ? "Top" : "Bottom"
+    const body = document.body
+    const html = document.documentElement
+    const bodyPaddingKey = `padding${side}` as "paddingTop" | "paddingBottom"
+    const scrollPaddingKey = `scrollPadding${side}` as "scrollPaddingTop" | "scrollPaddingBottom"
+    const originalBodyPadding = body.style[bodyPaddingKey]
+    const originalHtmlScrollPadding = html.style[scrollPaddingKey]
+    const computedPadding = Number.parseFloat(getComputedStyle(body)[bodyPaddingKey]) || 0
+    const computedScrollPadding = Number.parseFloat(getComputedStyle(html)[scrollPaddingKey]) || 0
+    const height = Math.max(0, barHeight)
+
+    body.style[bodyPaddingKey] = `${computedPadding + height}px`
+    html.style[scrollPaddingKey] = `${computedScrollPadding + height}px`
+
+    restoreRef.current = () => {
+      body.style[bodyPaddingKey] = originalBodyPadding
+      html.style[scrollPaddingKey] = originalHtmlScrollPadding
+    }
+
+    return () => {
+      restoreRef.current?.()
+      restoreRef.current = null
+    }
+  }, [barHeight, enabled, position])
 }

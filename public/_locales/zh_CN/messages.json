@@ -401,6 +401,12 @@
   "bookshelf_search_placeholder": {
     "message": "搜索书架..."
   },
+  "bookshelf_layout_grid": {
+    "message": "卡片布局"
+  },
+  "bookshelf_layout_list": {
+    "message": "列表布局"
+  },
   "bookshelf_confirm_deleteBook": {
     "message": "确定要删除这本书及其所有缓存的章节内容吗？"
   },
@@ -580,6 +586,12 @@
   },
   "search_results_loading": {
     "message": "搜索中..."
+  },
+  "search_layout_grid": {
+    "message": "卡片布局"
+  },
+  "search_layout_list": {
+    "message": "列表布局"
   },
   "search_source_custom": {
     "message": "自定义书源"
@@ -913,6 +925,12 @@
   },
   "lightnovel_search_parsing": {
     "message": "解析中"
+  },
+  "lightnovel_layout_grid": {
+    "message": "卡片布局"
+  },
+  "lightnovel_layout_list": {
+    "message": "列表布局"
   },
   "lightnovel_example_title": {
     "message": "使用示例"

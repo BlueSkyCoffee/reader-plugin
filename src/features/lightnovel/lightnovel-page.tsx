@@ -9,6 +9,8 @@ import {
   Check,
   Copy,
   Download,
+  Grid2X2,
+  List,
   Loader2,
   Pause,
   Play,
@@ -18,7 +20,9 @@ import {
 import { useState } from "react"
 import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Switch } from "@/components/ui/switch"
@@ -29,7 +33,25 @@ import {
   useVolumeSelection,
 } from "@/features/lightnovel/services"
 import { i18n } from "@/i18n"
+import { cn } from "@/utils/cn"
 import { log } from "@/utils/logger"
+
+type NovelLayout = "grid" | "list"
+const LIGHTNOVEL_LAYOUT_STORAGE_KEY = "lightnovel-layout"
+
+function getInitialLightNovelLayout(): NovelLayout {
+  if (typeof window === "undefined") {
+    return "grid"
+  }
+
+  try {
+    const savedLayout = window.localStorage.getItem(LIGHTNOVEL_LAYOUT_STORAGE_KEY)
+    return savedLayout === "list" ? "list" : "grid"
+  }
+  catch {
+    return "grid"
+  }
+}
 
 /**
  * 来源选择器
@@ -154,49 +176,85 @@ function UsageExample({ source }: { source: "bili" | "wenku" }) {
 /**
  * 小说信息卡片
  */
-function NovelInfoCard({ novelInfo }: { novelInfo: LightNovelInfo }) {
+function NovelInfoCard({
+  novelInfo,
+  layout,
+}: {
+  novelInfo: LightNovelInfo
+  layout: NovelLayout
+}) {
   const totalChapters = novelInfo.volumes.reduce(
     (sum, v) => sum + v.chapters.length,
     0,
   )
 
+  const stats = [
+    novelInfo.status && `${i18n.t("lightnovel.info.status")}${novelInfo.status}`,
+    `${i18n.t("lightnovel.info.volumes")}${novelInfo.volumes.length}`,
+    `${i18n.t("lightnovel.info.chapters")}${totalChapters}`,
+  ].filter(Boolean) as string[]
+
   return (
-    <div className="border rounded-lg p-4 flex flex-col gap-3">
-      <div className="flex gap-4">
-        {novelInfo.cover && (
-          <img
-            src={novelInfo.cover}
-            alt={novelInfo.title}
-            className="w-24 h-32 object-cover rounded"
-          />
+    <Card>
+      <CardContent
+        className={cn(
+          "p-4",
+          layout === "grid"
+            ? "grid gap-4 sm:grid-cols-[8rem_1fr]"
+            : "flex items-start gap-4",
         )}
-        <div className="flex-1">
-          <h2 className="text-xl font-bold">{novelInfo.title}</h2>
-          <p className="text-sm text-muted-foreground">
+      >
+        <div
+          className={cn(
+            "shrink-0 overflow-hidden rounded-md bg-muted shadow-sm",
+            layout === "grid" ? "aspect-[5/7] w-32" : "h-28 w-20",
+          )}
+        >
+          {novelInfo.cover
+            ? (
+                <img
+                  src={novelInfo.cover}
+                  alt={novelInfo.title}
+                  className="h-full w-full object-cover"
+                />
+              )
+            : (
+                <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+                  {i18n.t("search.card.noCover")}
+                </div>
+              )}
+        </div>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-start gap-2">
+            <h2 className="min-w-0 flex-1 text-xl font-semibold leading-tight" title={novelInfo.title}>
+              {novelInfo.title}
+            </h2>
+            <Badge variant="secondary">{novelInfo.source.toUpperCase()}</Badge>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
             {i18n.t("lightnovel.info.author")}
             {novelInfo.author}
           </p>
-          <p className="text-sm text-muted-foreground">
-            {i18n.t("lightnovel.info.status")}
-            {novelInfo.status}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {i18n.t("lightnovel.info.volumes")}
-            {novelInfo.volumes.length}
-            {" "}
-            |
-            {" "}
-            {i18n.t("lightnovel.info.chapters")}
-            {totalChapters}
-          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {stats.map(stat => (
+              <Badge key={stat} variant="outline">
+                {stat}
+              </Badge>
+            ))}
+          </div>
           {novelInfo.description && (
-            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+            <p
+              className={cn(
+                "mt-3 text-sm leading-6 text-muted-foreground",
+                layout === "grid" ? "line-clamp-3" : "line-clamp-2",
+              )}
+            >
               {novelInfo.description}
             </p>
           )}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -206,21 +264,23 @@ function NovelInfoCard({ novelInfo }: { novelInfo: LightNovelInfo }) {
 function VolumeSelector({
   novelInfo,
   selectedVolumes,
+  layout,
   onToggleVolume,
   onSelectAll,
   onClearSelection,
 }: {
   novelInfo: LightNovelInfo
   selectedVolumes: Set<number>
+  layout: NovelLayout
   onToggleVolume: (idx: number) => void
   onSelectAll: () => void
   onClearSelection: () => void
 }) {
   return (
-    <div className="border rounded-lg p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold">{i18n.t("lightnovel.volume.title")}</h3>
-        <div className="flex gap-2">
+    <Card>
+      <CardHeader className="flex-row items-center justify-between gap-3 p-4 pb-3">
+        <CardTitle className="text-base">{i18n.t("lightnovel.volume.title")}</CardTitle>
+        <div className="flex shrink-0 gap-2">
           <Button size="sm" variant="outline" onClick={onSelectAll}>
             {i18n.t("lightnovel.volume.selectAll")}
           </Button>
@@ -228,34 +288,40 @@ function VolumeSelector({
             {i18n.t("lightnovel.volume.clear")}
           </Button>
         </div>
-      </div>
-      <ScrollArea className="max-h-64">
-        <div className="grid grid-cols-2 gap-2 pr-4">
-          {novelInfo.volumes.map((volume, idx) => (
-            <label
-              key={`${volume.title}-${volume.chapters[0]?.url ?? volume.title}`}
-              className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={selectedVolumes.has(idx)}
-                onChange={() => onToggleVolume(idx)}
-                className="w-4 h-4"
-              />
-              <span className="text-sm">
-                {volume.title}
-                {" "}
-                (
-                {volume.chapters.length}
-                {" "}
-                {i18n.t("lightnovel.volume.chapterUnit")}
-                )
-              </span>
-            </label>
-          ))}
-        </div>
-      </ScrollArea>
-    </div>
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        <ScrollArea className="max-h-64">
+          <div
+            className={cn(
+              "pr-4",
+              layout === "grid" ? "grid grid-cols-1 gap-2 sm:grid-cols-2" : "flex flex-col gap-2",
+            )}
+          >
+            {novelInfo.volumes.map((volume, idx) => (
+              <label
+                key={`${volume.title}-${volume.chapters[0]?.url ?? volume.title}`}
+                className="flex cursor-pointer items-center gap-2 rounded-md border p-2 transition hover:bg-muted"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedVolumes.has(idx)}
+                  onChange={() => onToggleVolume(idx)}
+                  className="size-4"
+                />
+                <span className="min-w-0 flex-1 truncate text-sm">
+                  {volume.title}
+                </span>
+                <Badge variant="secondary">
+                  {volume.chapters.length}
+                  {" "}
+                  {i18n.t("lightnovel.volume.chapterUnit")}
+                </Badge>
+              </label>
+            ))}
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -285,9 +351,11 @@ function ChapterRangeInput({
   const maxEndChapter = lastVolume !== undefined ? novelInfo.volumes[lastVolume]?.chapters.length || 1 : 1
 
   return (
-    <div className="border rounded-lg p-4 flex flex-col gap-3">
-      <h3 className="font-semibold">{i18n.t("lightnovel.range.title")}</h3>
-      <div className="grid grid-cols-2 gap-4">
+    <Card>
+      <CardHeader className="p-4 pb-3">
+        <CardTitle className="text-base">{i18n.t("lightnovel.range.title")}</CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 gap-4 p-4 pt-0">
         <div>
           <label className="text-sm font-medium">{i18n.t("lightnovel.range.start")}</label>
           <Input
@@ -310,8 +378,8 @@ function ChapterRangeInput({
             className="mt-1"
           />
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -336,9 +404,9 @@ function DownloadProgressBar({
   const percentage = progress.total > 0 ? (progress.current / progress.total) * 100 : 0
 
   return (
-    <div className="border rounded-lg p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold">{i18n.t("lightnovel.download.title")}</h3>
+    <Card>
+      <CardHeader className="flex-row items-center justify-between gap-3 p-4 pb-3">
+        <CardTitle className="text-base">{i18n.t("lightnovel.download.title")}</CardTitle>
         <div className="flex gap-2">
           {isDownloading && (
             <>
@@ -362,9 +430,9 @@ function DownloadProgressBar({
             </>
           )}
         </div>
-      </div>
+      </CardHeader>
 
-      <div className="flex flex-col gap-2">
+      <CardContent className="flex flex-col gap-2 p-4 pt-0">
         <div className="flex items-center justify-between text-sm">
           <span>
             {progress.current}
@@ -389,8 +457,8 @@ function DownloadProgressBar({
             {progress.currentChapter}
           </p>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -403,6 +471,7 @@ export function LightNovelPage() {
   const [novelInfo, setNovelInfo] = useState<LightNovelInfo | null>(null)
   const [combineVolume, setCombineVolume] = useState(false)
   const [addChapterTitle, setAddChapterTitle] = useState(false)
+  const [layout, setLayout] = useState<NovelLayout>(getInitialLightNovelLayout)
 
   const { parseNovel, isLoading: isParsing, packer } = useNovelParser()
   const {
@@ -425,6 +494,16 @@ export function LightNovelPage() {
     selectAllVolumes,
     clearSelection,
   } = useVolumeSelection(novelInfo?.volumes.length || 0)
+
+  const handleLayoutChange = (nextLayout: NovelLayout) => {
+    setLayout(nextLayout)
+    try {
+      window.localStorage.setItem(LIGHTNOVEL_LAYOUT_STORAGE_KEY, nextLayout)
+    }
+    catch {
+      // Layout persistence is optional.
+    }
+  }
 
   const handleSearch = async () => {
     if (!input.trim()) {
@@ -490,11 +569,37 @@ export function LightNovelPage() {
 
   return (
     <div className="p-6 flex flex-col gap-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">{i18n.t("lightnovel.title")}</h1>
-        <p className="text-muted-foreground">
-          {i18n.t("lightnovel.description")}
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="mb-2 text-3xl font-bold">{i18n.t("lightnovel.title")}</h1>
+          <p className="text-muted-foreground">
+            {i18n.t("lightnovel.description")}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center rounded-lg border bg-background p-1">
+          <Button
+            type="button"
+            size="icon"
+            variant={layout === "grid" ? "secondary" : "ghost"}
+            className={cn("size-8", layout === "grid" && "shadow-sm")}
+            aria-label={i18n.t("lightnovel.layout.grid")}
+            title={i18n.t("lightnovel.layout.grid")}
+            onClick={() => handleLayoutChange("grid")}
+          >
+            <Grid2X2 className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant={layout === "list" ? "secondary" : "ghost"}
+            className={cn("size-8", layout === "list" && "shadow-sm")}
+            aria-label={i18n.t("lightnovel.layout.list")}
+            title={i18n.t("lightnovel.layout.list")}
+            onClick={() => handleLayoutChange("list")}
+          >
+            <List className="size-4" />
+          </Button>
+        </div>
       </div>
 
       {/* 来源选择 */}
@@ -515,12 +620,13 @@ export function LightNovelPage() {
       {/* 小说信息 */}
       {novelInfo && (
         <>
-          <NovelInfoCard novelInfo={novelInfo} />
+          <NovelInfoCard novelInfo={novelInfo} layout={layout} />
 
           {/* 卷选择 */}
           <VolumeSelector
             novelInfo={novelInfo}
             selectedVolumes={selectedVolumes}
+            layout={layout}
             onToggleVolume={toggleVolume}
             onSelectAll={selectAllVolumes}
             onClearSelection={clearSelection}
@@ -537,34 +643,38 @@ export function LightNovelPage() {
           />
 
           {/* 打包选项 */}
-          <div className="border rounded-lg p-4 flex flex-col gap-3">
-            <h3 className="font-semibold">{i18n.t("lightnovel.options.title")}</h3>
-            <div className="flex items-center justify-between text-sm">
-              <div>
-                <p className="font-medium">{i18n.t("lightnovel.options.combineVolume")}</p>
-                <p className="text-xs text-muted-foreground">
-                  {i18n.t("lightnovel.options.combineVolume.desc")}
-                </p>
+          <Card>
+            <CardHeader className="p-4 pb-3">
+              <CardTitle className="text-base">{i18n.t("lightnovel.options.title")}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3 p-4 pt-0">
+              <div className="flex items-center justify-between gap-4 text-sm">
+                <div>
+                  <p className="font-medium">{i18n.t("lightnovel.options.combineVolume")}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {i18n.t("lightnovel.options.combineVolume.desc")}
+                  </p>
+                </div>
+                <Switch
+                  checked={combineVolume}
+                  onCheckedChange={setCombineVolume}
+                  disabled={selectedVolumes.size <= 1}
+                />
               </div>
-              <Switch
-                checked={combineVolume}
-                onCheckedChange={setCombineVolume}
-                disabled={selectedVolumes.size <= 1}
-              />
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <div>
-                <p className="font-medium">{i18n.t("lightnovel.options.chapterTitle")}</p>
-                <p className="text-xs text-muted-foreground">
-                  {i18n.t("lightnovel.options.chapterTitle.desc")}
-                </p>
+              <div className="flex items-center justify-between gap-4 text-sm">
+                <div>
+                  <p className="font-medium">{i18n.t("lightnovel.options.chapterTitle")}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {i18n.t("lightnovel.options.chapterTitle.desc")}
+                  </p>
+                </div>
+                <Switch
+                  checked={addChapterTitle}
+                  onCheckedChange={setAddChapterTitle}
+                />
               </div>
-              <Switch
-                checked={addChapterTitle}
-                onCheckedChange={setAddChapterTitle}
-              />
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* 下载进度 */}
           {isDownloading && (

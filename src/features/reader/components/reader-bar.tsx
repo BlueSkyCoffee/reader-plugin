@@ -26,8 +26,8 @@ export function ReaderBar({ children, position, styleConfig }: ReaderBarProps) {
     borderColor: styleConfig.border,
     opacity: styleConfig.opacity,
     borderRadius: isFloating ? styleConfig.radius : 0,
-    height: isFloating ? styleConfig.floatingHeight : styleConfig.barHeight,
-    width: isFloating ? styleConfig.floatingWidth : "100%",
+    height: isFloating ? Math.min(styleConfig.floatingHeight, window.innerHeight - 16) : styleConfig.barHeight,
+    width: isFloating ? Math.min(styleConfig.floatingWidth, window.innerWidth - 16) : "100%",
     left: isFloating ? floatingPosition.x : 0,
     top: isFloating ? floatingPosition.y : position === "top" ? 0 : undefined,
     bottom: !isFloating && position === "bottom" ? 0 : undefined,
@@ -42,11 +42,13 @@ export function ReaderBar({ children, position, styleConfig }: ReaderBarProps) {
     <div
       ref={ref}
       className={cn(
-        "fixed z-[9999] flex flex-col border shadow-lg backdrop-blur",
+        "pointer-events-auto fixed z-[9999] flex flex-col overflow-hidden border shadow-lg backdrop-blur",
         isFloating ? "shadow-xl" : "left-0 right-0",
         isFloating ? "" : position === "top" ? "top-0 border-b" : "bottom-0 border-t",
       )}
       style={styleWithVars}
+      role="complementary"
+      aria-label={i18n.t("reader_bar_title")}
     >
       {isFloating && (
         <div

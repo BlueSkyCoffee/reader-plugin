@@ -8,6 +8,37 @@ type ContentType = "text" | "html" | "attr"
 
 const NEXT_PAGE_TEXT_REGEX = /下一章|没有了|>>|书末页/
 const NEXT_PAGE_URL_REGEX = /.*[-_]\d\.html/
+const RULE_JS_SEPARATOR = "@js:"
+const RULE_ATTR_SUFFIX_REGEX = /@([a-z][\w:-]*)$/i
+const COVER_ATTR_CANDIDATES = [
+  "src",
+  "data-src",
+  "data-original",
+  "data-lazy-src",
+  "data-echo",
+  "content",
+  "href",
+  "value",
+] as const
+const COVER_FALLBACK_SELECTORS = [
+  "meta[property=\"og:image\"]",
+  "meta[name=\"og:image\"]",
+  "meta[property=\"og:image:url\"]",
+  "meta[name=\"twitter:image\"]",
+  "meta[property=\"twitter:image\"]",
+  "meta[itemprop=\"image\"]",
+  "link[rel=\"image_src\"]",
+  "img[itemprop=\"image\"]",
+  ".book-cover img",
+  ".bookimg img",
+  ".book-img img",
+  ".bookimage img",
+  ".cover img",
+  ".coverecom img",
+  ".imgbox img",
+  "#bookimg img",
+  "#fmimg img",
+] as const
 
 export class ScraperEngine {
   private rule: ScraperRule
@@ -70,7 +101,7 @@ export class ScraperEngine {
     if (!query)
       return ""
 
-    const [selector, jsCode] = query.split("@js:")
+    const { selector, jsCode, attrSuffix } = this.parseRuleQuery(query)
     let result = ""
 
     const root = typeof html === "string"
@@ -79,11 +110,14 @@ export class ScraperEngine {
 
     const selectorTrim = selector.trim()
     let effectiveType = type
-    let effectiveAttr = attrName
+    let effectiveAttr = attrSuffix || attrName
 
     if (effectiveType === "text" && selectorTrim.startsWith("meta[")) {
       effectiveType = "attr"
       effectiveAttr = "content"
+    }
+    else if (attrSuffix) {
+      effectiveType = "attr"
     }
 
     const elements = this.selectAll(root, selectorTrim)
@@ -110,6 +144,27 @@ export class ScraperEngine {
     }
 
     return result
+  }
+
+  private parseRuleQuery(query: string) {
+    const jsIndex = query.indexOf(RULE_JS_SEPARATOR)
+    const selectorPart = jsIndex >= 0 ? query.slice(0, jsIndex) : query
+    const jsCode = jsIndex >= 0 ? query.slice(jsIndex + RULE_JS_SEPARATOR.length) : undefined
+    const attrMatch = selectorPart.match(RULE_ATTR_SUFFIX_REGEX)
+
+    if (!attrMatch) {
+      return {
+        selector: selectorPart,
+        jsCode,
+        attrSuffix: undefined,
+      }
+    }
+
+    return {
+      selector: selectorPart.slice(0, attrMatch.index),
+      jsCode,
+      attrSuffix: attrMatch[1],
+    }
   }
 
   private selectAll(root: Document | Element, query: string): Element[] {
@@ -157,23 +212,36 @@ export class ScraperEngine {
     if (!value)
       return ""
 
-    if (attrName === "href" || attrName === "src") {
+    if (this.isUrlAttribute(attrName)) {
       return this.resolveUrl(value, baseUri)
     }
 
     return value
   }
 
+  private isUrlAttribute(attrName: string) {
+    return attrName === "href" || attrName === "src" || attrName.endsWith("src")
+  }
+
   private resolveUrl(value: string, baseUri?: string) {
     if (!value)
       return ""
 
+    const normalizedValue = this.normalizeUrlValue(value)
+
     try {
-      return new URL(value, baseUri || this.rule.url).href
+      return new URL(normalizedValue, baseUri || this.rule.url).href
     }
     catch {
-      return value
+      return normalizedValue
     }
+  }
+
+  private normalizeUrlValue(value: string) {
+    return value
+      .trim()
+      .replace(/^url\((['"]?)(.*?)\1\)$/i, "$2")
+      .replaceAll("&amp;", "&")
   }
 
   private runRuleJs(jsCode: string, input: string) {
@@ -330,19 +398,12 @@ export class ScraperEngine {
       bookName: this.parseContent(doc, bookRule.bookName, "text", undefined, bookRule.baseUri),
       author: this.parseContent(doc, bookRule.author, "text", undefined, bookRule.baseUri),
       intro: this.parseContent(doc, bookRule.intro, "text", undefined, bookRule.baseUri),
-      coverUrl: bookRule.coverUrl
-        ? this.parseContent(doc, bookRule.coverUrl, "attr", "src", bookRule.baseUri)
-        || this.parseContent(doc, bookRule.coverUrl, "attr", "content", bookRule.baseUri)
-        : undefined,
+      coverUrl: this.extractCoverUrl(doc, bookRule.coverUrl, bookUrl),
       category: bookRule.category ? this.parseContent(doc, bookRule.category, "text", undefined, bookRule.baseUri) : undefined,
       latestChapter: bookRule.latestChapter ? this.parseContent(doc, bookRule.latestChapter, "text", undefined, bookRule.baseUri) : undefined,
       lastUpdateTime: bookRule.lastUpdateTime ? this.parseContent(doc, bookRule.lastUpdateTime, "text", undefined, bookRule.baseUri) : undefined,
       status: bookRule.status ? this.parseContent(doc, bookRule.status, "text", undefined, bookRule.baseUri) : undefined,
       wordCount: bookRule.wordCount ? this.parseContent(doc, bookRule.wordCount, "text", undefined, bookRule.baseUri) : undefined,
-    }
-
-    if (info.coverUrl) {
-      info.coverUrl = this.resolveUrl(info.coverUrl, bookUrl)
     }
 
     // 应用简繁转换
@@ -362,6 +423,61 @@ export class ScraperEngine {
     const toc = this.extractToc(tocPages, bookUrl, sourceLanguage, targetLanguage)
 
     return { info, toc }
+  }
+
+  private extractCoverUrl(doc: Document, coverRule: string | undefined, bookUrl: string) {
+    const baseUri = this.rule.book.baseUri || bookUrl
+
+    if (coverRule) {
+      const explicitCover = this.extractCoverFromSelector(doc, coverRule, baseUri)
+      if (explicitCover) {
+        return explicitCover
+      }
+    }
+
+    for (const selector of COVER_FALLBACK_SELECTORS) {
+      const cover = this.extractCoverFromSelector(doc, selector, baseUri)
+      if (cover) {
+        return cover
+      }
+    }
+
+    return undefined
+  }
+
+  private extractCoverFromSelector(doc: Document, selector: string, baseUri: string) {
+    const textOrExplicitAttr = this.parseContent(doc, selector, "text", undefined, baseUri)
+    const normalizedTextOrExplicitAttr = this.normalizeCoverUrl(textOrExplicitAttr, baseUri)
+    if (normalizedTextOrExplicitAttr) {
+      return normalizedTextOrExplicitAttr
+    }
+
+    for (const attr of COVER_ATTR_CANDIDATES) {
+      const attrValue = this.parseContent(doc, selector, "attr", attr, baseUri)
+      const normalizedAttrValue = this.normalizeCoverUrl(attrValue, baseUri)
+      if (normalizedAttrValue) {
+        return normalizedAttrValue
+      }
+    }
+
+    return ""
+  }
+
+  private normalizeCoverUrl(value: string, baseUri: string) {
+    if (!value) {
+      return ""
+    }
+
+    const normalizedValue = this.normalizeUrlValue(value)
+    if (!normalizedValue || normalizedValue === "#" || normalizedValue.startsWith("javascript:")) {
+      return ""
+    }
+
+    if (/^(?:https?:|data:image\/|blob:|\/\/|\/|\.{1,2}\/)/i.test(normalizedValue)) {
+      return this.resolveUrl(normalizedValue, baseUri)
+    }
+
+    return ""
   }
 
   private async fetchTocPages(bookUrl: string, doc: Document) {

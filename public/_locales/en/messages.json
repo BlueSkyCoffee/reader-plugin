@@ -401,6 +401,12 @@
   "bookshelf_search_placeholder": {
     "message": "Search library..."
   },
+  "bookshelf_layout_grid": {
+    "message": "Grid layout"
+  },
+  "bookshelf_layout_list": {
+    "message": "List layout"
+  },
   "bookshelf_confirm_deleteBook": {
     "message": "Are you sure you want to delete this book and all cached chapters?"
   },
@@ -580,6 +586,12 @@
   },
   "search_results_loading": {
     "message": "Searching..."
+  },
+  "search_layout_grid": {
+    "message": "Grid layout"
+  },
+  "search_layout_list": {
+    "message": "List layout"
   },
   "search_source_custom": {
     "message": "Custom Source"
@@ -913,6 +925,12 @@
   },
   "lightnovel_search_parsing": {
     "message": "Parsing"
+  },
+  "lightnovel_layout_grid": {
+    "message": "Grid layout"
+  },
+  "lightnovel_layout_list": {
+    "message": "List layout"
   },
   "lightnovel_example_title": {
     "message": "Example"

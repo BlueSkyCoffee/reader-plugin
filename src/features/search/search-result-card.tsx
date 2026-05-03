@@ -3,12 +3,13 @@ import { BookOpen, Download, ExternalLink, Loader2 } from "lucide-react"
 import * as React from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { i18n } from "@/i18n"
 
 interface SearchResultCardProps {
   result: SearchResult
   sourceName: string
+  layout?: "grid" | "list"
   onAddToShelf: (result: SearchResult) => Promise<void>
   onDownload: (result: SearchResult) => Promise<void>
   isDownloading: boolean
@@ -17,13 +18,13 @@ interface SearchResultCardProps {
 export const SearchResultCard: React.FC<SearchResultCardProps> = ({
   result,
   sourceName,
+  layout = "grid",
   onAddToShelf,
   onDownload,
   isDownloading,
 }) => {
   const [isLoading, setIsLoading] = React.useState(false)
-  const [coverUrl, setCoverUrl] = React.useState<string | null>(null)
-  const [isHovered, setIsHovered] = React.useState(false)
+  const isBusy = isLoading || isDownloading
 
   const handleAddToShelf = async () => {
     setIsLoading(true)
@@ -45,157 +46,172 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
     }
   }
 
-  return (
-    <Card
-      className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-primary/30"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Cover Section */}
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-gradient-to-br from-muted/80 to-muted">
-        {coverUrl
-          ? (
-              <img
-                src={coverUrl}
-                alt={result.bookName}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={() => setCoverUrl(null)}
-              />
-            )
-          : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                <BookOpen className="h-12 w-12 text-muted-foreground/40" />
-                <span className="text-xs text-muted-foreground/60">
-                  {i18n.t("search.card.noCover")}
-                </span>
-              </div>
-            )}
+  const metaItems = [
+    result.latestChapter && {
+      label: i18n.t("search.result.latest"),
+      value: result.latestChapter,
+    },
+    result.lastUpdateTime && {
+      label: i18n.t("search.result.updated"),
+      value: result.lastUpdateTime,
+    },
+  ].filter(Boolean) as Array<{ label: string, value: string }>
 
-        {/* Source Badge Overlay */}
-        <div className="absolute top-3 right-3 z-10">
-          <Badge
-            variant="secondary"
-            className="bg-background/90 backdrop-blur-sm text-xs shadow-sm"
-          >
+  const tags = [result.category, result.status, result.wordCount].filter(Boolean) as string[]
+
+  if (layout === "list") {
+    return (
+      <Card className="group transition-all hover:bg-muted/40">
+        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+              <BookOpen className="size-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="min-w-0 flex-1 truncate text-sm font-semibold" title={result.bookName}>
+                  {result.bookName}
+                </h3>
+                <Badge variant="secondary">{sourceName}</Badge>
+              </div>
+              <p className="mt-1 truncate text-xs text-muted-foreground">
+                {result.author || i18n.t("common.anonymous")}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {tags.map(tag => (
+                  <Badge key={tag} variant="outline" className="text-[10px]">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              {metaItems.length > 0 && (
+                <div className="mt-2 flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:gap-3">
+                  {metaItems.map(item => (
+                    <span key={item.label} className="truncate">
+                      <span className="text-muted-foreground/70">{item.label}</span>
+                      {item.value}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2 sm:justify-end">
+            <Button
+              size="sm"
+              variant="default"
+              onClick={handleAddToShelf}
+              disabled={isBusy}
+            >
+              {isLoading
+                ? <Loader2 className="size-4 animate-spin" data-icon="inline-start" />
+                : <BookOpen className="size-4" data-icon="inline-start" />}
+              {i18n.t("search.actions.addToShelf")}
+            </Button>
+            <Button
+              size="icon-sm"
+              variant="outline"
+              onClick={handleDownload}
+              disabled={isBusy}
+              title="EPUB"
+            >
+              {isBusy
+                ? <Loader2 className="size-4 animate-spin" />
+                : <Download className="size-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              asChild
+              title={i18n.t("search.actions.sourceSite")}
+            >
+              <a href={result.url} target="_blank" rel="noreferrer">
+                <ExternalLink className="size-4" />
+              </a>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="group flex h-full flex-col overflow-hidden transition-all hover:bg-muted/40">
+      <CardHeader className="gap-3 p-4 pb-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+            <BookOpen className="size-5" />
+          </div>
+          <Badge variant="secondary" className="max-w-24 truncate">
             {sourceName}
           </Badge>
         </div>
-
-        {/* Hover Actions Overlay */}
-        <div
-          className={cn(
-            "absolute inset-0 z-10 flex items-center justify-center gap-2 bg-gradient-to-t from-background/95 via-background/60 to-transparent transition-opacity duration-200",
-            isHovered && !isLoading ? "opacity-100" : "opacity-0",
-          )}
-        >
-          <Button
-            size="sm"
-            variant="default"
-            className="h-8 gap-1.5 shadow-md"
-            onClick={handleAddToShelf}
-            disabled={isLoading}
-          >
-            <BookOpen className="h-3.5 w-3.5" />
-            {i18n.t("search.actions.addToShelf")}
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            className="h-8 gap-1.5 shadow-md"
-            onClick={handleDownload}
-            disabled={isLoading || isDownloading}
-          >
-            {isLoading || isDownloading
-              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              : <Download className="h-3.5 w-3.5" />}
-            EPUB
-          </Button>
-        </div>
-
-        {/* Loading Overlay */}
-        {isLoading && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        )}
-      </div>
-
-      {/* Book Info Section */}
-      <CardContent className="p-4">
-        <div className="flex flex-col gap-2">
-          <h3
-            className="font-semibold text-sm line-clamp-2 leading-snug"
-            title={result.bookName}
-          >
+        <div>
+          <CardTitle className="line-clamp-2 text-sm leading-snug" title={result.bookName}>
             {result.bookName}
-          </h3>
-          <p className="text-xs text-muted-foreground line-clamp-1">
+          </CardTitle>
+          <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
             {result.author || i18n.t("common.anonymous")}
           </p>
+        </div>
+      </CardHeader>
 
-          {/* Meta Info */}
-          <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-            {result.latestChapter && (
-              <p className="line-clamp-1" title={result.latestChapter}>
-                <span className="text-muted-foreground/70">
-                  {i18n.t("search.result.latest")}
-                </span>
-                {result.latestChapter}
-              </p>
-            )}
-            {result.lastUpdateTime && (
-              <p className="line-clamp-1">
-                <span className="text-muted-foreground/70">
-                  {i18n.t("search.result.updated")}
-                </span>
-                {result.lastUpdateTime}
-              </p>
-            )}
-          </div>
+      <CardContent className="flex-1 p-4 pt-2">
+        <div className="flex flex-col gap-2">
+          {metaItems.map(item => (
+            <p key={item.label} className="line-clamp-1 text-xs text-muted-foreground" title={item.value}>
+              <span className="text-muted-foreground/70">
+                {item.label}
+              </span>
+              {item.value}
+            </p>
+          ))}
 
-          {/* Tags */}
           <div className="flex flex-wrap gap-1.5">
-            {result.category && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
-                {result.category}
+            {tags.map(tag => (
+              <Badge key={tag} variant="outline" className="text-[10px]">
+                {tag}
               </Badge>
-            )}
-            {result.status && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
-                {result.status}
-              </Badge>
-            )}
-            {result.wordCount && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
-                {result.wordCount}
-              </Badge>
-            )}
+            ))}
           </div>
         </div>
       </CardContent>
 
-      {/* Footer with Source Link */}
-      <CardFooter className="p-4 pt-0">
+      <CardFooter className="grid grid-cols-[1fr_auto_auto] gap-2 p-4 pt-0">
+        <Button
+          size="sm"
+          variant="default"
+          onClick={handleAddToShelf}
+          disabled={isBusy}
+        >
+          {isLoading
+            ? <Loader2 className="size-4 animate-spin" data-icon="inline-start" />
+            : <BookOpen className="size-4" data-icon="inline-start" />}
+          {i18n.t("search.actions.addToShelf")}
+        </Button>
+        <Button
+          size="icon-sm"
+          variant="outline"
+          onClick={handleDownload}
+          disabled={isBusy}
+          title="EPUB"
+        >
+          {isBusy
+            ? <Loader2 className="size-4 animate-spin" />
+            : <Download className="size-4" />}
+        </Button>
         <Button
           variant="ghost"
-          size="sm"
-          className="w-full h-7 text-xs gap-1"
+          size="icon-sm"
           asChild
+          title={i18n.t("search.actions.sourceSite")}
         >
-          <a
-            href={result.url}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {i18n.t("search.actions.sourceSite")}
-            <ExternalLink className="h-3 w-3" />
+          <a href={result.url} target="_blank" rel="noreferrer">
+            <ExternalLink className="size-4" />
           </a>
         </Button>
       </CardFooter>
     </Card>
   )
-}
-
-function cn(...inputs: (string | undefined | null | false)[]) {
-  return inputs.filter(Boolean).join(" ")
 }
