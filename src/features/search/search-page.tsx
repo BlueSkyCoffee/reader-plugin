@@ -1,5 +1,6 @@
 import type { Book, Chapter, ScraperRule, SearchResult as ScraperSearchResult } from "@/types/novel"
 
+import { i18n } from "#imports"
 import { Grid2X2, Info, List, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -7,9 +8,9 @@ import { EmptyState } from "@/components/app/empty-state"
 import { SearchBar } from "@/components/app/search-bar"
 import { PageLayout } from "@/components/layout/page-layout"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DownloadManager } from "@/features/download/download-manager"
 import { BUILTIN_RULES, ScraperEngine } from "@/features/scraper/services"
-import { i18n } from "@/i18n"
 import { EpubGenerator } from "@/lib/epub-generator"
 import { StorageManager } from "@/lib/storage"
 import { cn } from "@/utils/cn"
@@ -91,7 +92,7 @@ export function SearchPage() {
             wordCount: info.wordCount,
           },
         ])
-        toast.success(i18n.t("search.toast.parsedToc", { title: info.bookName, count: toc.length }))
+        toast.success(i18n.t("search.toast.parsedToc", [info.bookName, toc.length]))
         return
       }
 
@@ -121,14 +122,14 @@ export function SearchPage() {
 
       if (allResults.length === 0) {
         if (failedSources.length > 0) {
-          toast.error(i18n.t("search.toast.searchFailed", { sources: failedSources.join(", ") }))
+          toast.error(i18n.t("search.toast.searchFailed", [failedSources.join(", ")]))
         }
         else {
           toast.info(i18n.t("search.toast.noResults"))
         }
       }
       else {
-        toast.success(i18n.t("search.toast.resultsFound", { count: allResults.length }))
+        toast.success(i18n.t("search.toast.resultsFound", [allResults.length]))
       }
     }
     catch (error) {
@@ -151,7 +152,7 @@ export function SearchPage() {
       return
     }
 
-    toast.info(i18n.t("search.toast.fetchInfo", { title: result.bookName }))
+    toast.info(i18n.t("search.toast.fetchInfo", [result.bookName]))
 
     try {
       const engine = new ScraperEngine(rule)
@@ -199,7 +200,7 @@ export function SearchPage() {
       await StorageManager.saveBook(newBook, unifiedChapters)
       await StorageManager.switchBook(newBookId)
 
-      toast.success(i18n.t("search.toast.addedToShelf", { title: info.bookName }))
+      toast.success(i18n.t("search.toast.addedToShelf", [info.bookName]))
       void DownloadManager.getInstance().startDownload(newBook, result.sourceId)
     }
     catch (error) {
@@ -220,7 +221,7 @@ export function SearchPage() {
     }
 
     setDownloadingId(result.url)
-    toast.info(i18n.t("search.toast.prepareDownload", { title: result.bookName }))
+    toast.info(i18n.t("search.toast.prepareDownload", [result.bookName]))
 
     try {
       const engine = new ScraperEngine(rule)
@@ -271,10 +272,7 @@ export function SearchPage() {
           }
           else {
             toast.message(
-              i18n.t("search.toast.downloading", {
-                current: task.downloadedChapters,
-                total: task.totalChapters,
-              }),
+              i18n.t("search.toast.downloading", [task.downloadedChapters, task.totalChapters]),
               { id: "direct-download" },
             )
           }
@@ -289,7 +287,7 @@ export function SearchPage() {
 
       await StorageManager.deleteBook(tempBookId)
 
-      toast.success(i18n.t("search.toast.exported", { title: info.bookName }))
+      toast.success(i18n.t("search.toast.exported", [info.bookName]))
     }
     catch (error) {
       log.search.error("Direct download failed", error)
@@ -345,30 +343,19 @@ export function SearchPage() {
                   </span>
                 </div>
               )}
-              <div className="flex shrink-0 items-center rounded-lg border bg-background p-1">
-                <Button
-                  type="button"
-                  size="icon"
-                  variant={layout === "grid" ? "secondary" : "ghost"}
-                  className={cn("size-8", layout === "grid" && "shadow-sm")}
-                  aria-label={i18n.t("search.layout.grid")}
-                  title={i18n.t("search.layout.grid")}
-                  onClick={() => handleLayoutChange("grid")}
-                >
-                  <Grid2X2 className="size-4" />
-                </Button>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant={layout === "list" ? "secondary" : "ghost"}
-                  className={cn("size-8", layout === "list" && "shadow-sm")}
-                  aria-label={i18n.t("search.layout.list")}
-                  title={i18n.t("search.layout.list")}
-                  onClick={() => handleLayoutChange("list")}
-                >
-                  <List className="size-4" />
-                </Button>
-              </div>
+              <Tabs
+                value={layout}
+                onValueChange={value => handleLayoutChange(value as NovelLayout)}
+              >
+                <TabsList>
+                  <TabsTrigger value="grid">
+                    <Grid2X2 className="size-4" />
+                  </TabsTrigger>
+                  <TabsTrigger value="list">
+                    <List className="size-4" />
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
 
             {results.length > 0

@@ -1,3 +1,4 @@
+import { i18n } from "#imports"
 import { useAtom } from "jotai"
 import { Moon, Sun, Zap } from "lucide-react"
 import { PageLayout } from "@/components/layout/page-layout"
@@ -9,7 +10,6 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ReaderEmbedSettings } from "@/features/reader/embed-settings"
 import { ExcludedSitesSettings, ShortcutsSettings } from "@/features/settings"
-import { i18n } from "@/i18n"
 import { settingsAtom } from "@/state/store"
 import { DEFAULT_USER_SETTINGS } from "@/types/config"
 

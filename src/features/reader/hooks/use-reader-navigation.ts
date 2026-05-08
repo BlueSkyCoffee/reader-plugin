@@ -1,7 +1,7 @@
+import { i18n } from "#imports"
 import { useCallback } from "react"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"
-import { i18n } from "@/i18n"
 import { StorageManager } from "@/lib/storage"
 import { log } from "@/utils/logger"
 

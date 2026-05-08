@@ -1,6 +1,6 @@
 import type { Book, Chapter } from "@/types/novel"
+import { i18n } from "#imports"
 import JSZip from "jszip"
-import { i18n } from "@/i18n"
 
 export class EpubService {
   /**
@@ -31,7 +31,7 @@ export class EpubService {
 
     const opfItem = contents.file(opfPath)
     if (!opfItem)
-      throw new Error(i18n.t("epub_error_opfNotFound", { path: opfPath }))
+      throw new Error(i18n.t("epub_error_opfNotFound", [opfPath]))
 
     const opfXml = await opfItem.async("text")
     const opfDoc = new DOMParser().parseFromString(opfXml, "text/xml")
@@ -104,7 +104,7 @@ export class EpubService {
       const htmlText = await chapterFile.async("text")
       const htmlDoc = new DOMParser().parseFromString(htmlText, "text/html")
 
-      const chapterTitle = htmlDoc.querySelector("title")?.textContent?.trim() || i18n.t("epub_default_chapterTitle", { order: chapterOrder })
+      const chapterTitle = htmlDoc.querySelector("title")?.textContent?.trim() || i18n.t("epub_default_chapterTitle", [chapterOrder])
       const bodyNode = htmlDoc.querySelector("body")
 
       chapters.push({

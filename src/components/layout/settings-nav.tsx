@@ -4,6 +4,7 @@
  */
 
 import type { NavigationItem } from "@/types/navigation"
+import { i18n } from "#imports"
 import { Icon } from "@iconify/react"
 import { Link } from "react-router"
 import {
@@ -15,7 +16,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useGroupedNavigation, useIsActive } from "@/hooks/use-navigation"
-import { i18n } from "@/i18n"
 
 /**
  * 导航项渲染组件

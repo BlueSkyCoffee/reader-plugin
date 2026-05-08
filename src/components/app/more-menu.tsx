@@ -1,3 +1,4 @@
+import { i18n } from "#imports"
 import { Icon } from "@iconify/react"
 import { Ban } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -9,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { i18n } from "@/i18n"
 import { StorageManager } from "@/lib/storage"
 import { log } from "@/utils/logger"
 

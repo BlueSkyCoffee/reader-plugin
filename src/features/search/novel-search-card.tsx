@@ -45,6 +45,7 @@ export const NovelSearchCard: React.FC = () => {
     const chapters = novel.volumes.flatMap(volume => volume.chapters)
     await requestMessage("startDownload", {
       novelId: novel.id,
+      bookTitle: novel.title,
       source: novel.source,
       chapters,
     })

@@ -1,4 +1,5 @@
 import type { ScraperRule } from "@/types/novel"
+import { i18n } from "#imports"
 import { Check, ChevronDown, ChevronUp, Copy, ExternalLink, Globe, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -6,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
-import { i18n } from "@/i18n"
 
 interface RuleCardProps {
   rule: ScraperRule

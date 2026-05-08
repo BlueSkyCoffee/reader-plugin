@@ -9,6 +9,9 @@ export const chapterSchema = z.object({
   url: z.string(),
   content: z.string().optional(),
   order: z.number(),
+  contentHash: z.string().optional(),
+  fetchStatus: z.enum(["pending", "fetched", "failed"]).optional(),
+  fetchError: z.string().optional(),
 })
 
 export const chapterLinkSchema = chapterSchema.pick({

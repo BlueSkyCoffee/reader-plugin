@@ -3,8 +3,7 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "paths": {
-      "@/*": ["./src/*"],
-      "@locales/*": ["./public/_locales/*"]
+      "@/*": ["./src/*"]
     },
     "allowImportingTsExtensions": true
   },

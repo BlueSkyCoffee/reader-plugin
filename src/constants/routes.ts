@@ -3,6 +3,7 @@
  */
 
 import type { NavigationItem, RouteConfig } from "@/types/navigation"
+import { i18n } from "#imports"
 import { BookshelfPage } from "@/features/bookshelf/bookshelf-page"
 import { DownloadPage } from "@/features/download/download-page"
 import { LightNovelPage } from "@/features/lightnovel/lightnovel-page"
@@ -12,7 +13,6 @@ import { SearchPage } from "@/features/search/search-page"
 import { AboutPage } from "@/features/settings/about-page"
 import { GeneralPage } from "@/features/settings/general-page"
 import { HelpPage } from "@/features/settings/help-page"
-import { i18n } from "@/i18n"
 
 /**
  * 导航项配置

@@ -1,10 +1,10 @@
 import type { Chapter } from "@/types/novel"
+import { i18n } from "#imports"
 import { List } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { i18n } from "@/i18n"
 import { ChapterList } from "./chapter-list"
 
 interface ChapterSelectorProps {
@@ -48,11 +48,11 @@ export function ChapterSelector({
         <SheetHeader className="px-6 py-4 border-b">
           <SheetTitle>{i18n.t("reader_toc_sheetTitle")}</SheetTitle>
           <p className="text-xs text-muted-foreground mt-2">
-            {i18n.t("reader_toc_totalChapters", { total: chapters.length })}
+            {i18n.t("reader_toc_totalChapters", [chapters.length])}
             {" "}
             ·
             {" "}
-            {i18n.t("reader_toc_currentChapter", { current: currentChapterIndex + 1 })}
+            {i18n.t("reader_toc_currentChapter", [currentChapterIndex + 1])}
           </p>
         </SheetHeader>
 
@@ -66,7 +66,7 @@ export function ChapterSelector({
           />
           {searchQuery && (
             <p className="text-xs text-muted-foreground mt-2">
-              {i18n.t("reader_toc_searchResult", { count: filteredChapters.length })}
+              {i18n.t("reader_toc_searchResult", [filteredChapters.length])}
             </p>
           )}
         </div>

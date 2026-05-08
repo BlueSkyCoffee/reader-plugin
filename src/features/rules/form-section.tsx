@@ -1,4 +1,6 @@
 import * as React from "react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import { cn } from "@/utils/cn"
 
 interface FormSectionProps {
@@ -15,7 +17,7 @@ export function FormSection({
   children,
 }: FormSectionProps) {
   return (
-    <div className={cn("flex flex-col gap-4 border-b border-border pb-6", className)}>
+    <div className={cn("flex flex-col gap-4 pb-6", className)}>
       <h3
         className={cn(
           "border-l-2 border-primary pl-2 text-sm font-semibold text-foreground",
@@ -25,6 +27,7 @@ export function FormSection({
         {title}
       </h3>
       {children}
+      <Separator />
     </div>
   )
 }
@@ -36,8 +39,10 @@ interface FieldGroupProps {
 
 export function FieldGroup({ children, className }: FieldGroupProps) {
   return (
-    <div className={cn("grid gap-4 rounded-xl border border-border/60 bg-muted/50 p-4", className)}>
-      {children}
-    </div>
+    <Card className={cn("bg-muted/50 border-border/60", className)}>
+      <CardContent className="grid gap-4 p-4">
+        {children}
+      </CardContent>
+    </Card>
   )
 }

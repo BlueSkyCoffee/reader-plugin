@@ -1,4 +1,5 @@
 import type { Book } from "@/types/novel"
+import { i18n } from "#imports"
 import { Grid2X2, List, Loader2, Plus } from "lucide-react"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
@@ -6,8 +7,9 @@ import { SearchInput } from "@/components/app/search-input"
 import { PageLayout } from "@/components/layout/page-layout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BookCard, useBookshelf } from "@/features/bookshelf"
-import { i18n } from "@/i18n"
 import { EpubGenerator } from "@/lib/epub-generator"
 import { EpubService } from "@/lib/epub-service"
 import { StorageManager } from "@/lib/storage"
@@ -100,7 +102,7 @@ export function BookshelfPage() {
     }
     catch (error: unknown) {
       const message = error instanceof Error ? error.message : i18n.t("common.unknownError")
-      toast.error(i18n.t("bookshelf.toast.importFailed", { message }))
+      toast.error(i18n.t("bookshelf.toast.importFailed", [message]))
     }
     finally {
       setIsImporting(false)
@@ -130,7 +132,7 @@ export function BookshelfPage() {
   return (
     <PageLayout
       title={i18n.t("bookshelf.title")}
-      description={i18n.t("bookshelf.description", { count: books.length })}
+      description={i18n.t("bookshelf.description", [books.length])}
       action={(
         <Button
           onClick={handleImportClick}
@@ -184,36 +186,31 @@ export function BookshelfPage() {
               onChange={setSearchQuery}
             />
           </div>
-          <div className="flex shrink-0 items-center rounded-lg border bg-background p-1">
-            <Button
-              type="button"
-              size="icon"
-              variant={layout === "grid" ? "secondary" : "ghost"}
-              className={cn("size-8", layout === "grid" && "shadow-sm")}
-              aria-label={i18n.t("bookshelf.layout.grid")}
-              title={i18n.t("bookshelf.layout.grid")}
-              onClick={() => handleLayoutChange("grid")}
-            >
-              <Grid2X2 className="size-4" />
-            </Button>
-            <Button
-              type="button"
-              size="icon"
-              variant={layout === "list" ? "secondary" : "ghost"}
-              className={cn("size-8", layout === "list" && "shadow-sm")}
-              aria-label={i18n.t("bookshelf.layout.list")}
-              title={i18n.t("bookshelf.layout.list")}
-              onClick={() => handleLayoutChange("list")}
-            >
-              <List className="size-4" />
-            </Button>
-          </div>
+          <Tabs
+            value={layout}
+            onValueChange={value => handleLayoutChange(value as BookshelfLayout)}
+          >
+            <TabsList>
+              <TabsTrigger value="grid">
+                <Grid2X2 className="size-4" />
+              </TabsTrigger>
+              <TabsTrigger value="list">
+                <List className="size-4" />
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
         {isLoading
           ? (
-              <div className="flex items-center justify-center py-32 rounded-lg border border-border bg-muted/50">
-                <Loader2 className="animate-spin text-primary size-8" />
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="flex flex-col gap-2">
+                    <Skeleton className="aspect-[3/4] w-full rounded-lg" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                ))}
               </div>
             )
           : filteredBooks.length > 0

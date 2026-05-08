@@ -1,3 +1,4 @@
+import { i18n } from "#imports"
 import { useAtom } from "jotai"
 import { BookOpenText, Move, Palette, Ruler } from "lucide-react"
 import * as React from "react"
@@ -6,7 +7,6 @@ import { SettingItem } from "@/components/settings/setting-item"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { i18n } from "@/i18n"
 import { settingsAtom } from "@/state/store"
 import { DEFAULT_USER_SETTINGS } from "@/types/config"
 

@@ -1,10 +1,11 @@
 import type { Book, Chapter } from "@/types/novel"
+import { i18n } from "#imports"
 import { BookOpen, ChevronLeft, ChevronRight, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { i18n } from "@/i18n"
+import { Skeleton } from "@/components/ui/skeleton"
 import { StorageManager } from "@/lib/storage"
 import { log } from "@/utils/logger"
 import { ChapterSelector } from "./components/chapter-selector"
@@ -107,8 +108,8 @@ export function ReaderPage({ bookId, onClose }: ReaderPageProps) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <BookOpen className="size-12 opacity-30 mx-auto mb-4 animate-pulse" />
-          <p className="text-muted-foreground">{i18n.t("reader_loading")}</p>
+          <Skeleton className="size-12 rounded-full mx-auto mb-4" />
+          <Skeleton className="h-4 w-24 mx-auto" />
         </div>
       </div>
     )

@@ -1,4 +1,5 @@
 import type { ScraperRule } from "@/types/novel"
+import { i18n } from "#imports"
 import { AlertCircle, Plus } from "lucide-react"
 import { useState } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -14,13 +15,20 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { FieldGroup, FormSection } from "@/features/rules/form-section"
-import { i18n } from "@/i18n"
 
 interface CreateRuleDialogProps {
   onRuleCreate: (rule: ScraperRule) => Promise<void> | void
+  onRulesImport?: (rules: ScraperRule[]) => Promise<void> | void
 }
 
 interface RuleFormData {
@@ -69,9 +77,10 @@ function hasRequiredRuleFields(rule: unknown): boolean {
   return typeof r.name === "string" && typeof r.url === "string"
 }
 
-export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
+export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDialogProps) {
   const [open, setOpen] = useState(false)
-  const [mode, setMode] = useState<"form" | "json">("form")
+  const [mode, setMode] = useState<"form" | "json" | "import">("form")
+  const [importContent, setImportContent] = useState("")
   const [error, setError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState<RuleFormData>({
@@ -198,6 +207,49 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
     setOpen(false)
   }
 
+  const handleImportSubmit = async () => {
+    setError(null)
+    if (!importContent.trim()) {
+      setError(i18n.t("rules_import_toast_error"))
+      return
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(importContent)
+      let newRules: ScraperRule[] = []
+
+      if (Array.isArray(parsed)) {
+        newRules = parsed as ScraperRule[]
+      }
+      else if (typeof parsed === "object" && parsed !== null) {
+        newRules = [parsed as ScraperRule]
+      }
+      else {
+        throw new Error(i18n.t("rules_import_toast_invalidJson"))
+      }
+
+      const isValid = newRules.every(r => r.name && r.url && r.search && r.book && r.chapter)
+      if (!isValid) {
+        throw new Error(i18n.t("rules_import_toast_invalidFormat"))
+      }
+
+      newRules.forEach((rule) => {
+        if (!rule.id) {
+          rule.id = `custom_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+        }
+      })
+
+      if (onRulesImport) {
+        await onRulesImport(newRules)
+      }
+      resetForm()
+      setOpen(false)
+    }
+    catch (e: unknown) {
+      setError(getErrorMessage(e) || i18n.t("rules_import_toast_parseFailed"))
+    }
+  }
+
   const handleJsonSubmit = async () => {
     setError(null)
     if (!jsonContent.trim()) {
@@ -258,6 +310,7 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
       },
     })
     setJsonContent("")
+    setImportContent("")
     setError(null)
     setMode("form")
   }
@@ -277,11 +330,12 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
         </DialogHeader>
 
         <div className="min-h-0 flex-1">
-          <Tabs value={mode} onValueChange={v => setMode(v as "form" | "json")} className="flex h-full w-full min-h-0 flex-col">
+          <Tabs value={mode} onValueChange={v => setMode(v as "form" | "json" | "import")} className="flex h-full w-full min-h-0 flex-col">
             <div className="shrink-0 pb-4">
-              <TabsList className="grid w-full grid-cols-2 bg-muted/70 border border-border">
+              <TabsList className="grid w-full grid-cols-3 bg-muted/70 border border-border">
                 <TabsTrigger value="form" className="data-[state=active]:bg-background data-[state=active]:text-foreground">{i18n.t("rules.create.tabForm")}</TabsTrigger>
                 <TabsTrigger value="json" className="data-[state=active]:bg-background data-[state=active]:text-foreground">{i18n.t("rules.create.tabJson")}</TabsTrigger>
+                <TabsTrigger value="import" className="data-[state=active]:bg-background data-[state=active]:text-foreground">{i18n.t("rules.create.tabImport")}</TabsTrigger>
               </TabsList>
             </div>
 
@@ -342,15 +396,18 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                         {" "}
                         *
                       </Label>
-                      <select
-                        id="search-method"
+                      <Select
                         value={formData.search?.method || "post"}
-                        onChange={e => handleFormChange("search.method", e.target.value)}
-                        className="w-full mt-1 px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                        onValueChange={value => handleFormChange("search.method", value)}
                       >
-                        <option value="get">GET</option>
-                        <option value="post">POST</option>
-                      </select>
+                        <SelectTrigger id="search-method" className="w-full mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="get">GET</SelectItem>
+                          <SelectItem value="post">POST</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label htmlFor="search-data" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.payload")}</Label>
@@ -587,6 +644,23 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
                 </div>
               </div>
             </TabsContent>
+
+            <TabsContent value="import" className="mt-0 min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2">
+              <div className="flex flex-col gap-4 pb-4 pr-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="import-json" className="text-xs font-semibold text-muted-foreground">
+                    {i18n.t("rules_import_label")}
+                  </Label>
+                  <Textarea
+                    id="import-json"
+                    placeholder={i18n.t("rules_import_placeholder")}
+                    value={importContent}
+                    onChange={e => setImportContent(e.target.value)}
+                    className="h-[300px] font-mono text-xs"
+                  />
+                </div>
+              </div>
+            </TabsContent>
             {error && (
               <Alert variant="destructive" className="mt-4 shrink-0">
                 <AlertCircle className="h-4 w-4" />
@@ -601,7 +675,7 @@ export function CreateRuleDialog({ onRuleCreate }: CreateRuleDialogProps) {
           <Button variant="ghost" onClick={() => setOpen(false)}>
             {i18n.t("rules.create.cancel")}
           </Button>
-          <Button onClick={() => void (mode === "form" ? handleFormSubmit() : handleJsonSubmit())} className="shadow-sm">
+          <Button onClick={() => void (mode === "form" ? handleFormSubmit() : mode === "json" ? handleJsonSubmit() : handleImportSubmit())} className="shadow-sm">
             {i18n.t("rules.create.submit")}
           </Button>
         </DialogFooter>

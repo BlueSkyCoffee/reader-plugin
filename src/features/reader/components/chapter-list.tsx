@@ -1,7 +1,7 @@
 import type { Chapter } from "@/types/novel"
+import { i18n } from "#imports"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { i18n } from "@/i18n"
 
 interface ChapterListProps {
   chapters: Chapter[]

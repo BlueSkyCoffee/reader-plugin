@@ -1,7 +1,7 @@
+import { i18n } from "#imports"
 import { AlertTriangle, RefreshCcw } from "lucide-react"
 import { Component } from "react"
 import { Button } from "@/components/ui/button"
-import { i18n } from "@/i18n"
 import { log } from "@/utils/logger"
 
 interface ErrorBoundaryProps {

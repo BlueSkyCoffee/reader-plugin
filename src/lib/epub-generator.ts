@@ -1,7 +1,7 @@
 import type { Book, Chapter } from "@/types/novel"
+import { i18n } from "#imports"
 import { saveAs } from "file-saver"
 import JSZip from "jszip"
-import { i18n } from "@/i18n"
 import { log } from "@/utils/logger"
 
 /**

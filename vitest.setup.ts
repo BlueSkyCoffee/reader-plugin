@@ -1,26 +1,22 @@
 import { vi } from "vitest"
 import "@testing-library/jest-dom"
 
-// Mock the fakeBrowser's methods which are not implemented in fake-browser
-// This is used when WxtVitest plugin replaces browser imports with fake-browser
-vi.mock("wxt/testing", async () => {
-  const actual = await vi.importActual<any>("wxt/testing")
-  return {
-    ...actual,
-    fakeBrowser: {
-      ...actual.fakeBrowser,
-      runtime: {
-        ...actual.fakeBrowser.runtime,
-        getManifest: () => ({
-          manifest_version: 3,
-          name: "Reader",
-          version: "0.0.0",
-          description: "Test manifest",
-        }),
-      },
+// Mock @wxt-dev/i18n for tests since fake-browser doesn't implement i18n.getMessage
+vi.mock("@wxt-dev/i18n", () => ({
+  createI18n: () => ({
+    t: (key: string, substitutions?: string[] | number) => {
+      if (typeof substitutions === "number") return String(substitutions)
+      if (Array.isArray(substitutions) && substitutions.length > 0) {
+        let result = key
+        substitutions.forEach((sub, i) => {
+          result = result.replace(`$${i + 1}`, String(sub))
+        })
+        return result
+      }
+      return key
     },
-  }
-})
+  }),
+}))
 
 // JSDom + Vitest don't play well with each other. Long story short - default
 // TextEncoder produces Uint8Array objects that are _different_ from the global

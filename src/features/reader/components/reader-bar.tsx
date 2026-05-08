@@ -1,10 +1,11 @@
 import type { ClassValue } from "clsx"
 import type { ReaderPosition, ReaderStyle } from "@/types/config"
+import { i18n } from "#imports"
 import { clsx } from "clsx"
 import * as React from "react"
 import { twMerge } from "tailwind-merge"
+import { Button } from "@/components/ui/button"
 import { useDraggable } from "@/features/reader/hooks/use-draggable"
-import { i18n } from "@/i18n"
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -121,20 +122,24 @@ export function ReaderControls({
         </span>
       </div>
       <div className="flex items-center gap-1">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onPrev}
-          className="rounded px-2 py-1 transition-colors hover:bg-black/5"
+          className="px-2 py-1 hover:bg-black/5"
           style={{ color: "var(--reader-accent)" }}
         >
           {i18n.t("reader_nav_prevChapter")}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onNext}
-          className="rounded px-2 py-1 transition-colors hover:bg-black/5"
+          className="px-2 py-1 hover:bg-black/5"
           style={{ color: "var(--reader-accent)" }}
         >
           {i18n.t("reader_nav_nextChapter")}
-        </button>
+        </Button>
       </div>
     </div>
   )

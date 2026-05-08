@@ -1,3 +1,4 @@
+import { i18n } from "#imports"
 import { Icon } from "@iconify/react"
 import { BookOpen, Download, ExternalLink, HelpCircle, Library, Search, ShieldCheck } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -8,7 +9,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { NovelSearchCard } from "@/features/search"
-import { i18n } from "@/i18n"
 import { StorageManager } from "@/lib/storage"
 import { log } from "@/utils/logger"
 import { version } from "../../../package.json"
@@ -127,7 +127,7 @@ function App() {
                 <span className="text-xs text-muted-foreground">
                   {activeBook.author}
                   {" · "}
-                  {i18n.t("popup.reader.chapterProgress", { current: activeBook.chapterIndex + 1, total: activeBook.totalChapters })}
+                  {i18n.t("popup.reader.chapterProgress", [activeBook.chapterIndex + 1, activeBook.totalChapters])}
                 </span>
               </div>
               <Button

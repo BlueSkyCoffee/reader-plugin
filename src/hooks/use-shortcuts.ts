@@ -1,6 +1,6 @@
+import { i18n } from "#imports"
 import { useAtom } from "jotai"
 import { useCallback, useMemo } from "react"
-import { i18n } from "@/i18n"
 import { settingsAtom } from "@/state/store"
 import { DEFAULT_SHORTCUTS, DEFAULT_USER_SETTINGS } from "@/types/config"
 

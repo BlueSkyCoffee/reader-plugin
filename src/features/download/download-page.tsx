@@ -1,4 +1,5 @@
 import type { Book, DownloadRecord } from "@/types/novel"
+import { i18n } from "#imports"
 import { Download, Info, Trash, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -9,7 +10,6 @@ import { PageLayout } from "@/components/layout/page-layout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { i18n } from "@/i18n"
 import { EpubGenerator } from "@/lib/epub-generator"
 import { StorageManager } from "@/lib/storage"
 import { confirmAction } from "@/utils/browser-dialog"
@@ -88,7 +88,7 @@ export function DownloadPage() {
       setDownloadRecords(records)
       setDownloadStats(stats)
 
-      toast.success(i18n.t("download.toast.exportSuccess", { title: book.title }))
+      toast.success(i18n.t("download.toast.exportSuccess", [book.title]))
     }
     catch (error) {
       log.download.error("Export failed", error)
@@ -100,7 +100,7 @@ export function DownloadPage() {
   }
 
   const handleDeleteRecord = async (recordId: string, recordTitle: string) => {
-    if (!await confirmAction(i18n.t("download.confirm.deleteRecord", { title: recordTitle }))) {
+    if (!await confirmAction(i18n.t("download.confirm.deleteRecord", [recordTitle]))) {
       return
     }
 

@@ -4,6 +4,7 @@
  */
 
 import type { LightNovelInfo } from "@/features/lightnovel/services"
+import { i18n } from "#imports"
 import {
   AlertCircle,
   Check,
@@ -23,16 +24,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   LightNovelDownloader,
   useNovelDownloader,
   useNovelParser,
   useVolumeSelection,
 } from "@/features/lightnovel/services"
-import { i18n } from "@/i18n"
 import { cn } from "@/utils/cn"
 import { log } from "@/utils/logger"
 
@@ -64,22 +66,16 @@ function SourceSelector({
   onSourceChange: (source: "bili" | "wenku") => void
 }) {
   return (
-    <div className="flex gap-2">
-      <Button
-        variant={source === "bili" ? "default" : "outline"}
-        onClick={() => onSourceChange("bili")}
-        className="flex-1"
-      >
-        {i18n.t("lightnovel.source.bili")}
-      </Button>
-      <Button
-        variant={source === "wenku" ? "default" : "outline"}
-        onClick={() => onSourceChange("wenku")}
-        className="flex-1"
-      >
-        {i18n.t("lightnovel.source.wenku")}
-      </Button>
-    </div>
+    <Tabs value={source} onValueChange={value => onSourceChange(value as "bili" | "wenku")}>
+      <TabsList className="w-full">
+        <TabsTrigger value="bili" className="flex-1">
+          {i18n.t("lightnovel.source.bili")}
+        </TabsTrigger>
+        <TabsTrigger value="wenku" className="flex-1">
+          {i18n.t("lightnovel.source.wenku")}
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
   )
 }
 
@@ -302,11 +298,9 @@ function VolumeSelector({
                 key={`${volume.title}-${volume.chapters[0]?.url ?? volume.title}`}
                 className="flex cursor-pointer items-center gap-2 rounded-md border p-2 transition hover:bg-muted"
               >
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={selectedVolumes.has(idx)}
-                  onChange={() => onToggleVolume(idx)}
-                  className="size-4"
+                  onCheckedChange={() => onToggleVolume(idx)}
                 />
                 <span className="min-w-0 flex-1 truncate text-sm">
                   {volume.title}
@@ -576,30 +570,19 @@ export function LightNovelPage() {
             {i18n.t("lightnovel.description")}
           </p>
         </div>
-        <div className="flex shrink-0 items-center rounded-lg border bg-background p-1">
-          <Button
-            type="button"
-            size="icon"
-            variant={layout === "grid" ? "secondary" : "ghost"}
-            className={cn("size-8", layout === "grid" && "shadow-sm")}
-            aria-label={i18n.t("lightnovel.layout.grid")}
-            title={i18n.t("lightnovel.layout.grid")}
-            onClick={() => handleLayoutChange("grid")}
-          >
-            <Grid2X2 className="size-4" />
-          </Button>
-          <Button
-            type="button"
-            size="icon"
-            variant={layout === "list" ? "secondary" : "ghost"}
-            className={cn("size-8", layout === "list" && "shadow-sm")}
-            aria-label={i18n.t("lightnovel.layout.list")}
-            title={i18n.t("lightnovel.layout.list")}
-            onClick={() => handleLayoutChange("list")}
-          >
-            <List className="size-4" />
-          </Button>
-        </div>
+        <Tabs
+          value={layout}
+          onValueChange={value => handleLayoutChange(value as "grid" | "list")}
+        >
+          <TabsList>
+            <TabsTrigger value="grid">
+              <Grid2X2 className="size-4" />
+            </TabsTrigger>
+            <TabsTrigger value="list">
+              <List className="size-4" />
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {/* 来源选择 */}

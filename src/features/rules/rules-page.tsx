@@ -1,7 +1,7 @@
 import type { ScraperRule } from "@/types/novel"
+import { i18n } from "#imports"
 import {
   AlertCircle,
-  Upload,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -10,41 +10,18 @@ import { SearchInput } from "@/components/app/search-input"
 import { StatCard, StatGrid } from "@/components/app/stat-card"
 import { PageLayout } from "@/components/layout/page-layout"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { Skeleton } from "@/components/ui/skeleton"
 import { CreateRuleDialog } from "@/features/rules"
 import { RuleCard } from "@/features/rules/rule-card"
 import { isDefaultRule } from "@/features/scraper/services/default-rules"
-import { i18n } from "@/i18n"
 import { StorageManager } from "@/lib/storage"
 import { confirmAction } from "@/utils/browser-dialog"
 import { log } from "@/utils/logger"
-
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error)
-    return error.message
-  if (typeof error === "string")
-    return error
-  return String(error)
-}
 
 export function RulesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [rules, setRules] = useState<ScraperRule[]>([])
   const [loading, setLoading] = useState(true)
-  const [isImportOpen, setIsImportOpen] = useState(false)
-  const [importContent, setImportContent] = useState("")
-  const [importError, setImportError] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const loadRules = async () => {
@@ -55,7 +32,7 @@ export function RulesPage() {
     }
     catch (error) {
       log.rules.error("Load rules failed", error)
-      toast.error(i18n.t("rules.error.loadFailed"))
+      toast.error(i18n.t("rules_error_loadFailed"))
     }
     finally {
       setLoading(false)
@@ -66,73 +43,33 @@ export function RulesPage() {
     void loadRules()
   }, [])
 
-  const handleImport = async () => {
-    setImportError(null)
-    if (!importContent.trim()) {
-      setImportError(i18n.t("rules.import.toast.error"))
-      return
-    }
-
-    try {
-      let newRules: ScraperRule[] = []
-      const parsed = JSON.parse(importContent)
-
-      if (Array.isArray(parsed)) {
-        newRules = parsed
-      }
-      else if (typeof parsed === "object" && parsed !== null) {
-        newRules = [parsed as ScraperRule]
+  const handleImport = async (newRules: ScraperRule[]) => {
+    const mergedRules = [...rules]
+    newRules.forEach((newRule) => {
+      const existingIndex = mergedRules.findIndex(
+        r => r.url === newRule.url || (r.id && r.id === newRule.id),
+      )
+      if (existingIndex >= 0) {
+        mergedRules[existingIndex] = { ...newRule, id: mergedRules[existingIndex].id }
       }
       else {
-        throw new Error(i18n.t("rules.import.toast.invalidJson"))
+        mergedRules.push(newRule)
       }
+    })
 
-      const isValid = newRules.every(
-        r => r.name && r.url && r.search && r.book && r.chapter,
-      )
-      if (!isValid) {
-        throw new Error(i18n.t("rules.import.toast.invalidFormat"))
-      }
-
-      const mergedRules = [...rules]
-      newRules.forEach((newRule) => {
-        if (!newRule.id) {
-          newRule.id = `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        }
-
-        const existingIndex = mergedRules.findIndex(
-          r => r.url === newRule.url || (r.id && r.id === newRule.id),
-        )
-        if (existingIndex >= 0) {
-          mergedRules[existingIndex] = {
-            ...newRule,
-            id: mergedRules[existingIndex].id,
-          }
-        }
-        else {
-          mergedRules.push(newRule)
-        }
-      })
-
-      await StorageManager.saveRules(mergedRules)
-      setRules(mergedRules)
-      setIsImportOpen(false)
-      setImportContent("")
-      toast.success(i18n.t("rules.import.toast.success", { count: newRules.length }))
-    }
-    catch (e: unknown) {
-      setImportError(getErrorMessage(e) || i18n.t("rules.import.toast.parseFailed"))
-    }
+    await StorageManager.saveRules(mergedRules)
+    setRules(mergedRules)
+    toast.success(i18n.t("rules_import_toast_success", [newRules.length]))
   }
 
   const handleDelete = async (id: string, name: string) => {
-    if (!await confirmAction(i18n.t("rules.delete.confirm", { name })))
+    if (!await confirmAction(i18n.t("rules_delete_confirm", [name])))
       return
 
     const newRules = rules.filter(r => r.id !== id)
     await StorageManager.saveRules(newRules)
     setRules(newRules)
-    toast.success(i18n.t("rules.delete.success"))
+    toast.success(i18n.t("rules_delete_success"))
   }
 
   const handleRuleCreate = async (newRule: ScraperRule) => {
@@ -144,11 +81,11 @@ export function RulesPage() {
 
       if (existingIndex >= 0) {
         mergedRules[existingIndex] = newRule
-        toast.success(i18n.t("rules.update.success"))
+        toast.success(i18n.t("rules_update_success"))
       }
       else {
         mergedRules.push(newRule)
-        toast.success(i18n.t("rules.create.success"))
+        toast.success(i18n.t("rules_create_success"))
       }
 
       await StorageManager.saveRules(mergedRules)
@@ -156,7 +93,7 @@ export function RulesPage() {
     }
     catch (error) {
       log.rules.error("Create rule failed", error)
-      toast.error(i18n.t("rules.create.error"))
+      toast.error(i18n.t("rules_create_error"))
     }
   }
 
@@ -166,7 +103,7 @@ export function RulesPage() {
     )
     await StorageManager.saveRules(newRules)
     setRules(newRules)
-    toast.success(i18n.t(enabled ? "rules.toggle.enabled" : "rules.toggle.disabled", { name }))
+    toast.success(i18n.t(enabled ? "rules_toggle_enabled" : "rules_toggle_disabled", { name }))
   }
 
   const handleCopyId = (id: string) => {
@@ -185,106 +122,66 @@ export function RulesPage() {
   const customRulesCount = rules.length - defaultRulesCount
 
   return (
-    <PageLayout title={i18n.t("rules.title")}>
+    <PageLayout title={i18n.t("rules_title")}>
       <div className="flex flex-col gap-6">
-        {/* 统计信息 */}
+        {/* Stats */}
         <StatGrid className="grid-cols-1 md:grid-cols-3">
-          <StatCard label={i18n.t("rules.stats.total")} value={rules.length} />
-          <StatCard label={i18n.t("rules.stats.builtin")} value={defaultRulesCount} valueClassName="text-primary" />
-          <StatCard label={i18n.t("rules.stats.custom")} value={customRulesCount} valueClassName="text-success" />
+          <StatCard label={i18n.t("rules_stats_total")} value={rules.length} />
+          <StatCard label={i18n.t("rules_stats_builtin")} value={defaultRulesCount} valueClassName="text-primary" />
+          <StatCard label={i18n.t("rules_stats_custom")} value={customRulesCount} valueClassName="text-success" />
         </StatGrid>
 
-        {/* 操作栏 */}
+        {/* Actions */}
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <SearchInput
             className="w-full md:max-w-64 md:flex-1"
             inputClassName="h-10"
-            placeholder={i18n.t("rules.search.placeholder")}
+            placeholder={i18n.t("rules_search_placeholder")}
             value={searchTerm}
             onChange={setSearchTerm}
           />
-
-          <div className="flex w-full flex-wrap gap-2 md:w-auto md:justify-end">
-            <CreateRuleDialog onRuleCreate={handleRuleCreate} />
-
-            <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2 h-10 shadow-sm">
-                  <Upload className="size-4" data-icon="inline-start" />
-                  {i18n.t("rules.actions.import")}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>{i18n.t("rules.import.dialogTitle")}</DialogTitle>
-                  <DialogDescription>
-                    {i18n.t("rules.import.description")}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="json" className="text-xs font-semibold">
-                      {i18n.t("rules.import.label")}
-                    </Label>
-                    <Textarea
-                      id="json"
-                      placeholder={i18n.t("rules.import.placeholder")}
-                      className="h-[250px] font-mono text-xs"
-                      value={importContent}
-                      onChange={e => setImportContent(e.target.value)}
-                    />
-                  </div>
-                  {importError && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>{i18n.t("rules.import.errorTitle")}</AlertTitle>
-                      <AlertDescription>{importError}</AlertDescription>
-                    </Alert>
-                  )}
-                </div>
-                <DialogFooter>
-                  <Button
-                    variant="ghost"
-                    onClick={() => setIsImportOpen(false)}
-                  >
-                    {i18n.t("rules.import.cancel")}
-                  </Button>
-                  <Button onClick={handleImport}>{i18n.t("rules.import.submit")}</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
+          <CreateRuleDialog onRuleCreate={handleRuleCreate} onRulesImport={handleImport} />
         </div>
 
-        {/* 书源列表 */}
-        <div className="flex flex-col gap-2">
-          {filteredRules.map(rule => (
-            <RuleCard
-              key={rule.id}
-              rule={rule}
-              isDefault={isDefaultRule(rule.id)}
-              copiedId={copiedId}
-              onCopyId={handleCopyId}
-              onOpenUrl={url => window.open(url, "_blank")}
-              onDelete={handleDelete}
-              onToggleEnabled={handleToggleEnabled}
-            />
-          ))}
+        {/* Rules list */}
+        {loading
+          ? (
+              <div className="flex flex-col gap-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-full rounded-lg" />
+                ))}
+              </div>
+            )
+          : (
+              <div className="flex flex-col gap-2">
+                {filteredRules.map(rule => (
+                  <RuleCard
+                    key={rule.id}
+                    rule={rule}
+                    isDefault={isDefaultRule(rule.id)}
+                    copiedId={copiedId}
+                    onCopyId={handleCopyId}
+                    onOpenUrl={url => window.open(url, "_blank")}
+                    onDelete={handleDelete}
+                    onToggleEnabled={handleToggleEnabled}
+                  />
+                ))}
 
-          {filteredRules.length === 0 && !loading && (
-            <EmptyState
-              title={i18n.t("rules.empty.title")}
-              description={i18n.t("rules.empty.description")}
-            />
-          )}
-        </div>
+                {filteredRules.length === 0 && (
+                  <EmptyState
+                    title={i18n.t("rules_empty_title")}
+                    description={i18n.t("rules_empty_description")}
+                  />
+                )}
+              </div>
+            )}
 
-        {/* 帮助提示 */}
+        {/* Help */}
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{i18n.t("rules.hint.title")}</AlertTitle>
+          <AlertTitle>{i18n.t("rules_hint_title")}</AlertTitle>
           <AlertDescription>
-            {i18n.t("rules.hint.description", { count: defaultRulesCount })}
+            {i18n.t("rules_hint_description", [defaultRulesCount])}
           </AlertDescription>
         </Alert>
       </div>

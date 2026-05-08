@@ -1,3 +1,4 @@
+import { i18n } from "#imports"
 import { Keyboard, RotateCcw } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -20,7 +21,6 @@ import {
   SHORTCUT_DEFINITIONS,
   useShortcuts,
 } from "@/hooks/use-shortcuts"
-import { i18n } from "@/i18n"
 
 export function ShortcutsSettings() {
   const { shortcuts, updateShortcut, resetToDefaults } = useShortcuts()
@@ -146,7 +146,7 @@ export function ShortcutsSettings() {
             <DialogTitle>{i18n.t("settings.shortcuts.editDialogTitle")}</DialogTitle>
             <DialogDescription>
               {currentShortcut
-                ? i18n.t("settings.shortcuts.editDialogDesc", { name: SHORTCUT_DEFINITIONS[currentShortcut.id as keyof typeof SHORTCUT_DEFINITIONS]?.name() })
+                ? i18n.t("settings.shortcuts.editDialogDesc", [SHORTCUT_DEFINITIONS[currentShortcut.id as keyof typeof SHORTCUT_DEFINITIONS]?.name()])
                 : i18n.t("settings.shortcuts.editDialogTitle")}
             </DialogDescription>
           </DialogHeader>

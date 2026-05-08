@@ -1,4 +1,5 @@
 import type { UserSettings } from "@/types/config"
+import { i18n } from "#imports"
 import { useAtom } from "jotai"
 import { Ban, Globe, Plus, Trash2 } from "lucide-react"
 import * as React from "react"
@@ -6,7 +7,6 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { i18n } from "@/i18n"
 import { settingsAtom } from "@/state/store"
 
 function isValidDomain(domain: string): boolean {
