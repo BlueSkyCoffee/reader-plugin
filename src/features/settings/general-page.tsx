@@ -5,7 +5,7 @@ import { PageLayout } from "@/components/layout/page-layout"
 import { useTheme } from "@/components/providers/theme-provider"
 import { ConfigCard } from "@/components/settings/config-card"
 import { SettingItem } from "@/components/settings/setting-item"
-import { Input } from "@/components/ui/input"
+import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ReaderEmbedSettings } from "@/features/reader/embed-settings"
@@ -89,21 +89,21 @@ export function GeneralPage() {
             title={i18n.t("settings.general.download.concurrent.title")}
             description={i18n.t("settings.general.download.concurrent.desc")}
           >
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                min="1"
-                max="10"
-                value={concurrentDownloads}
-                onChange={(e) => {
-                  const value = Math.min(10, Math.max(1, Number.parseInt(e.target.value, 10) || 1))
-                  setSettings(prev => ({ ...prev, concurrentDownloads: value }))
-                }}
-                className="w-16 h-9"
+            <div className="flex flex-col gap-1.5 w-[200px]">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {concurrentDownloads}
+                  {" "}
+                  {i18n.t("settings.general.download.concurrent.unit")}
+                </span>
+              </div>
+              <Slider
+                min={1}
+                max={10}
+                step={1}
+                value={[concurrentDownloads]}
+                onValueChange={([v]) => setSettings(prev => ({ ...prev, concurrentDownloads: v }))}
               />
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                {i18n.t("settings.general.download.concurrent.unit")}
-              </span>
             </div>
           </SettingItem>
         </ConfigCard>

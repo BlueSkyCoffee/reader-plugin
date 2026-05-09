@@ -1,19 +1,50 @@
 import { i18n } from "#imports"
 import { useAtom } from "jotai"
-import { BookOpenText, Move, Palette, Ruler } from "lucide-react"
+import { BookOpenText, Eye, Move, Palette, Ruler } from "lucide-react"
 import * as React from "react"
 import { ConfigCard } from "@/components/settings/config-card"
 import { SettingItem } from "@/components/settings/setting-item"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { settingsAtom } from "@/state/store"
 import { DEFAULT_USER_SETTINGS } from "@/types/config"
 
-const colorPattern = /^#(?:[0-9A-F]{3}){1,2}$/i
+interface ReaderThemePreset {
+  name: string
+  background: string
+  foreground: string
+  border: string
+  accent: string
+}
 
-function normalizeColor(value: string, fallback: string) {
-  return colorPattern.test(value) ? value : fallback
+const READER_THEME_PRESETS: ReaderThemePreset[] = [
+  { name: "默认", background: "#ffffff", foreground: "#0f172a", border: "#e2e8f0", accent: "#16a34a" },
+  { name: "暗夜", background: "#1e293b", foreground: "#e2e8f0", border: "#334155", accent: "#38bdf8" },
+  { name: "暖阳", background: "#fffbeb", foreground: "#451a03", border: "#fde68a", accent: "#f59e0b" },
+  { name: "森林", background: "#f0fdf4", foreground: "#14532d", border: "#bbf7d0", accent: "#22c55e" },
+  { name: "薰衣草", background: "#faf5ff", foreground: "#581c87", border: "#e9d5ff", accent: "#a855f7" },
+  { name: "玫瑰", background: "#fff1f2", foreground: "#881337", border: "#fecdd3", accent: "#f43f5e" },
+  { name: "深海", background: "#0c1222", foreground: "#cbd5e1", border: "#1e3a5f", accent: "#0ea5e9" },
+  { name: "琥珀", background: "#fefce8", foreground: "#451a03", border: "#fef08a", accent: "#d97706" },
+]
+
+function findMatchingPreset(style: typeof DEFAULT_USER_SETTINGS.readerStyle): string | null {
+  const preset = READER_THEME_PRESETS.find(
+    p => p.background === style.background
+      && p.foreground === style.foreground
+      && p.border === style.border
+      && p.accent === style.accent,
+  )
+  return preset?.name ?? null
 }
 
 function ReaderStylePreview({
@@ -94,12 +125,36 @@ export function ReaderEmbedSettings() {
 
   const fontSize = settings.fontSize ?? DEFAULT_USER_SETTINGS.fontSize
   const lineHeight = settings.lineHeight ?? DEFAULT_USER_SETTINGS.lineHeight
+  const currentPreset = findMatchingPreset(resolvedStyle)
+
+  const handleThemeChange = (presetName: string) => {
+    const preset = READER_THEME_PRESETS.find(p => p.name === presetName)
+    if (preset) {
+      updateReaderStyle({
+        background: preset.background,
+        foreground: preset.foreground,
+        border: preset.border,
+        accent: preset.accent,
+      })
+    }
+  }
 
   return (
     <ConfigCard
       title={i18n.t("settings.readerEmbed.title")}
       description={i18n.t("settings.readerEmbed.desc")}
     >
+      <SettingItem
+        icon={<Eye className="size-4" />}
+        title={i18n.t("settings.readerEmbed.autoShow.title")}
+        description={i18n.t("settings.readerEmbed.autoShow.desc")}
+      >
+        <Switch
+          checked={settings.autoShowReader ?? false}
+          onCheckedChange={checked => updateSettings({ autoShowReader: checked })}
+        />
+      </SettingItem>
+
       <SettingItem
         icon={<Move className="size-4" />}
         title={i18n.t("settings.readerEmbed.position.title")}
@@ -123,67 +178,62 @@ export function ReaderEmbedSettings() {
         title={i18n.t("settings.readerEmbed.colors.title")}
         description={i18n.t("settings.readerEmbed.colors.desc")}
       >
-        <div className="grid grid-cols-2 gap-3">
-          <Label className="flex items-center justify-between gap-3">
-            {i18n.t("settings.readerEmbed.colors.background")}
-            <Input
-              type="color"
-              className="h-9 w-14 p-1"
-              value={normalizeColor(resolvedStyle.background, DEFAULT_USER_SETTINGS.readerStyle.background)}
-              onChange={e => updateReaderStyle({ background: e.target.value })}
+        <Select value={currentPreset ?? ""} onValueChange={handleThemeChange}>
+          <SelectTrigger className="w-[260px]">
+            <SelectValue placeholder={i18n.t("settings.readerEmbed.colors.placeholder")} />
+          </SelectTrigger>
+          <SelectContent>
+            {READER_THEME_PRESETS.map(preset => (
+              <SelectItem key={preset.name} value={preset.name}>
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-0.5">
+                    <span className="size-3 rounded-full border" style={{ backgroundColor: preset.background }} />
+                    <span className="size-3 rounded-full border" style={{ backgroundColor: preset.foreground }} />
+                    <span className="size-3 rounded-full border" style={{ backgroundColor: preset.accent }} />
+                  </div>
+                  <span>{preset.name}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </SettingItem>
+
+      <SettingItem
+        icon={<Palette className="size-4" />}
+        title={i18n.t("settings.readerEmbed.styleAdjust.title")}
+        description={i18n.t("settings.readerEmbed.styleAdjust.desc")}
+      >
+        <div className="flex flex-col gap-4 w-[260px]">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">{i18n.t("settings.readerEmbed.colors.opacity")}</Label>
+              <span className="text-xs text-muted-foreground tabular-nums">{resolvedStyle.opacity}</span>
+            </div>
+            <Slider
+              min={0.5}
+              max={1}
+              step={0.01}
+              value={[resolvedStyle.opacity]}
+              onValueChange={([v]) => updateReaderStyle({ opacity: v })}
             />
-          </Label>
-          <Label className="flex items-center justify-between gap-3">
-            {i18n.t("settings.readerEmbed.colors.foreground")}
-            <Input
-              type="color"
-              className="h-9 w-14 p-1"
-              value={normalizeColor(resolvedStyle.foreground, DEFAULT_USER_SETTINGS.readerStyle.foreground)}
-              onChange={e => updateReaderStyle({ foreground: e.target.value })}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">{i18n.t("settings.readerEmbed.colors.radius")}</Label>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {resolvedStyle.radius}
+                px
+              </span>
+            </div>
+            <Slider
+              min={0}
+              max={24}
+              step={1}
+              value={[resolvedStyle.radius]}
+              onValueChange={([v]) => updateReaderStyle({ radius: v })}
             />
-          </Label>
-          <Label className="flex items-center justify-between gap-3">
-            {i18n.t("settings.readerEmbed.colors.border")}
-            <Input
-              type="color"
-              className="h-9 w-14 p-1"
-              value={normalizeColor(resolvedStyle.border, DEFAULT_USER_SETTINGS.readerStyle.border)}
-              onChange={e => updateReaderStyle({ border: e.target.value })}
-            />
-          </Label>
-          <Label className="flex items-center justify-between gap-3">
-            {i18n.t("settings.readerEmbed.colors.accent")}
-            <Input
-              type="color"
-              className="h-9 w-14 p-1"
-              value={normalizeColor(resolvedStyle.accent, DEFAULT_USER_SETTINGS.readerStyle.accent)}
-              onChange={e => updateReaderStyle({ accent: e.target.value })}
-            />
-          </Label>
-          <Label className="flex items-center justify-between gap-3">
-            {i18n.t("settings.readerEmbed.colors.opacity")}
-            <Input
-              type="number"
-              min="0.5"
-              max="1"
-              step="0.01"
-              className="w-20 h-9"
-              value={resolvedStyle.opacity}
-              onChange={e => updateReaderStyle({ opacity: Number.parseFloat(e.target.value) || 0.98 })}
-            />
-          </Label>
-          <Label className="flex items-center justify-between gap-3">
-            {i18n.t("settings.readerEmbed.colors.radius")}
-            <Input
-              type="number"
-              min="0"
-              max="24"
-              step="1"
-              className="w-20 h-9"
-              value={resolvedStyle.radius}
-              onChange={e => updateReaderStyle({ radius: Number.parseInt(e.target.value, 10) || 0 })}
-            />
-          </Label>
+          </div>
         </div>
       </SettingItem>
 
@@ -192,67 +242,84 @@ export function ReaderEmbedSettings() {
         title={i18n.t("settings.readerEmbed.size.title")}
         description={i18n.t("settings.readerEmbed.size.desc")}
       >
-        <div className="grid grid-cols-2 gap-3">
-          <Label className="flex items-center justify-between gap-3">
-            {i18n.t("settings.readerEmbed.size.barHeight")}
-            <Input
-              type="number"
-              min="48"
-              max="240"
-              step="4"
-              className="w-20 h-9"
-              value={resolvedStyle.barHeight}
-              onChange={e => updateReaderStyle({ barHeight: Number.parseInt(e.target.value, 10) || 120 })}
+        <div className="flex flex-col gap-4 w-[260px]">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">{i18n.t("settings.readerEmbed.size.barHeight")}</Label>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {resolvedStyle.barHeight}
+                px
+              </span>
+            </div>
+            <Slider
+              min={48}
+              max={240}
+              step={4}
+              value={[resolvedStyle.barHeight]}
+              onValueChange={([v]) => updateReaderStyle({ barHeight: v })}
             />
-          </Label>
-          <Label className="flex items-center justify-between gap-3">
-            {i18n.t("settings.readerEmbed.size.floatingWidth")}
-            <Input
-              type="number"
-              min="260"
-              max="720"
-              step="10"
-              className="w-20 h-9"
-              value={resolvedStyle.floatingWidth}
-              onChange={e => updateReaderStyle({ floatingWidth: Number.parseInt(e.target.value, 10) || 360 })}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">{i18n.t("settings.readerEmbed.size.floatingWidth")}</Label>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {resolvedStyle.floatingWidth}
+                px
+              </span>
+            </div>
+            <Slider
+              min={260}
+              max={720}
+              step={10}
+              value={[resolvedStyle.floatingWidth]}
+              onValueChange={([v]) => updateReaderStyle({ floatingWidth: v })}
             />
-          </Label>
-          <Label className="flex items-center justify-between gap-3">
-            {i18n.t("settings.readerEmbed.size.floatingHeight")}
-            <Input
-              type="number"
-              min="120"
-              max="520"
-              step="10"
-              className="w-20 h-9"
-              value={resolvedStyle.floatingHeight}
-              onChange={e => updateReaderStyle({ floatingHeight: Number.parseInt(e.target.value, 10) || 240 })}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">{i18n.t("settings.readerEmbed.size.floatingHeight")}</Label>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {resolvedStyle.floatingHeight}
+                px
+              </span>
+            </div>
+            <Slider
+              min={120}
+              max={520}
+              step={10}
+              value={[resolvedStyle.floatingHeight]}
+              onValueChange={([v]) => updateReaderStyle({ floatingHeight: v })}
             />
-          </Label>
-          <Label className="flex items-center justify-between gap-3">
-            {i18n.t("settings.readerEmbed.size.fontSize")}
-            <Input
-              type="number"
-              min="12"
-              max="30"
-              step="1"
-              className="w-20 h-9"
-              value={fontSize}
-              onChange={e => updateSettings({ fontSize: Number.parseInt(e.target.value, 10) || 16 })}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">{i18n.t("settings.readerEmbed.size.fontSize")}</Label>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {fontSize}
+                px
+              </span>
+            </div>
+            <Slider
+              min={12}
+              max={30}
+              step={1}
+              value={[fontSize]}
+              onValueChange={([v]) => updateSettings({ fontSize: v })}
             />
-          </Label>
-          <Label className="flex items-center justify-between gap-3">
-            {i18n.t("settings.readerEmbed.size.lineHeight")}
-            <Input
-              type="number"
-              min="1"
-              max="3"
-              step="0.1"
-              className="w-20 h-9"
-              value={lineHeight}
-              onChange={e => updateSettings({ lineHeight: Number.parseFloat(e.target.value) || 1.6 })}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">{i18n.t("settings.readerEmbed.size.lineHeight")}</Label>
+              <span className="text-xs text-muted-foreground tabular-nums">{lineHeight}</span>
+            </div>
+            <Slider
+              min={1}
+              max={3}
+              step={0.1}
+              value={[lineHeight]}
+              onValueChange={([v]) => updateSettings({ lineHeight: v })}
             />
-          </Label>
+          </div>
         </div>
       </SettingItem>
 

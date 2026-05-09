@@ -38,6 +38,10 @@ export const SHORTCUT_DEFINITIONS = {
     name: () => i18n.t("shortcuts_refreshRules_name"),
     description: () => i18n.t("shortcuts_refreshRules_desc"),
   },
+  toggle_reader: {
+    name: () => i18n.t("shortcuts_toggleReader_name"),
+    description: () => i18n.t("shortcuts_toggleReader_desc"),
+  },
 } as const
 
 export function useShortcuts() {

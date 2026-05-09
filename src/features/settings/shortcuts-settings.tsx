@@ -14,10 +14,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import {
   eventToKeyCombo,
   formatKeyCombo,
   isValidKeyCombo,
+  normalizeKeyCombo,
   SHORTCUT_DEFINITIONS,
   useShortcuts,
 } from "@/hooks/use-shortcuts"
@@ -111,9 +113,11 @@ export function ShortcutsSettings() {
               description={definition?.description()}
             >
               <div className="flex items-center gap-2">
-                <div className="px-3 py-2 bg-muted rounded-md font-mono text-sm min-w-[120px] text-center">
-                  {formatKeyCombo(shortcut.keys)}
-                </div>
+                <KbdGroup>
+                  {normalizeKeyCombo(shortcut.keys).map((key, i) => (
+                    <Kbd key={i}>{key}</Kbd>
+                  ))}
+                </KbdGroup>
                 <Button
                   size="sm"
                   variant="outline"
@@ -165,6 +169,16 @@ export function ShortcutsSettings() {
                 className="text-center font-mono text-lg h-12"
               />
             </div>
+
+            {recordingKeys.length > 0 && (
+              <div className="flex justify-center">
+                <KbdGroup>
+                  {normalizeKeyCombo(recordingKeys).map((key, i) => (
+                    <Kbd key={i}>{key}</Kbd>
+                  ))}
+                </KbdGroup>
+              </div>
+            )}
 
             <Alert>
               <AlertDescription className="text-xs">

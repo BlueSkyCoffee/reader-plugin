@@ -1,5 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai"
 import { useEffect } from "react"
+import { useShortcutListener } from "@/hooks/use-shortcut-listener"
 import { currentChapterIndexAtom, readerSessionAtom, readerVisibleAtom, scrollPositionAtom } from "@/state/store"
 import { ShortcutManager } from "@/utils/shortcut-manager"
 
@@ -35,4 +36,9 @@ export function useReaderShortcuts(options: UseReaderShortcutsOptions) {
       ShortcutManager.unbindReaderShortcuts()
     }
   }, [session?.bookId, visible, chapters.length, setScrollPosition, setCurrentChapterIndex, setVisible])
+
+  // 用户可配置的切换阅读器快捷键（始终生效，不受 visible 限制）
+  useShortcutListener("toggle_reader", () => {
+    setVisible(v => !v)
+  })
 }

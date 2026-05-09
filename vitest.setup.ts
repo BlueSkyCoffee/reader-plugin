@@ -5,7 +5,8 @@ import "@testing-library/jest-dom"
 vi.mock("@wxt-dev/i18n", () => ({
   createI18n: () => ({
     t: (key: string, substitutions?: string[] | number) => {
-      if (typeof substitutions === "number") return String(substitutions)
+      if (typeof substitutions === "number")
+        return String(substitutions)
       if (Array.isArray(substitutions) && substitutions.length > 0) {
         let result = key
         substitutions.forEach((sub, i) => {

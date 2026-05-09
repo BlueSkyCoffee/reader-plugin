@@ -26,7 +26,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -349,27 +351,31 @@ function ChapterRangeInput({
       <CardHeader className="p-4 pb-3">
         <CardTitle className="text-base">{i18n.t("lightnovel.range.title")}</CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 gap-4 p-4 pt-0">
-        <div>
-          <label className="text-sm font-medium">{i18n.t("lightnovel.range.start")}</label>
-          <Input
-            type="number"
-            min="1"
+      <CardContent className="flex flex-col gap-4 p-4 pt-0">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">{i18n.t("lightnovel.range.start")}</Label>
+            <span className="text-xs text-muted-foreground tabular-nums">{startChapter}</span>
+          </div>
+          <Slider
+            min={1}
             max={maxStartChapter}
-            value={startChapter}
-            onChange={e => onStartChange(Math.max(1, Number.parseInt(e.target.value) || 1))}
-            className="mt-1"
+            step={1}
+            value={[startChapter]}
+            onValueChange={([v]) => onStartChange(v)}
           />
         </div>
-        <div>
-          <label className="text-sm font-medium">{i18n.t("lightnovel.range.end")}</label>
-          <Input
-            type="number"
-            min="1"
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">{i18n.t("lightnovel.range.end")}</Label>
+            <span className="text-xs text-muted-foreground tabular-nums">{endChapter}</span>
+          </div>
+          <Slider
+            min={1}
             max={maxEndChapter}
-            value={endChapter}
-            onChange={e => onEndChange(Math.max(1, Number.parseInt(e.target.value) || 1))}
-            className="mt-1"
+            step={1}
+            value={[endChapter]}
+            onValueChange={([v]) => onEndChange(v)}
           />
         </div>
       </CardContent>

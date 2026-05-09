@@ -1,7 +1,7 @@
-import { useAtom } from "jotai"
+import { useAtom, useAtomValue } from "jotai"
 import { useCallback, useEffect } from "react"
 import { db } from "@/lib/db"
-import { readerSessionAtom, readerVisibleAtom } from "@/state/store"
+import { readerSessionAtom, readerVisibleAtom, settingsAtom } from "@/state/store"
 import { log } from "@/utils/logger"
 
 /**
@@ -13,6 +13,7 @@ import { log } from "@/utils/logger"
 export function useReaderSession() {
   const [session, setSession] = useAtom(readerSessionAtom)
   const [, setVisible] = useAtom(readerVisibleAtom)
+  const settings = useAtomValue(settingsAtom)
 
   // 从 IndexedDB 补充书籍信息
   const hydrateBookInfo = useCallback(async (bookId: string) => {
@@ -96,6 +97,13 @@ export function useReaderSession() {
 
     return () => clearInterval(saveInterval)
   }, [session.bookId, saveProgressToIndexedDB])
+
+  // 自动显示阅读器（页面加载时，如果设置开启且存在活跃会话）
+  useEffect(() => {
+    if (settings.autoShowReader && session.bookId) {
+      setVisible(true)
+    }
+  }, [session.bookId])
 
   return { session }
 }

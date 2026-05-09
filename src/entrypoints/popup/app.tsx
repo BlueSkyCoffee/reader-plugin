@@ -119,29 +119,37 @@ function App() {
           </div>
         </div>
 
-        {activeBook && isHttpPage && (
-          <div className="bg-muted/50 rounded-md p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold">{activeBook.title}</span>
-                <span className="text-xs text-muted-foreground">
-                  {activeBook.author}
-                  {" · "}
-                  {i18n.t("popup.reader.chapterProgress", [activeBook.chapterIndex + 1, activeBook.totalChapters])}
-                </span>
+        {activeBook && isHttpPage
+          ? (
+              <div className="bg-muted/50 rounded-md p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold">{activeBook.title}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {activeBook.author}
+                      {" · "}
+                      {i18n.t("popup.reader.chapterProgress", [activeBook.chapterIndex + 1, activeBook.totalChapters])}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 gap-1"
+                    onClick={handleOpenReader}
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    {i18n.t("popup.reader.open")}
+                  </Button>
+                </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 gap-1"
-                onClick={handleOpenReader}
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                {i18n.t("popup.reader.open")}
-              </Button>
-            </div>
-          </div>
-        )}
+            )
+          : (
+              <div className="bg-muted/30 rounded-md p-3">
+                <p className="text-xs text-muted-foreground text-center">
+                  {i18n.t("popup.reader.noActiveSession")}
+                </p>
+              </div>
+            )}
 
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">

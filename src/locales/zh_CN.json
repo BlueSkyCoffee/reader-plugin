@@ -462,5 +462,13 @@
   "novel_search_linkUnavailable": "链接不可用",
   "novel_search_startReading": "开始阅读",
   "novel_search_downloadAll": "全部下载",
-  "novel_search_volumes": "共 $1 卷"
+  "novel_search_volumes": "共 $1 卷",
+  "settings.readerEmbed.styleAdjust.title": "样式调节",
+  "settings.readerEmbed.styleAdjust.desc": "调整透明度和圆角",
+  "settings.readerEmbed.colors.placeholder": "选择主题",
+  "settings.readerEmbed.autoShow.title": "自动显示阅读器",
+  "settings.readerEmbed.autoShow.desc": "页面加载时，如果存在活跃的阅读会话，自动显示阅读器覆盖层",
+  "popup.reader.noActiveSession": "暂无活跃阅读会话。搜索小说或从书架选择一本开始阅读。",
+  "shortcuts.toggleReader.name": "切换阅读器",
+  "shortcuts.toggleReader.desc": "显示或隐藏嵌入式阅读器覆盖层"
 }

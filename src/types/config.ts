@@ -49,6 +49,7 @@ export const DEFAULT_SHORTCUTS: ShortcutConfig[] = [
   { id: "open_settings", keys: [IS_MAC ? "Cmd" : "Ctrl", ","] },
   { id: "toggle_theme", keys: [IS_MAC ? "Cmd" : "Ctrl", "Shift", "L"] },
   { id: "refresh_sources", keys: [IS_MAC ? "Cmd" : "Ctrl", "R"] },
+  { id: "toggle_reader", keys: [IS_MAC ? "Cmd" : "Ctrl", "Shift", "R"] },
 ]
 
 export const userSettingsSchema = z.object({
@@ -65,6 +66,8 @@ export const userSettingsSchema = z.object({
   excludedSites: z.array(z.string()).default([]),
   // 简繁转换设置
   language: z.enum(["cn", "tw", "hk", "twp", "jp"]).default("cn"),
+  // 阅读器自动显示
+  autoShowReader: z.boolean().default(false),
 })
 
 export type ReaderPosition = z.infer<typeof readerPositionSchema>

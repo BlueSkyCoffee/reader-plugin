@@ -462,5 +462,13 @@
   "novel_search_linkUnavailable": "Link unavailable",
   "novel_search_startReading": "Start Reading",
   "novel_search_downloadAll": "Download All",
-  "novel_search_volumes": "$1 volumes"
+  "novel_search_volumes": "$1 volumes",
+  "settings.readerEmbed.styleAdjust.title": "Style Adjust",
+  "settings.readerEmbed.styleAdjust.desc": "Adjust opacity and border radius",
+  "settings.readerEmbed.colors.placeholder": "Select theme",
+  "settings.readerEmbed.autoShow.title": "Auto Show Reader",
+  "settings.readerEmbed.autoShow.desc": "Automatically display the reader overlay when a reading session exists on page load",
+  "popup.reader.noActiveSession": "No active reading session. Search for a novel or select one from your library to start reading.",
+  "shortcuts.toggleReader.name": "Toggle Reader",
+  "shortcuts.toggleReader.desc": "Show or hide the embedded reader overlay"
 }
