@@ -5,7 +5,6 @@ import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { SearchInput } from "@/components/app/search-input"
 import { PageLayout } from "@/components/layout/page-layout"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -123,13 +122,6 @@ export function BookshelfPage() {
     fileInputRef.current?.click()
   }
 
-  const handleImportKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault()
-      handleImportClick()
-    }
-  }
-
   const filteredBooks = books.filter(
     b =>
       b.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -158,33 +150,6 @@ export function BookshelfPage() {
       )}
     >
       <div className="flex flex-col gap-6">
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={handleImportClick}
-          onKeyDown={handleImportKeyDown}
-          className="group relative overflow-hidden rounded-lg border border-dashed border-border bg-card/60 px-5 py-4 transition hover:border-primary/60 hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-        >
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-foreground">
-                {i18n.t("bookshelf.import.title")}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {i18n.t("bookshelf.import.desc")}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">.epub</Badge>
-              <Button size="sm" variant="outline" className="gap-2">
-                <Plus className="size-4" data-icon="inline-start" />
-                {i18n.t("bookshelf.import.chooseFile")}
-              </Button>
-            </div>
-          </div>
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 transition group-hover:opacity-100" />
-        </div>
-
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="min-w-0 flex-1">
             <SearchInput
