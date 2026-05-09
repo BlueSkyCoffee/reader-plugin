@@ -195,6 +195,30 @@ export default defineBackground({
         return response.text()
       },
 
+      fetchImage: async (data) => {
+        const { url, referer } = data
+        const headers: Record<string, string> = {}
+        if (referer) {
+          headers.Referer = referer
+        }
+
+        const response = await fetch(url, { headers })
+        if (!response.ok) {
+          throw new Error(`Image fetch failed: ${response.status}`)
+        }
+
+        const buffer = await response.arrayBuffer()
+        const bytes = new Uint8Array(buffer)
+        let binary = ""
+        for (let i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i])
+        }
+        const base64 = btoa(binary)
+
+        const contentType = response.headers.get("content-type") || "image/jpeg"
+        return `data:${contentType};base64,${base64}`
+      },
+
       fetchNovelMetadata: (data) => {
         return ParserProvider.fetchMetadata(data.url)
       },

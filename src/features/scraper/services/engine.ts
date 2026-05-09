@@ -2,6 +2,7 @@ import type { BookInfo, Chapter, ScraperRule, SearchResult } from "@/types/novel
 import type { ChineseLocale } from "@/utils/chinese-converter"
 import { requestMessage } from "@/lib/messaging"
 import { convertChinese } from "@/utils/chinese-converter"
+import { fetchCoverAsDataUrl } from "@/utils/cover-proxy"
 import { log } from "@/utils/logger"
 
 type ContentType = "text" | "html" | "attr"
@@ -223,7 +224,21 @@ export class ScraperEngine {
   }
 
   private isUrlAttribute(attrName: string) {
-    return attrName === "href" || attrName === "src" || attrName.endsWith("src")
+    const lower = attrName.toLowerCase()
+    return lower === "href"
+      || lower === "src"
+      || lower === "action"
+      || lower === "poster"
+      || lower === "data-src"
+      || lower === "data-original"
+      || lower === "data-lazy-src"
+      || lower === "data-echo"
+      || lower === "data-href"
+      || lower === "data-url"
+      || lower === "data-link"
+      || lower.endsWith("src")
+      || lower.endsWith("url")
+      || lower.endsWith("href")
   }
 
   private resolveUrl(value: string, baseUri?: string) {
@@ -396,12 +411,17 @@ export class ScraperEngine {
     const bookRule = this.rule.book
     const sourceLanguage = this.rule.language as ChineseLocale || "cn"
 
+    const coverUrl = this.extractCoverUrl(doc, bookRule.coverUrl, bookUrl)
+
+    // 通过后台脚本代理获取封面，绕过 CORS/防盗链
+    const proxiedCover = coverUrl ? await fetchCoverAsDataUrl(coverUrl) : undefined
+
     const info: BookInfo = {
       url: bookUrl,
       bookName: this.parseContent(doc, bookRule.bookName, "text", undefined, bookRule.baseUri),
       author: this.parseContent(doc, bookRule.author, "text", undefined, bookRule.baseUri),
       intro: this.parseContent(doc, bookRule.intro, "text", undefined, bookRule.baseUri),
-      coverUrl: this.extractCoverUrl(doc, bookRule.coverUrl, bookUrl),
+      coverUrl: proxiedCover || coverUrl,
       category: bookRule.category ? this.parseContent(doc, bookRule.category, "text", undefined, bookRule.baseUri) : undefined,
       latestChapter: bookRule.latestChapter ? this.parseContent(doc, bookRule.latestChapter, "text", undefined, bookRule.baseUri) : undefined,
       lastUpdateTime: bookRule.lastUpdateTime ? this.parseContent(doc, bookRule.lastUpdateTime, "text", undefined, bookRule.baseUri) : undefined,
@@ -449,21 +469,31 @@ export class ScraperEngine {
   }
 
   private extractCoverFromSelector(doc: Document, selector: string, baseUri: string) {
-    const textOrExplicitAttr = this.parseContent(doc, selector, "text", undefined, baseUri)
-    const normalizedTextOrExplicitAttr = this.normalizeCoverUrl(textOrExplicitAttr, baseUri)
-    if (normalizedTextOrExplicitAttr) {
-      return normalizedTextOrExplicitAttr
+    const elements = this.selectAll(doc, selector.trim())
+    if (elements.length === 0)
+      return ""
+
+    const el = elements[0]
+
+    // meta 标签直接取 content 属性
+    if (selector.trim().startsWith("meta[")) {
+      const content = el.getAttribute("content") || ""
+      return this.normalizeCoverUrl(content, baseUri)
     }
 
+    // img/a 等元素：依次尝试多个属性，直接用 resolveUrl 解析
     for (const attr of COVER_ATTR_CANDIDATES) {
-      const attrValue = this.parseContent(doc, selector, "attr", attr, baseUri)
-      const normalizedAttrValue = this.normalizeCoverUrl(attrValue, baseUri)
-      if (normalizedAttrValue) {
-        return normalizedAttrValue
-      }
+      const raw = el.getAttribute(attr)
+      if (!raw)
+        continue
+      const normalized = this.normalizeCoverUrl(raw, baseUri)
+      if (normalized)
+        return normalized
     }
 
-    return ""
+    // 兜底：text 内容（如 img alt 等场景几乎无用，但保留兼容性）
+    const text = el.textContent?.trim() || ""
+    return this.normalizeCoverUrl(text, baseUri)
   }
 
   private normalizeCoverUrl(value: string, baseUri: string) {
@@ -476,8 +506,19 @@ export class ScraperEngine {
       return ""
     }
 
+    // 绝对 URL、协议相对、根相对、点相对
     if (/^(?:https?:|data:image\/|blob:|\/\/|\/|\.{1,2}\/)/i.test(normalizedValue)) {
       return this.resolveUrl(normalizedValue, baseUri)
+    }
+
+    // 相对路径（如 images/cover.jpg）也尝试解析
+    if (/^[a-z0-9]/i.test(normalizedValue) && !normalizedValue.includes(":")) {
+      try {
+        return new URL(normalizedValue, baseUri).href
+      }
+      catch {
+        // 解析失败则忽略
+      }
     }
 
     return ""

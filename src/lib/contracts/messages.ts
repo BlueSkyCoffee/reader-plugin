@@ -82,6 +82,7 @@ export interface ExtensionProtocolMap {
 
   // 通用工具
   fetchHtml: (data: FetchHtmlMessage) => Promise<string>
+  fetchImage: (data: { url: string, referer?: string }) => Promise<string>
 
   // 心跳保持（保持 Service Worker 活跃）
   keepAlive: (data: KeepAliveMessage) => Promise<{ received: number }>
