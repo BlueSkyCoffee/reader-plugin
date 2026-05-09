@@ -23,15 +23,15 @@ const SEARCH_LAYOUT_STORAGE_KEY = "search-result-layout"
 
 function getInitialSearchLayout(): NovelLayout {
   if (typeof window === "undefined") {
-    return "grid"
+    return "list"
   }
 
   try {
     const savedLayout = window.localStorage.getItem(SEARCH_LAYOUT_STORAGE_KEY)
-    return savedLayout === "list" ? "list" : "grid"
+    return savedLayout === "grid" ? "grid" : "list"
   }
   catch {
-    return "grid"
+    return "list"
   }
 }
 

@@ -22,15 +22,15 @@ const BOOKSHELF_LAYOUT_STORAGE_KEY = "bookshelf-layout"
 
 function getInitialLayout(): BookshelfLayout {
   if (typeof window === "undefined") {
-    return "grid"
+    return "list"
   }
 
   try {
     const savedLayout = window.localStorage.getItem(BOOKSHELF_LAYOUT_STORAGE_KEY)
-    return savedLayout === "list" ? "list" : "grid"
+    return savedLayout === "grid" ? "grid" : "list"
   }
   catch {
-    return "grid"
+    return "list"
   }
 }
 

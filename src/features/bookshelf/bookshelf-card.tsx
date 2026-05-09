@@ -41,7 +41,7 @@ function BookCardActions({
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
             <Button size="icon-sm" variant="ghost" onClick={e => e.stopPropagation()}>
-              <MoreVertical className="size-4" />
+              <MoreVertical />
             </Button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
@@ -49,20 +49,20 @@ function BookCardActions({
       </Tooltip>
       <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
         <DropdownMenuItem onClick={onContinue}>
-          <Play className="size-4" />
+          <Play />
           {i18n.t("bookcard_continueReading")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onDownloadEpub}>
-          <Download className="size-4" />
+          <Download />
           {i18n.t("bookcard_exportEpub")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onDownloadTxt}>
-          <Download className="size-4" />
+          <Download />
           {i18n.t("bookcard_exportTxt")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
-          <Trash2 className="size-4" />
+          <Trash2 />
           {i18n.t("bookcard_deleteBook")}
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -70,23 +70,10 @@ function BookCardActions({
   )
 }
 
-function ProgressBadge({ book }: { book: Book }) {
-  const total = book.totalChapters || 0
-  const current = book.progress?.chapterIndex || 0
-  const percent = total > 0 ? Math.round((current / total) * 100) : 0
-
-  return (
-    <Badge variant="secondary" className="text-[10px]">
-      {percent}
-      %
-    </Badge>
-  )
-}
-
 export const BookCard: React.FC<BookCardProps> = ({
   book,
   isActive,
-  layout = "grid",
+  layout = "list",
   onSelect,
   onDelete,
   onDownload,
@@ -113,7 +100,44 @@ export const BookCard: React.FC<BookCardProps> = ({
     onDelete(book.id, e)
   }
 
-  const header = (
+  const total = book.totalChapters || 0
+  const current = book.progress?.chapterIndex || 0
+  const percent = total > 0 ? Math.round((current / total) * 100) : 0
+
+  // 列表模式：紧凑横向，与 popup 风格一致
+  const listHeader = (
+    <div className="flex items-center gap-1.5">
+      <span className="text-xs font-medium truncate flex-1" title={book.title}>
+        {book.title}
+      </span>
+      {isActive && (
+        <Badge variant="secondary" className="text-[9px] shrink-0 px-1 py-0">
+          {i18n.t("bookcard_active")}
+        </Badge>
+      )}
+    </div>
+  )
+
+  const listMeta = (
+    <div className="flex items-center gap-1.5">
+      <span className="text-[11px] text-muted-foreground truncate">
+        {book.author || i18n.t("common_unknown")}
+      </span>
+      <span className="text-[10px] text-muted-foreground/60 shrink-0">
+        {total}
+        {i18n.t("bookcard_chapters")}
+      </span>
+      {total > 0 && (
+        <Badge variant="outline" className="text-[9px] shrink-0 px-1 py-0">
+          {percent}
+          %
+        </Badge>
+      )}
+    </div>
+  )
+
+  // 网格模式：大封面卡片
+  const gridHeader = (
     <div>
       <h3 className="line-clamp-1 text-sm font-semibold" title={book.title}>
         {book.title}
@@ -124,16 +148,18 @@ export const BookCard: React.FC<BookCardProps> = ({
     </div>
   )
 
-  const meta = (
+  const gridMeta = (
     <div className="flex flex-wrap items-center gap-1.5">
       <Badge variant="outline" className="text-[10px]">
         {book.totalChapters}
         {" "}
         {i18n.t("bookcard_chapters")}
       </Badge>
-      <ProgressBadge book={book} />
-      {isActive && (
-        <Badge variant="secondary" className="text-[10px]">{i18n.t("bookcard_active")}</Badge>
+      {total > 0 && (
+        <Badge variant="secondary" className="text-[10px]">
+          {percent}
+          %
+        </Badge>
       )}
       {book.sourceName && (
         <Badge variant="outline" className="text-[10px]">{book.sourceName}</Badge>
@@ -153,22 +179,24 @@ export const BookCard: React.FC<BookCardProps> = ({
   const cover = {
     src: book.cover,
     alt: book.title,
-    fallback: (
-      <div className="flex flex-col items-center gap-1.5 px-2 text-center">
-        <BookOpen className="size-7 text-muted-foreground/40" />
-        <span className="text-[10px] text-muted-foreground/60">{i18n.t("bookcard_noCover")}</span>
-      </div>
-    ),
+    fallback: layout === "grid"
+      ? (
+          <div className="flex flex-col items-center gap-1.5 px-2 text-center">
+            <BookOpen className="size-7 text-muted-foreground/40" />
+            <span className="text-[10px] text-muted-foreground/60">{i18n.t("bookcard_noCover")}</span>
+          </div>
+        )
+      : undefined,
   }
 
   return (
     <NovelCardBase
       layout={layout}
       cover={cover}
-      header={header}
-      meta={meta}
+      header={layout === "list" ? listHeader : gridHeader}
+      meta={layout === "list" ? listMeta : gridMeta}
       actions={actions}
-      actionsOverlay={actions}
+      actionsOverlay={layout === "grid" ? actions : undefined}
       activeIndicator={isActive}
       onClick={() => onSelect(book.id)}
     />

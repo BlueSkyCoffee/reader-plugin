@@ -19,7 +19,7 @@ interface SearchResultCardProps {
 export const SearchResultCard: React.FC<SearchResultCardProps> = ({
   result,
   sourceName,
-  layout = "grid",
+  layout = "list",
   onAddToShelf,
   onDownload,
   isDownloading,
@@ -47,20 +47,74 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
     }
   }
 
-  const metaItems = [
-    result.latestChapter && {
-      label: i18n.t("search_result_latest"),
-      value: result.latestChapter,
-    },
-    result.lastUpdateTime && {
-      label: i18n.t("search_result_updated"),
-      value: result.lastUpdateTime,
-    },
-  ].filter(Boolean) as Array<{ label: string, value: string }>
+  // 列表模式：紧凑横向，与 popup 风格一致
+  const listHeader = (
+    <div className="flex items-center gap-1.5">
+      <span className="text-xs font-medium truncate flex-1" title={result.bookName}>
+        {result.bookName}
+      </span>
+      <Badge variant="secondary" className="text-[9px] shrink-0 px-1 py-0 max-w-20 truncate">
+        {sourceName}
+      </Badge>
+    </div>
+  )
 
-  const tags = [result.category, result.status, result.wordCount].filter(Boolean) as string[]
+  const listMeta = (
+    <div className="flex items-center gap-1.5">
+      <span className="text-[11px] text-muted-foreground truncate">
+        {result.author || i18n.t("common_anonymous")}
+      </span>
+      {result.latestChapter && (
+        <span className="text-[10px] text-muted-foreground/60 truncate shrink-0 max-w-32" title={result.latestChapter}>
+          {result.latestChapter}
+        </span>
+      )}
+    </div>
+  )
 
-  const header = (
+  const listActions = (
+    <div className="flex items-center gap-1">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation()
+              void handleAddToShelf()
+            }}
+            disabled={isBusy}
+          >
+            {isLoading
+              ? <Loader2 className="size-4 animate-spin" />
+              : <BookOpen />}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{i18n.t("search_actions_addToShelf")}</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation()
+              void handleDownload()
+            }}
+            disabled={isBusy}
+          >
+            {isDownloading
+              ? <Loader2 className="size-4 animate-spin" />
+              : <Download />}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>EPUB</TooltipContent>
+      </Tooltip>
+    </div>
+  )
+
+  // 网格模式：大封面卡片
+  const gridHeader = (
     <div>
       <h3 className="line-clamp-2 text-sm font-semibold leading-snug" title={result.bookName}>
         {result.bookName}
@@ -71,14 +125,16 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
     </div>
   )
 
-  const meta = (
+  const tags = [result.category, result.status, result.wordCount].filter(Boolean) as string[]
+
+  const gridMeta = (
     <div className="flex flex-col gap-1.5">
-      {metaItems.map(item => (
-        <p key={item.label} className="line-clamp-1 text-[11px] text-muted-foreground" title={item.value}>
-          <span className="text-muted-foreground/70">{item.label}</span>
-          {item.value}
+      {result.latestChapter && (
+        <p className="line-clamp-1 text-[11px] text-muted-foreground" title={result.latestChapter}>
+          <span className="text-muted-foreground/70">{i18n.t("search_result_latest")}</span>
+          {result.latestChapter}
         </p>
-      ))}
+      )}
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {tags.map(tag => (
@@ -91,76 +147,13 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
     </div>
   )
 
-  const badges = (
+  const gridBadges = (
     <Badge variant="secondary" className="max-w-24 truncate text-[10px]">
       {sourceName}
     </Badge>
   )
 
-  if (layout === "list") {
-    const actions = (
-      <div className="flex items-center gap-1.5">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="icon-sm"
-              variant="default"
-              onClick={(e) => {
-                e.stopPropagation()
-                void handleAddToShelf()
-              }}
-              disabled={isBusy}
-            >
-              {isLoading
-                ? <Loader2 className="size-4 animate-spin" />
-                : <BookOpen className="size-4" />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{i18n.t("search_actions_addToShelf")}</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="icon-sm"
-              variant="outline"
-              onClick={(e) => {
-                e.stopPropagation()
-                void handleDownload()
-              }}
-              disabled={isBusy}
-            >
-              {isDownloading
-                ? <Loader2 className="size-4 animate-spin" />
-                : <Download className="size-4" />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>EPUB</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon-sm" asChild>
-              <a href={result.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>
-                <ExternalLink className="size-4" />
-              </a>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{i18n.t("search_actions_sourceSite")}</TooltipContent>
-        </Tooltip>
-      </div>
-    )
-
-    return (
-      <NovelCardBase
-        layout="list"
-        header={header}
-        meta={meta}
-        badges={badges}
-        actions={actions}
-      />
-    )
-  }
-
-  const actions = (
+  const gridActions = (
     <div className="flex items-center gap-2">
       <Button
         size="sm"
@@ -174,7 +167,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
       >
         {isLoading
           ? <Loader2 className="size-4 animate-spin" data-icon="inline-start" />
-          : <BookOpen className="size-4" data-icon="inline-start" />}
+          : <BookOpen data-icon="inline-start" />}
         {i18n.t("search_actions_addToShelf")}
       </Button>
       <Tooltip>
@@ -190,7 +183,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
           >
             {isDownloading
               ? <Loader2 className="size-4 animate-spin" />
-              : <Download className="size-4" />}
+              : <Download />}
           </Button>
         </TooltipTrigger>
         <TooltipContent>EPUB</TooltipContent>
@@ -199,7 +192,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
         <TooltipTrigger asChild>
           <Button variant="ghost" size="icon-sm" asChild>
             <a href={result.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>
-              <ExternalLink className="size-4" />
+              <ExternalLink />
             </a>
           </Button>
         </TooltipTrigger>
@@ -210,12 +203,13 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
 
   return (
     <NovelCardBase
-      layout="grid"
+      layout={layout}
       cover={{ src: result.coverUrl, alt: result.bookName }}
-      badges={badges}
-      header={header}
-      meta={meta}
-      actions={actions}
+      badges={layout === "grid" ? gridBadges : undefined}
+      header={layout === "list" ? listHeader : gridHeader}
+      meta={layout === "list" ? listMeta : gridMeta}
+      actions={layout === "list" ? listActions : gridActions}
+      actionsOverlay={layout === "grid" ? listActions : undefined}
     />
   )
 }
