@@ -128,7 +128,7 @@
   "about_support_hint": "Include the page URL, rule ID, and time range for faster debugging.",
   "bookshelf_title": "My Library",
   "bookshelf_description": "$1 books in collection",
-  "bookshelf_actions_importOffline": "Offline Import",
+  "bookshelf_actions_importOffline": "Local Import",
   "bookshelf_import_title": "Import Local EPUB",
   "bookshelf_import_desc": "Drop files here or click to select",
   "bookshelf_import_chooseFile": "Select File",

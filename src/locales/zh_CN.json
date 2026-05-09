@@ -128,7 +128,7 @@
   "about_support_hint": "如需更快定位问题，请附带具体页面、书源规则 ID 与时间范围。",
   "bookshelf_title": "我的书架",
   "bookshelf_description": "共收藏了 $1 本书籍",
-  "bookshelf_actions_importOffline": "离线导入",
+  "bookshelf_actions_importOffline": "本地导入",
   "bookshelf_import_title": "导入本地 EPUB",
   "bookshelf_import_desc": "拖拽文件到此处或点击选择",
   "bookshelf_import_chooseFile": "选择文件",
