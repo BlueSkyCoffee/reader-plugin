@@ -210,13 +210,30 @@ export function BookshelfPage() {
 
         {isLoading
           ? (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              <div className={cn(
+                layout === "grid"
+                  ? "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+                  : "flex flex-col gap-3",
+              )}
+              >
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="flex flex-col gap-2">
-                    <Skeleton className="aspect-[3/4] w-full rounded-lg" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
-                  </div>
+                  layout === "grid"
+                    ? (
+                        <div key={i} className="flex flex-col gap-2">
+                          <Skeleton className="aspect-[3/4] w-full rounded-lg" />
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-1/2" />
+                        </div>
+                      )
+                    : (
+                        <div key={i} className="flex items-center gap-2.5 rounded-lg px-2.5 py-2">
+                          <Skeleton className="size-10 shrink-0 rounded-md" />
+                          <div className="flex-1 flex flex-col gap-1.5">
+                            <Skeleton className="h-3.5 w-2/3" />
+                            <Skeleton className="h-3 w-1/3" />
+                          </div>
+                        </div>
+                      )
                 ))}
               </div>
             )

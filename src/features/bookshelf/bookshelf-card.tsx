@@ -167,7 +167,28 @@ export const BookCard: React.FC<BookCardProps> = ({
     </div>
   )
 
-  const actions = (
+  // 列表模式：内联图标按钮，与搜索页风格一致
+  const listActions = (
+    <div className="flex items-center gap-1">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button size="icon-sm" variant="ghost" onClick={handleContinueReading}>
+            <Play />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{i18n.t("bookcard_continueReading")}</TooltipContent>
+      </Tooltip>
+      <BookCardActions
+        onContinue={handleContinueReading}
+        onDownloadEpub={handleDownloadClick}
+        onDownloadTxt={handleDownloadTxtClick}
+        onDelete={handleDeleteClick}
+      />
+    </div>
+  )
+
+  // 网格模式：DropdownMenu
+  const gridActions = (
     <BookCardActions
       onContinue={handleContinueReading}
       onDownloadEpub={handleDownloadClick}
@@ -195,8 +216,8 @@ export const BookCard: React.FC<BookCardProps> = ({
       cover={cover}
       header={layout === "list" ? listHeader : gridHeader}
       meta={layout === "list" ? listMeta : gridMeta}
-      actions={actions}
-      actionsOverlay={layout === "grid" ? actions : undefined}
+      actions={layout === "list" ? listActions : gridActions}
+      actionsOverlay={layout === "grid" ? gridActions : undefined}
       activeIndicator={isActive}
       onClick={() => onSelect(book.id)}
     />
