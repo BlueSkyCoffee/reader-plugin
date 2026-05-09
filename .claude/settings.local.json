@@ -9,7 +9,11 @@
       "Bash(pnpm test *)",
       "Bash(pnpm install *)",
       "Bash(find *)",
-      "Bash(pnpm dev *)"
+      "Bash(pnpm dev *)",
+      "Bash(grep *)",
+      "Bash(pnpm dlx *)",
+      "WebSearch",
+      "Bash(echo \"EXIT:$?\")"
     ]
   }
 }

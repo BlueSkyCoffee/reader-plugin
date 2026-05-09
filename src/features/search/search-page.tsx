@@ -15,6 +15,7 @@ import { EpubGenerator } from "@/lib/epub-generator"
 import { StorageManager } from "@/lib/storage"
 import { cn } from "@/utils/cn"
 import { log } from "@/utils/logger"
+import { sortSearchResults } from "@/utils/string-similarity"
 import { SearchResultCard } from "./search-result-card"
 
 type NovelLayout = "grid" | "list"
@@ -118,7 +119,15 @@ export function SearchPage() {
         }
       })
 
-      setResults(allResults)
+      // 按相似度排序搜索结果
+      const sortedResults = sortSearchResults(
+        trimmedQuery,
+        allResults,
+        r => r.bookName,
+        r => r.author,
+      )
+
+      setResults(sortedResults)
 
       if (allResults.length === 0) {
         if (failedSources.length > 0) {

@@ -21,16 +21,18 @@ interface BookCardProps {
   layout?: "grid" | "list"
   onSelect: (id: string) => void
   onDelete: (id: string, e: React.MouseEvent) => void
-  onDownload: (book: Book) => void
+  onDownload: (book: Book, format?: "epub" | "txt") => void
 }
 
 function BookCardActions({
   onContinue,
-  onDownload,
+  onDownloadEpub,
+  onDownloadTxt,
   onDelete,
 }: {
   onContinue: (e: React.MouseEvent) => void
-  onDownload: (e: React.MouseEvent) => void
+  onDownloadEpub: (e: React.MouseEvent) => void
+  onDownloadTxt: (e: React.MouseEvent) => void
   onDelete: (e: React.MouseEvent) => void
 }) {
   return (
@@ -50,9 +52,13 @@ function BookCardActions({
           <Play className="size-4" />
           {i18n.t("bookcard_continueReading")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={onDownload}>
+        <DropdownMenuItem onClick={onDownloadEpub}>
           <Download className="size-4" />
           {i18n.t("bookcard_exportEpub")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onDownloadTxt}>
+          <Download className="size-4" />
+          {i18n.t("bookcard_exportTxt")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
@@ -94,7 +100,12 @@ export const BookCard: React.FC<BookCardProps> = ({
 
   const handleDownloadClick = (event: React.MouseEvent) => {
     event.stopPropagation()
-    onDownload(book)
+    onDownload(book, "epub")
+  }
+
+  const handleDownloadTxtClick = (event: React.MouseEvent) => {
+    event.stopPropagation()
+    onDownload(book, "txt")
   }
 
   const handleDeleteClick = (e: React.MouseEvent) => {
@@ -133,7 +144,8 @@ export const BookCard: React.FC<BookCardProps> = ({
   const actions = (
     <BookCardActions
       onContinue={handleContinueReading}
-      onDownload={handleDownloadClick}
+      onDownloadEpub={handleDownloadClick}
+      onDownloadTxt={handleDownloadTxtClick}
       onDelete={handleDeleteClick}
     />
   )

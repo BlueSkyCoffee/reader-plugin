@@ -1,5 +1,6 @@
 import type { Book, Chapter, ScraperRule } from "@/types/novel"
 import { BUILTIN_RULES, ScraperEngine } from "@/features/scraper/services"
+import { DownloadLog } from "@/lib/download-log"
 import { StorageManager } from "@/lib/storage"
 import { log } from "@/utils/logger"
 import { withRetry } from "@/utils/retry"
@@ -43,7 +44,7 @@ export class DownloadManager {
   private tasks: Map<string, DownloadTask> = new Map()
   private activeDownloads: Set<string> = new Set()
   private progressCallbacks: Map<string, Set<ProgressCallback>> = new Map()
-  private CONCURRENCY = 3 // 并发请求数限制，避免被源站屏蔽
+  private DEFAULT_CONCURRENCY = 3 // 默认并发数，可被规则配置覆盖
 
   private constructor() { }
 
@@ -180,14 +181,18 @@ export class DownloadManager {
       task.status = "completed"
       this.activeDownloads.delete(book.id)
       this.notifyProgress(book.id)
+      void DownloadLog.log(book.id, book.title, "info", "所有章节已下载，无需处理")
       return
     }
+
+    void DownloadLog.log(book.id, book.title, "info", `开始下载 ${pendingChapters.length} 个章节，并发数: ${concurrency}`)
 
     try {
       for (let i = 0; i < pendingChapters.length; i += concurrency) {
         if (!this.activeDownloads.has(book.id)) {
           task.status = "paused"
           this.notifyProgress(book.id)
+          void DownloadLog.log(book.id, book.title, "info", "下载已暂停")
           return
         }
 
@@ -208,15 +213,19 @@ export class DownloadManager {
                     onRetry: (attempt, error) => {
                       task.retriedChapters++
                       log.download.warn(`Retry ${attempt} for "${c.title}"`, error.message)
+                      void DownloadLog.log(book.id, book.title, "warn", `重试第 ${attempt} 次: "${c.title}"`, error.message)
                     },
                   },
                 )
                 chapters[index].content = content
                 task.downloadedChapters++
+                void DownloadLog.log(book.id, book.title, "info", `下载成功: "${c.title}"`)
               }
               catch (e: unknown) {
                 task.failedChapters++
-                log.download.error(`"${c.title}" failed after retries`, getErrorMessage(e))
+                const errorMsg = getErrorMessage(e)
+                log.download.error(`"${c.title}" failed after retries`, errorMsg)
+                void DownloadLog.log(book.id, book.title, "error", `下载失败: "${c.title}"`, errorMsg)
               }
             }
           }),
@@ -227,11 +236,14 @@ export class DownloadManager {
       }
 
       task.status = "completed"
+      void DownloadLog.log(book.id, book.title, "info", `下载完成，成功: ${task.downloadedChapters}，失败: ${task.failedChapters}`)
     }
     catch (e: unknown) {
+      const errorMsg = getErrorMessage(e)
       log.download.error("Download process failed", e)
       task.status = "error"
-      task.error = getErrorMessage(e)
+      task.error = errorMsg
+      void DownloadLog.log(book.id, book.title, "error", "下载流程异常终止", errorMsg)
     }
     finally {
       this.activeDownloads.delete(book.id)
@@ -243,12 +255,19 @@ export class DownloadManager {
     return this.tasks.get(bookId)
   }
 
+  /**
+   * 清理过期的下载日志
+   */
+  async cleanupOldLogs(): Promise<void> {
+    await DownloadLog.cleanupOldLogs()
+  }
+
   private getConcurrency(rule: ScraperRule) {
     const ruleConcurrency = rule.crawl?.concurrency
     if (ruleConcurrency && ruleConcurrency > 0)
-      return Math.min(ruleConcurrency, this.CONCURRENCY)
+      return ruleConcurrency
 
-    return this.CONCURRENCY
+    return this.DEFAULT_CONCURRENCY
   }
 
   private getDownloadDelay(rule: ScraperRule) {

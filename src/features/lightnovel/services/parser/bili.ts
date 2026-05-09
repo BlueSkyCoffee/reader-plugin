@@ -1,5 +1,6 @@
 import type { INovelParser, LightNovelInfo } from "../types"
 import type { Novel, Volume } from "./types"
+import { fontSecretMap } from "../packer/sources-bili-font-secret"
 import { Scheduler } from "../scheduler"
 import { removeElements, removeElementsByPattern, replaceImageSrc } from "./html-cleaner"
 import { extractBiliNovelId, resolveUrl } from "./url"
@@ -55,6 +56,28 @@ function shuffleContent(content: Element, params: ShuffleParams) {
       }
     }
   })
+}
+
+function applyFontSubstitution(element: Element) {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+  const textNodes: Text[] = []
+  while (walker.nextNode()) {
+    textNodes.push(walker.currentNode as Text)
+  }
+
+  for (const node of textNodes) {
+    let text = node.textContent || ""
+    let changed = false
+    for (const [from, to] of Object.entries(fontSecretMap)) {
+      if (text.includes(from)) {
+        text = text.replaceAll(from, to)
+        changed = true
+      }
+    }
+    if (changed) {
+      node.textContent = text
+    }
+  }
 }
 
 export async function parseBilibiliNovel(input: string): Promise<Novel> {
@@ -133,6 +156,9 @@ export async function fetchBiliChapter(url: string): Promise<string> {
     if (params)
       shuffleContent(content, params)
     replaceImageSrc(content)
+
+    // 应用字体混淆替换：PUA 字符 → 真实中文字符
+    applyFontSubstitution(content)
 
     fullContent += content.innerHTML
 

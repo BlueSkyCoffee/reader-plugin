@@ -4,6 +4,7 @@ import { removeElements, removeElementsByPattern, removeLineBreak } from "./html
 import { httpGetBytes, httpGetString } from "./http-util"
 import { AsyncLock } from "./lock"
 import { baseHtml } from "./sources-base"
+import { fontSecretMap } from "./sources-bili-font-secret"
 import { BiliNovelHelper } from "./sources-bili-secret"
 import { Catalog, Chapter, Novel, Volume } from "./types"
 
@@ -130,6 +131,7 @@ export class BiliNovelSource implements LightNovelSource {
     if (doc.body) {
       removeLineBreak(doc.body)
       this.replaceImageSrc(doc.body)
+      this.applyFontSubstitution(doc.body)
     }
     return doc
   }
@@ -374,6 +376,45 @@ export class BiliNovelSource implements LightNovelSource {
 
   private addAlt(image: Element, alt?: string) {
     image.setAttribute("alt", alt ?? "")
+  }
+
+  /**
+   * 应用字体混淆替换：将 PUA 字符映射回真实中文字符
+   * 优先使用 readtools.js 动态解密的映射，回退到静态映射表
+   */
+  private applyFontSubstitution(element: Element) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+    const textNodes: Text[] = []
+    while (walker.nextNode()) {
+      textNodes.push(walker.currentNode as Text)
+    }
+
+    for (const node of textNodes) {
+      let text = node.textContent || ""
+      let changed = false
+
+      // 优先使用动态解密的映射 (_secretMap from readtools.js)
+      if (Object.keys(_secretMap).length > 0) {
+        for (const [from, to] of Object.entries(_secretMap)) {
+          if (text.includes(from)) {
+            text = text.replaceAll(from, to)
+            changed = true
+          }
+        }
+      }
+
+      // 回退到静态 PUA 映射表
+      for (const [from, to] of Object.entries(fontSecretMap)) {
+        if (text.includes(from)) {
+          text = text.replaceAll(from, to)
+          changed = true
+        }
+      }
+
+      if (changed) {
+        node.textContent = text
+      }
+    }
   }
 
   private async httpGetString(url: string): Promise<string> {

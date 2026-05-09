@@ -211,6 +211,7 @@
   "bookcard_chapters": "章节",
   "bookcard_continueReading": "继续阅读",
   "bookcard_exportEpub": "导出 EPUB",
+  "bookcard_exportTxt": "导出 TXT",
   "bookcard_deleteBook": "删除书籍",
   "bookcard_noCover": "暂无封面",
   "rules_title": "书源规则中心",

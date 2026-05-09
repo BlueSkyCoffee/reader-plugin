@@ -13,6 +13,7 @@ import { BookCard, useBookshelf } from "@/features/bookshelf"
 import { EpubGenerator } from "@/lib/epub-generator"
 import { EpubService } from "@/lib/epub-service"
 import { StorageManager } from "@/lib/storage"
+import { TxtGenerator } from "@/lib/txt-generator"
 import { confirmAction } from "@/utils/browser-dialog"
 import { cn } from "@/utils/cn"
 
@@ -77,11 +78,17 @@ export function BookshelfPage() {
     }
   }
 
-  const handleDownload = async (book: Book) => {
+  const handleDownload = async (book: Book, format: "epub" | "txt" = "epub") => {
     try {
       const chapters = await StorageManager.getBookChapters(book.id)
-      const generator = new EpubGenerator(book, chapters)
-      await generator.generateAndDownload()
+      if (format === "txt") {
+        const generator = new TxtGenerator(book, chapters)
+        await generator.generateAndDownload()
+      }
+      else {
+        const generator = new EpubGenerator(book, chapters)
+        await generator.generateAndDownload()
+      }
       toast.success(i18n.t("bookshelf.toast.exportSuccess"))
     }
     catch {

@@ -1,6 +1,6 @@
 import type { Book, DownloadRecord } from "@/types/novel"
 import { i18n } from "#imports"
-import { Download, Info, Trash, Trash2 } from "lucide-react"
+import { Download, FileText, Info, Trash, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { EmptyState } from "@/components/app/empty-state"
@@ -9,9 +9,16 @@ import { StatCard, StatGrid } from "@/components/app/stat-card"
 import { PageLayout } from "@/components/layout/page-layout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { EpubGenerator } from "@/lib/epub-generator"
 import { StorageManager } from "@/lib/storage"
+import { TxtGenerator } from "@/lib/txt-generator"
 import { confirmAction } from "@/utils/browser-dialog"
 import { log } from "@/utils/logger"
 
@@ -57,7 +64,7 @@ export function DownloadPage() {
     void loadData()
   }, [])
 
-  const handleDownloadBook = async (book: Book) => {
+  const handleDownloadBook = async (book: Book, format: "epub" | "txt" = "epub") => {
     setDownloadingId(book.id)
     try {
       const chapters = await StorageManager.getBookChapters(book.id)
@@ -67,18 +74,24 @@ export function DownloadPage() {
         return
       }
 
-      const generator = new EpubGenerator(book, chapters)
-      await generator.generateAndDownload()
+      if (format === "txt") {
+        const generator = new TxtGenerator(book, chapters)
+        await generator.generateAndDownload()
+      }
+      else {
+        const generator = new EpubGenerator(book, chapters)
+        await generator.generateAndDownload()
+      }
 
       await StorageManager.addDownloadRecord({
         id: crypto.randomUUID(),
         bookId: book.id,
         title: book.title,
         author: book.author,
-        format: "epub",
+        format,
         fileSize: 0, // In browser, we don't have exact file size easily sync
         downloadedAt: Date.now(),
-        fileName: `${book.title}.epub`,
+        fileName: `${book.title}.${format}`,
         chapterCount: chapters.length,
         status: "success",
       })
@@ -188,15 +201,28 @@ export function DownloadPage() {
                             {i18n.t("download.unit.chapter")}
                           </p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="shrink-0 h-8 text-xs"
-                          onClick={() => handleDownloadBook(book)}
-                          disabled={downloadingId === book.id}
-                        >
-                          {downloadingId === book.id ? i18n.t("download.actions.exporting") : i18n.t("download.actions.export")}
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="shrink-0 h-8 text-xs"
+                              disabled={downloadingId === book.id}
+                            >
+                              {downloadingId === book.id ? i18n.t("download.actions.exporting") : i18n.t("download.actions.export")}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleDownloadBook(book, "epub")}>
+                              <Download className="size-4" />
+                              EPUB
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadBook(book, "txt")}>
+                              <FileText className="size-4" />
+                              TXT
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </MiniCard>
                     ))}
                   </div>

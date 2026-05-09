@@ -211,6 +211,7 @@
   "bookcard_chapters": "chapters",
   "bookcard_continueReading": "Continue Reading",
   "bookcard_exportEpub": "Export EPUB",
+  "bookcard_exportTxt": "Export TXT",
   "bookcard_deleteBook": "Delete Book",
   "bookcard_noCover": "No Cover",
   "rules_title": "Rule Center",
