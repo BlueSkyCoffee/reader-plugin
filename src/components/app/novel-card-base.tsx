@@ -1,6 +1,6 @@
 import { BookOpen } from "lucide-react"
 import * as React from "react"
-import { cn } from "@/utils/cn"
+import { cn } from "@/utils"
 
 interface NovelCardCover {
   src?: string

@@ -1,7 +1,7 @@
 import { Search } from "lucide-react"
 import * as React from "react"
 import { Input } from "@/components/ui/input"
-import { cn } from "@/utils/cn"
+import { cn } from "@/utils"
 
 interface SearchBarProps {
   value: string

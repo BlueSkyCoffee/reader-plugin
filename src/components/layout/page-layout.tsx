@@ -1,7 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { cn } from "@/utils/cn"
+import { cn } from "@/utils"
 
 interface PageLayoutProps {
   title: React.ReactNode

@@ -7,8 +7,7 @@ const LOG_LEVELS: Record<LogLevel, number> = {
   error: 3,
 }
 
-const IS_DEV = import.meta.env?.DEV ?? false
-const MIN_LEVEL: LogLevel = IS_DEV ? "debug" : "warn"
+const MIN_LEVEL: LogLevel = "warn"
 
 export function createLogger(module: string) {
   const prefix = `[${module}]`

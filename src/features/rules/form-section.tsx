@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { cn } from "@/utils/cn"
+import { cn } from "@/utils"
 
 interface FormSectionProps {
   title: string

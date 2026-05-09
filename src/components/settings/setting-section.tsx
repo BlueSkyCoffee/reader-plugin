@@ -1,4 +1,4 @@
-import { cn } from "@/utils/cn"
+import { cn } from "@/utils"
 
 interface SettingSectionProps {
   icon?: React.ReactNode

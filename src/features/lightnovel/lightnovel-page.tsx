@@ -37,7 +37,7 @@ import {
   useNovelParser,
   useVolumeSelection,
 } from "@/features/lightnovel/services"
-import { cn } from "@/utils/cn"
+import { cn } from "@/utils"
 import { log } from "@/utils/logger"
 
 type NovelLayout = "grid" | "list"
