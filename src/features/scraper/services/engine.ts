@@ -352,11 +352,15 @@ export class ScraperEngine {
     if (items.length === 0) {
       const bookName = this.parseContent(doc, this.rule.book.bookName, "text", undefined, this.rule.book.baseUri)
       if (bookName) {
+        const coverUrl = this.rule.book.coverUrl
+          ? this.extractCoverFromSelector(doc, this.rule.book.coverUrl, this.rule.book.baseUri || pageUrl)
+          : undefined
         results.push({
           sourceId: this.rule.id,
           bookName: bookName.trim(),
           url: pageUrl,
           author: this.parseContent(doc, this.rule.book.author, "text", undefined, this.rule.book.baseUri) || "未知",
+          coverUrl: coverUrl || undefined,
           latestChapter: this.rule.book.latestChapter
             ? this.parseContent(doc, this.rule.book.latestChapter, "text", undefined, this.rule.book.baseUri)
             : undefined,
@@ -379,11 +383,21 @@ export class ScraperEngine {
         if (!bookName || !bookName.trim() || !bookUrlAttribute)
           continue
 
+        // 提取封面：优先用搜索规则的 coverUrl，否则用书籍规则的 coverUrl
+        let coverUrl: string | undefined
+        if (searchRule.coverUrl) {
+          coverUrl = this.extractCoverFromSelector(item, searchRule.coverUrl, searchRule.baseUri || pageUrl) || undefined
+        }
+        else if (this.rule.book.coverUrl) {
+          coverUrl = this.extractCoverFromSelector(item, this.rule.book.coverUrl, searchRule.baseUri || pageUrl) || undefined
+        }
+
         results.push({
           sourceId: this.rule.id,
           bookName: bookName.trim(),
           url: bookUrlAttribute,
           author: author?.trim() || "未知",
+          coverUrl,
           latestChapter: searchRule.latestChapter ? this.parseContent(item, searchRule.latestChapter, "text", undefined, searchRule.baseUri) : undefined,
           lastUpdateTime: searchRule.lastUpdateTime ? this.parseContent(item, searchRule.lastUpdateTime, "text", undefined, searchRule.baseUri) : undefined,
           category: searchRule.category ? this.parseContent(item, searchRule.category, "text", undefined, searchRule.baseUri) : undefined,
@@ -468,7 +482,7 @@ export class ScraperEngine {
     return undefined
   }
 
-  private extractCoverFromSelector(doc: Document, selector: string, baseUri: string) {
+  private extractCoverFromSelector(doc: Document | Element, selector: string, baseUri: string) {
     const elements = this.selectAll(doc, selector.trim())
     if (elements.length === 0)
       return ""

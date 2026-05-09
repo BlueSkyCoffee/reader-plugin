@@ -33,6 +33,7 @@ interface RawSearch {
   result: string
   bookName: string
   author?: string
+  coverUrl?: string
   category?: string
   latestChapter?: string
   lastUpdateTime?: string

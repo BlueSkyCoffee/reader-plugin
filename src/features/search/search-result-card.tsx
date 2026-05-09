@@ -211,7 +211,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
   return (
     <NovelCardBase
       layout="grid"
-      cover={{ alt: result.bookName }}
+      cover={{ src: result.coverUrl, alt: result.bookName }}
       badges={badges}
       header={header}
       meta={meta}
