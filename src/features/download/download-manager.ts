@@ -205,7 +205,7 @@ export class DownloadManager {
               try {
                 await new Promise(r => setTimeout(r, this.getDownloadDelay(rule)))
                 const content = await withRetry(
-                  () => engine.getChapterContent(c.url, targetLanguage),
+                  () => engine.getChapterContent(c.url, targetLanguage, c.title),
                   {
                     maxAttempts: rule.crawl?.maxAttempts ?? 3,
                     minInterval: rule.crawl?.retryMinInterval ?? 1000,

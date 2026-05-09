@@ -12,7 +12,7 @@ export async function fetchChapterContent(book: Book, chapter: Chapter): Promise
     const rule = await StorageManager.getRuleById(book.sourceId)
     if (rule) {
       const engine = new ScraperEngine(rule)
-      return engine.getChapterContent(chapter.url)
+      return engine.getChapterContent(chapter.url, undefined, chapter.title)
     }
   }
   else if (book.source === "bili" || book.source === "wenku") {

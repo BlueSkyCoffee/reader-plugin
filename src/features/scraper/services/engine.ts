@@ -90,6 +90,7 @@ export class ScraperEngine {
 
   /**
    * 核心 DOM 解析器，支持 CSS 选择器、XPath 和动态提取函数
+   * 多元素匹配时拼接所有元素的文本/HTML
    */
   parseContent(
     html: string | HTMLElement | Document | Element,
@@ -121,17 +122,19 @@ export class ScraperEngine {
     }
 
     const elements = this.selectAll(root, selectorTrim)
-    const element = elements[0]
 
-    if (element) {
+    if (elements.length > 0) {
       if (effectiveType === "text") {
-        result = element.textContent?.trim() || ""
+        // 拼接所有匹配元素的文本
+        result = elements.map(el => el.textContent?.trim() || "").filter(Boolean).join("")
       }
       else if (effectiveType === "html") {
-        result = element.innerHTML?.trim() || ""
+        // 拼接所有匹配元素的 HTML
+        result = elements.map(el => el.innerHTML?.trim() || "").filter(Boolean).join("")
       }
       else if (effectiveType === "attr" && effectiveAttr) {
-        const attrValue = element.getAttribute(effectiveAttr) || ""
+        // 属性取第一个元素即可
+        const attrValue = elements[0].getAttribute(effectiveAttr) || ""
         result = this.resolveAttr(attrValue, effectiveAttr, baseUri)
       }
     }
@@ -517,6 +520,9 @@ export class ScraperEngine {
     return pages
   }
 
+  /**
+   * 提取目录，URL + 标题双重去重
+   */
   private extractToc(
     pages: Array<{ url: string, doc: Document }>,
     bookUrl: string,
@@ -525,7 +531,8 @@ export class ScraperEngine {
   ): Chapter[] {
     const tocRule = this.rule.toc
     const toc: Chapter[] = []
-    const seen = new Set<string>()
+    const seenUrls = new Set<string>()
+    const seenTitles = new Set<string>()
 
     pages.forEach((page, pageIndex) => {
       const container = this.buildTocContainer(page.doc)
@@ -536,10 +543,26 @@ export class ScraperEngine {
         const rawUrl = item.getAttribute("href") || item.getAttribute("value") || ""
         const resolvedUrl = this.resolveUrl(rawUrl, tocRule.baseUri || page.url || bookUrl)
 
-        if (!title || !resolvedUrl || seen.has(resolvedUrl))
+        if (!title || !resolvedUrl)
           return
 
-        seen.add(resolvedUrl)
+        // URL 去重
+        if (seenUrls.has(resolvedUrl))
+          return
+
+        // 标题去重（同标题章节后者覆盖前者）
+        if (seenTitles.has(title)) {
+          // 找到同标题的旧章节并替换
+          const existingIndex = toc.findIndex(ch => ch.title === title)
+          if (existingIndex >= 0) {
+            toc[existingIndex].url = resolvedUrl
+            seenUrls.add(resolvedUrl)
+          }
+          return
+        }
+
+        seenUrls.add(resolvedUrl)
+        seenTitles.add(title)
 
         // 应用简繁转换到章节标题
         if (targetLanguage && sourceLanguage && sourceLanguage !== targetLanguage) {
@@ -609,14 +632,15 @@ export class ScraperEngine {
    * 获取并过滤章节正文内容
    * @param chapterUrl 章节页面 URL
    * @param targetLanguage 目标语言（可选），用于简繁转换
+   * @param chapterTitle 章节标题（可选），用于从正文移除重复标题
    */
-  async getChapterContent(chapterUrl: string, targetLanguage?: ChineseLocale): Promise<string> {
+  async getChapterContent(chapterUrl: string, targetLanguage?: ChineseLocale, chapterTitle?: string): Promise<string> {
     const chapterRule = this.rule.chapter
     const baseUri = chapterRule.baseUri || this.rule.url
     const sourceLanguage = this.rule.language as ChineseLocale || "cn"
 
     if (chapterRule.pagination) {
-      return this.fetchPaginatedChapterContent(chapterUrl, baseUri, sourceLanguage, targetLanguage)
+      return this.fetchPaginatedChapterContent(chapterUrl, baseUri, sourceLanguage, targetLanguage, chapterTitle)
     }
 
     const html = await this.fetchHtml(chapterUrl, "get", undefined, { baseUri })
@@ -627,7 +651,7 @@ export class ScraperEngine {
       throw new Error("正文内容为空")
     }
 
-    content = this.applyChapterFilters(content)
+    content = this.applyChapterFilters(content, chapterTitle)
     content = this.formatChapterContent(content)
 
     // 应用简繁转换
@@ -643,6 +667,7 @@ export class ScraperEngine {
     baseUri: string,
     sourceLanguage?: ChineseLocale,
     targetLanguage?: ChineseLocale,
+    chapterTitle?: string,
   ): Promise<string> {
     const chapterRule = this.rule.chapter
     let nextUrl: string | null = startUrl
@@ -675,7 +700,7 @@ export class ScraperEngine {
       throw new Error("正文内容为空")
     }
 
-    let content = this.applyChapterFilters(merged)
+    let content = this.applyChapterFilters(merged, chapterTitle)
     content = this.formatChapterContent(content)
 
     // 应用简繁转换
@@ -735,11 +760,21 @@ export class ScraperEngine {
     return false
   }
 
-  private applyChapterFilters(content: string) {
+  /**
+   * 章节内容过滤
+   */
+  private applyChapterFilters(content: string, chapterTitle?: string) {
     let filtered = content
 
+    // 1. 不可见字符过滤（对齐 CrawlUtils.cleanInvisibleChars）
+    //    控制字符(\p{C})、行分隔符(\p{Zl})、段落分隔符(\p{Zp})
+    // eslint-disable-next-line regexp/no-dupe-characters-character-class
+    filtered = filtered.replace(/[\p{C}\p{Zl}\p{Zp}]/gu, "")
+
+    // 2. HTML 实体过滤（移除 &nbsp; 等会导致 iBooks 报错的实体）
     filtered = filtered.replace(/&[^;]+;/g, "")
 
+    // 3. 标签过滤（对齐 HtmlUtil.removeHtmlTag: 移除标签但保留内容）
     if (this.rule.chapter.filterTag) {
       const tags = this.rule.chapter.filterTag.split(/\s+/)
       const temp = document.createElement("div")
@@ -749,7 +784,16 @@ export class ScraperEngine {
         if (!tag.trim())
           return
         try {
-          temp.querySelectorAll(tag.trim()).forEach(el => el.remove())
+          // unwrap 标签（移除标签但保留文本内容），而非删除整个元素
+          temp.querySelectorAll(tag.trim()).forEach((el) => {
+            const parent = el.parentNode
+            if (!parent)
+              return
+            while (el.firstChild) {
+              parent.insertBefore(el.firstChild, el)
+            }
+            parent.removeChild(el)
+          })
         }
         catch {
           // ignore invalid selectors
@@ -759,20 +803,30 @@ export class ScraperEngine {
       filtered = temp.innerHTML
     }
 
+    // 4. 文本过滤（整个 filterTxt 作为单一正则）
     if (this.rule.chapter.filterTxt) {
-      const filters = this.rule.chapter.filterTxt.split("|")
-      filters.forEach((f) => {
-        if (!f.trim())
-          return
-        try {
-          const regex = new RegExp(f, "g")
-          filtered = filtered.replace(regex, "")
-        }
-        catch {
-          filtered = filtered.split(f).join("")
-        }
-      })
+      try {
+        const regex = new RegExp(this.rule.chapter.filterTxt, "g")
+        filtered = filtered.replace(regex, "")
+      }
+      catch {
+        // 正则无效时作为纯文本移除
+        filtered = filtered.split(this.rule.chapter.filterTxt).join("")
+      }
     }
+
+    // 5. 空白规范化（对齐 StrUtil.cleanBlank）
+    filtered = filtered.replace(/\s+/g, " ")
+
+    // 6. 重复标题移除（从正文开头移除章节标题）
+    if (chapterTitle) {
+      const escaped = chapterTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      const titleRegex = new RegExp(`^\\s*${escaped}\\s*`)
+      filtered = filtered.replace(titleRegex, "")
+    }
+
+    // 7. 空标签清理（对齐 HtmlUtil.cleanEmptyTag）
+    filtered = filtered.replace(/<(\w)[^>]*>\s*<\/\1>/g, "")
 
     return filtered
   }
@@ -782,7 +836,8 @@ export class ScraperEngine {
     const chapterRule = this.rule.chapter
 
     if (chapterRule.paragraphTagClosed) {
-      return cleaned.replace(/<(?!p\b)([^>]+)>([\s\S]*?)<\/\1>/g, "<p>$2</p>")
+      // 使用 .*? 而非 [\s\S]*?（不跨行匹配）
+      return cleaned.replace(/<(?!p\b)([^>]+)>(.*?)<\/\1>/g, "<p>$2</p>")
     }
 
     const splitter = new RegExp(chapterRule.paragraphTag || "<br>+", "g")
@@ -794,6 +849,9 @@ export class ScraperEngine {
       .join("")
   }
 
+  /**
+   * 清除所有 HTML 属性并规范化空白（对齐 JsoupUtils.clearAllAttributes + StrUtil.cleanBlank）
+   */
   private clearAllAttributes(html: string) {
     const temp = document.createElement("div")
     temp.innerHTML = html
@@ -804,7 +862,8 @@ export class ScraperEngine {
       }
     })
 
-    return temp.innerHTML.replace(/\n/g, "").trim()
+    // 移除所有多余空白字符
+    return temp.innerHTML.replace(/\s+/g, " ").trim()
   }
 
   private buildFormData(template: string | undefined, keyword: string) {

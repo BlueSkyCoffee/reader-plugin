@@ -1,7 +1,6 @@
 /**
  * 简繁转换工具
  * 使用 opencc-js 库实现
- * 参考 so-novel 的 ChineseConverter 实现
  */
 
 import { Converter } from "opencc-js"

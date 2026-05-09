@@ -1,6 +1,5 @@
 /**
  * 重试机制工具函数
- * 参考 so-novel 的 ChapterParser.retry() 实现
  */
 
 export interface RetryOptions {
@@ -20,7 +19,7 @@ const DEFAULT_MAX_INTERVAL = 3000
 
 /**
  * 带重试的异步任务执行器
- * 递增间隔重试，模拟 so-novel 的实现
+ * 递增间隔重试
  */
 export async function withRetry<T>(
   task: () => Promise<T>,
