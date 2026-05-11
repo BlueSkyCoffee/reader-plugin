@@ -1,4 +1,4 @@
-import { i18n } from "#imports"
+import { browser } from "wxt/browser"
 import { useCallback } from "react"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"
@@ -19,7 +19,7 @@ export function useReaderNavigation() {
       try {
         const book = await StorageManager.getBook(bookId)
         if (!book) {
-          toast.error(i18n.t("reader_error_bookNotFound"))
+          toast.error(browser.i18n.getMessage("reader_error_bookNotFound"))
           return
         }
 
@@ -34,11 +34,11 @@ export function useReaderNavigation() {
 
         await StorageManager.switchBook(bookId)
         await navigate("/reader")
-        toast.success(i18n.t("reader_toast_readerOpened"))
+        toast.success(browser.i18n.getMessage("reader_toast_readerOpened"))
       }
       catch (error) {
         log.reader.error("Open reader failed", error)
-        toast.error(i18n.t("reader_toast_openFailed"))
+        toast.error(browser.i18n.getMessage("reader_toast_openFailed"))
       }
     },
     [navigate],
@@ -49,7 +49,7 @@ export function useReaderNavigation() {
       try {
         const book = await StorageManager.getBook(bookId)
         if (!book) {
-          toast.error(i18n.t("reader_error_bookNotFound"))
+          toast.error(browser.i18n.getMessage("reader_error_bookNotFound"))
           return
         }
 
@@ -61,7 +61,7 @@ export function useReaderNavigation() {
       }
       catch (error) {
         log.reader.error("Continue reading failed", error)
-        toast.error(i18n.t("reader_toast_continueFailed"))
+        toast.error(browser.i18n.getMessage("reader_toast_continueFailed"))
       }
     },
     [openReader],

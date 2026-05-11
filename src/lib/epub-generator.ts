@@ -1,5 +1,5 @@
+import { browser } from "wxt/browser"
 import type { Book, Chapter } from "@/types/novel"
-import { i18n } from "#imports"
 import { saveAs } from "file-saver"
 import JSZip from "jszip"
 import { log } from "@/utils/logger"
@@ -137,11 +137,11 @@ p { text-indent: 2em; margin: 0.5em 0; }`,
       `<?xml version="1.0" encoding="UTF-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 <head>
-    <title>${i18n.t("epub_toc_title")}</title>
+    <title>${browser.i18n.getMessage("epub_toc_title")}</title>
 </head>
 <body>
     <nav epub:type="toc" id="toc">
-        <h1>${i18n.t("epub_toc_title")}</h1>
+        <h1>${browser.i18n.getMessage("epub_toc_title")}</h1>
         <ol>
             ${navLis}
         </ol>
@@ -192,7 +192,7 @@ p { text-indent: 2em; margin: 0.5em 0; }`,
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookId" version="3.0">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
         <dc:title>${this.book.title}</dc:title>
-        <dc:creator>${this.book.author || i18n.t("common_unknown")}</dc:creator>
+        <dc:creator>${this.book.author || browser.i18n.getMessage("common_unknown")}</dc:creator>
         <dc:language>zh-CN</dc:language>
         <dc:identifier id="BookId">urn:uuid:${this.book.id}</dc:identifier>
         ${coverMeta}

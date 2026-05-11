@@ -1,5 +1,5 @@
+import { browser } from "wxt/browser"
 import type { Book } from "@/types/novel"
-import { i18n } from "#imports"
 import { BookOpen, Download, MoreVertical, Play, Trash2 } from "lucide-react"
 import * as React from "react"
 import { NovelCardBase } from "@/components/app/novel-card-base"
@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { useReaderNavigation } from "@/features/reader"
+import { useReaderNavigation } from "@/hooks/use-reader-navigation"
 
 interface BookCardProps {
   book: Book
@@ -45,25 +45,25 @@ function BookCardActions({
             </Button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent>{i18n.t("common_actions")}</TooltipContent>
+        <TooltipContent>{browser.i18n.getMessage("common_actions")}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
         <DropdownMenuItem onClick={onContinue}>
           <Play />
-          {i18n.t("bookcard_continueReading")}
+          {browser.i18n.getMessage("bookcard_continueReading")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onDownloadEpub}>
           <Download />
-          {i18n.t("bookcard_exportEpub")}
+          {browser.i18n.getMessage("bookcard_exportEpub")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onDownloadTxt}>
           <Download />
-          {i18n.t("bookcard_exportTxt")}
+          {browser.i18n.getMessage("bookcard_exportTxt")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
           <Trash2 />
-          {i18n.t("bookcard_deleteBook")}
+          {browser.i18n.getMessage("bookcard_deleteBook")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -112,7 +112,7 @@ export const BookCard: React.FC<BookCardProps> = ({
       </span>
       {isActive && (
         <Badge variant="secondary" className="text-[9px] shrink-0 px-1 py-0">
-          {i18n.t("bookcard_active")}
+          {browser.i18n.getMessage("bookcard_active")}
         </Badge>
       )}
     </div>
@@ -121,11 +121,11 @@ export const BookCard: React.FC<BookCardProps> = ({
   const listMeta = (
     <div className="flex items-center gap-1.5">
       <span className="text-[11px] text-muted-foreground truncate">
-        {book.author || i18n.t("common_unknown")}
+        {book.author || browser.i18n.getMessage("common_unknown")}
       </span>
       <span className="text-[10px] text-muted-foreground/60 shrink-0">
         {total}
-        {i18n.t("bookcard_chapters")}
+        {browser.i18n.getMessage("bookcard_chapters")}
       </span>
       {total > 0 && (
         <Badge variant="outline" className="text-[9px] shrink-0 px-1 py-0">
@@ -143,7 +143,7 @@ export const BookCard: React.FC<BookCardProps> = ({
         {book.title}
       </h3>
       <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
-        {book.author || i18n.t("common_unknown")}
+        {book.author || browser.i18n.getMessage("common_unknown")}
       </p>
     </div>
   )
@@ -153,7 +153,7 @@ export const BookCard: React.FC<BookCardProps> = ({
       <Badge variant="outline" className="text-[10px]">
         {book.totalChapters}
         {" "}
-        {i18n.t("bookcard_chapters")}
+        {browser.i18n.getMessage("bookcard_chapters")}
       </Badge>
       {total > 0 && (
         <Badge variant="secondary" className="text-[10px]">
@@ -176,7 +176,7 @@ export const BookCard: React.FC<BookCardProps> = ({
             <Play />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>{i18n.t("bookcard_continueReading")}</TooltipContent>
+        <TooltipContent>{browser.i18n.getMessage("bookcard_continueReading")}</TooltipContent>
       </Tooltip>
       <BookCardActions
         onContinue={handleContinueReading}
@@ -204,7 +204,7 @@ export const BookCard: React.FC<BookCardProps> = ({
       ? (
           <div className="flex flex-col items-center gap-1.5 px-2 text-center">
             <BookOpen className="size-7 text-muted-foreground/40" />
-            <span className="text-[10px] text-muted-foreground/60">{i18n.t("bookcard_noCover")}</span>
+            <span className="text-[10px] text-muted-foreground/60">{browser.i18n.getMessage("bookcard_noCover")}</span>
           </div>
         )
       : undefined,

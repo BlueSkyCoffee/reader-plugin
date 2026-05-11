@@ -1,6 +1,6 @@
-export function removeElements(elements: Element[]) {
-  elements.forEach(element => element.remove())
-}
+import { removeElements } from "../parser/html-cleaner"
+
+export { removeElements }
 
 export function removeLineBreak(element: Element) {
   if (element.children.length > 0) {

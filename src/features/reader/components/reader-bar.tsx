@@ -1,15 +1,9 @@
-import type { ClassValue } from "clsx"
+import { browser } from "wxt/browser"
 import type { ReaderPosition, ReaderStyle } from "@/types/config"
-import { i18n } from "#imports"
-import { clsx } from "clsx"
 import * as React from "react"
-import { twMerge } from "tailwind-merge"
 import { Button } from "@/components/ui/button"
 import { useDraggable } from "@/features/reader/hooks/use-draggable"
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
+import { cn } from "@/utils"
 
 interface ReaderBarProps {
   children: React.ReactNode
@@ -49,15 +43,15 @@ export function ReaderBar({ children, position, styleConfig }: ReaderBarProps) {
       )}
       style={styleWithVars}
       role="complementary"
-      aria-label={i18n.t("reader_bar_title")}
+      aria-label={browser.i18n.getMessage("reader_bar_title")}
     >
       {isFloating && (
         <div
           className="flex items-center justify-between border-b px-3 py-1 text-[11px] uppercase tracking-wide cursor-move select-none"
           onPointerDown={handlers.onPointerDown}
         >
-          <span className="opacity-70">{i18n.t("reader_bar_title")}</span>
-          <span className="opacity-50">{i18n.t("reader_bar_dragHint")}</span>
+          <span className="opacity-70">{browser.i18n.getMessage("reader_bar_title")}</span>
+          <span className="opacity-50">{browser.i18n.getMessage("reader_bar_dragHint")}</span>
         </div>
       )}
       {children}
@@ -85,7 +79,7 @@ export function ContentDisplay({
     >
       {isFetching
         ? (
-            <span style={{ color: primaryColor }}>{i18n.t("reader_loading")}</span>
+            <span style={{ color: primaryColor }}>{browser.i18n.getMessage("reader_loading")}</span>
           )
         : (
             <span className="animate-in fade-in duration-300">{text}</span>
@@ -129,7 +123,7 @@ export function ReaderControls({
           className="px-2 py-1 hover:bg-black/5"
           style={{ color: "var(--reader-accent)" }}
         >
-          {i18n.t("reader_nav_prevChapter")}
+          {browser.i18n.getMessage("reader_nav_prevChapter")}
         </Button>
         <Button
           variant="ghost"
@@ -138,7 +132,7 @@ export function ReaderControls({
           className="px-2 py-1 hover:bg-black/5"
           style={{ color: "var(--reader-accent)" }}
         >
-          {i18n.t("reader_nav_nextChapter")}
+          {browser.i18n.getMessage("reader_nav_nextChapter")}
         </Button>
       </div>
     </div>

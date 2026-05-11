@@ -1,5 +1,5 @@
+import { browser } from "wxt/browser"
 import type { Chapter } from "@/types/novel"
-import { i18n } from "#imports"
 import { List } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -41,32 +41,32 @@ export function ChapterSelector({
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <List className="size-4" data-icon="inline-start" />
-          {i18n.t("reader_toc_title")}
+          {browser.i18n.getMessage("reader_toc_title")}
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="w-80 flex flex-col p-0">
         <SheetHeader className="px-6 py-4 border-b">
-          <SheetTitle>{i18n.t("reader_toc_sheetTitle")}</SheetTitle>
+          <SheetTitle>{browser.i18n.getMessage("reader_toc_sheetTitle")}</SheetTitle>
           <p className="text-xs text-muted-foreground mt-2">
-            {i18n.t("reader_toc_totalChapters", [chapters.length])}
+            {browser.i18n.getMessage("reader_toc_totalChapters", [String(chapters.length)])}
             {" "}
             ·
             {" "}
-            {i18n.t("reader_toc_currentChapter", [currentChapterIndex + 1])}
+            {browser.i18n.getMessage("reader_toc_currentChapter", [String(currentChapterIndex + 1)])}
           </p>
         </SheetHeader>
 
         {/* 搜索框 */}
         <div className="px-6 py-3 border-b">
           <Input
-            placeholder={i18n.t("reader_toc_searchPlaceholder")}
+            placeholder={browser.i18n.getMessage("reader_toc_searchPlaceholder")}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="h-9"
           />
           {searchQuery && (
             <p className="text-xs text-muted-foreground mt-2">
-              {i18n.t("reader_toc_searchResult", [filteredChapters.length])}
+              {browser.i18n.getMessage("reader_toc_searchResult", [String(filteredChapters.length)])}
             </p>
           )}
         </div>

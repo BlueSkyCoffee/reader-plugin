@@ -1,5 +1,5 @@
+import { browser } from "wxt/browser"
 import type { ScraperRule } from "@/types/novel"
-import { i18n } from "#imports"
 import { AlertCircle, Plus } from "lucide-react"
 import { useState } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
-import { FieldGroup, FormSection } from "@/features/rules/form-section"
+import { FieldGroup, FormSection } from "@/components/settings/form-section"
 
 interface CreateRuleDialogProps {
   onRuleCreate: (rule: ScraperRule) => Promise<void> | void
@@ -128,7 +128,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
 
   const validateRule = (rule: unknown): string | null => {
     if (!hasRequiredRuleFields(rule))
-      return i18n.t("rules.create.validation.nameRequired")
+      return browser.i18n.getMessage("rules_create_validation_nameRequired")
 
     const r = rule as Record<string, unknown>
     const search = r.search as Record<string, unknown> | undefined
@@ -137,29 +137,29 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
     const chapter = r.chapter as Record<string, unknown> | undefined
 
     if (!r.name?.toString().trim())
-      return i18n.t("rules.create.validation.nameRequired")
+      return browser.i18n.getMessage("rules_create_validation_nameRequired")
     if (!r.url?.toString().trim())
-      return i18n.t("rules.create.validation.urlRequired")
+      return browser.i18n.getMessage("rules_create_validation_urlRequired")
     if (!search?.url?.toString().trim())
-      return i18n.t("rules.create.validation.searchUrlRequired")
+      return browser.i18n.getMessage("rules_create_validation_searchUrlRequired")
     if (!search?.result?.toString().trim())
-      return i18n.t("rules.create.validation.searchResultRequired")
+      return browser.i18n.getMessage("rules_create_validation_searchResultRequired")
     if (!search?.bookName?.toString().trim())
-      return i18n.t("rules.create.validation.searchBooknameRequired")
+      return browser.i18n.getMessage("rules_create_validation_searchBooknameRequired")
     if (!search?.author?.toString().trim())
-      return i18n.t("rules.create.validation.searchAuthorRequired")
+      return browser.i18n.getMessage("rules_create_validation_searchAuthorRequired")
     if (!book?.bookName?.toString().trim())
-      return i18n.t("rules.create.validation.bookNameRequired")
+      return browser.i18n.getMessage("rules_create_validation_bookNameRequired")
     if (!book?.author?.toString().trim())
-      return i18n.t("rules.create.validation.bookAuthorRequired")
+      return browser.i18n.getMessage("rules_create_validation_bookAuthorRequired")
     if (!book?.intro?.toString().trim())
-      return i18n.t("rules.create.validation.bookIntroRequired")
+      return browser.i18n.getMessage("rules_create_validation_bookIntroRequired")
     if (!toc?.item?.toString().trim())
-      return i18n.t("rules.create.validation.tocItemRequired")
+      return browser.i18n.getMessage("rules_create_validation_tocItemRequired")
     if (!chapter?.title?.toString().trim())
-      return i18n.t("rules.create.validation.chapterTitleRequired")
+      return browser.i18n.getMessage("rules_create_validation_chapterTitleRequired")
     if (!chapter?.content?.toString().trim())
-      return i18n.t("rules.create.validation.chapterContentRequired")
+      return browser.i18n.getMessage("rules_create_validation_chapterContentRequired")
     return null
   }
 
@@ -210,7 +210,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
   const handleImportSubmit = async () => {
     setError(null)
     if (!importContent.trim()) {
-      setError(i18n.t("rules_import_toast_error"))
+      setError(browser.i18n.getMessage("rules_import_toast_error"))
       return
     }
 
@@ -225,12 +225,12 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
         newRules = [parsed as ScraperRule]
       }
       else {
-        throw new Error(i18n.t("rules_import_toast_invalidJson"))
+        throw new Error(browser.i18n.getMessage("rules_import_toast_invalidJson"))
       }
 
       const isValid = newRules.every(r => r.name && r.url && r.search && r.book && r.chapter)
       if (!isValid) {
-        throw new Error(i18n.t("rules_import_toast_invalidFormat"))
+        throw new Error(browser.i18n.getMessage("rules_import_toast_invalidFormat"))
       }
 
       newRules.forEach((rule) => {
@@ -246,14 +246,14 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
       setOpen(false)
     }
     catch (e: unknown) {
-      setError(getErrorMessage(e) || i18n.t("rules_import_toast_parseFailed"))
+      setError(getErrorMessage(e) || browser.i18n.getMessage("rules_import_toast_parseFailed"))
     }
   }
 
   const handleJsonSubmit = async () => {
     setError(null)
     if (!jsonContent.trim()) {
-      setError(i18n.t("rules.create.validation.jsonEmpty"))
+      setError(browser.i18n.getMessage("rules_create_validation_jsonEmpty"))
       return
     }
 
@@ -262,7 +262,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
       const rule = typeof parsed === "object" && parsed !== null ? parsed : null
 
       if (!rule) {
-        throw new Error(i18n.t("rules.create.validation.invalidJson"))
+        throw new Error(browser.i18n.getMessage("rules_create_validation_invalidJson"))
       }
 
       const validationError = validateRule(rule)
@@ -281,7 +281,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
       setOpen(false)
     }
     catch (e: unknown) {
-      setError(getErrorMessage(e) || i18n.t("rules.create.validation.jsonFailed"))
+      setError(getErrorMessage(e) || browser.i18n.getMessage("rules_create_validation_jsonFailed"))
     }
   }
 
@@ -320,38 +320,38 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
       <DialogTrigger asChild>
         <Button className="gap-2 h-10 shadow-sm px-6">
           <Plus className="size-4" data-icon="inline-start" />
-          {i18n.t("rules.create.title")}
+          {browser.i18n.getMessage("rules_create_title")}
         </Button>
       </DialogTrigger>
       <DialogContent className="flex h-[90vh] max-h-[90vh] flex-col overflow-hidden bg-background text-foreground border-border sm:h-auto sm:max-h-[90vh] sm:max-w-[700px]">
         <DialogHeader className="shrink-0 pb-4">
-          <DialogTitle>{i18n.t("rules.create.dialogTitle")}</DialogTitle>
-          <DialogDescription>{i18n.t("rules.create.description")}</DialogDescription>
+          <DialogTitle>{browser.i18n.getMessage("rules_create_dialogTitle")}</DialogTitle>
+          <DialogDescription>{browser.i18n.getMessage("rules_create_description")}</DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1">
           <Tabs value={mode} onValueChange={v => setMode(v as "form" | "json" | "import")} className="flex h-full w-full min-h-0 flex-col">
             <div className="shrink-0 pb-4">
               <TabsList className="grid w-full grid-cols-3 bg-muted/70 border border-border">
-                <TabsTrigger value="form" className="data-[state=active]:bg-background data-[state=active]:text-foreground">{i18n.t("rules.create.tabForm")}</TabsTrigger>
-                <TabsTrigger value="json" className="data-[state=active]:bg-background data-[state=active]:text-foreground">{i18n.t("rules.create.tabJson")}</TabsTrigger>
-                <TabsTrigger value="import" className="data-[state=active]:bg-background data-[state=active]:text-foreground">{i18n.t("rules.create.tabImport")}</TabsTrigger>
+                <TabsTrigger value="form" className="data-[state=active]:bg-background data-[state=active]:text-foreground">{browser.i18n.getMessage("rules_create_tabForm")}</TabsTrigger>
+                <TabsTrigger value="json" className="data-[state=active]:bg-background data-[state=active]:text-foreground">{browser.i18n.getMessage("rules_create_tabJson")}</TabsTrigger>
+                <TabsTrigger value="import" className="data-[state=active]:bg-background data-[state=active]:text-foreground">{browser.i18n.getMessage("rules_create_tabImport")}</TabsTrigger>
               </TabsList>
             </div>
 
             <TabsContent value="form" className="mt-0 min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2">
               <div className="flex flex-col gap-6 pb-4 pr-2">
-                <FormSection title={i18n.t("rules.create.section.basic")}>
+                <FormSection title={browser.i18n.getMessage("rules_create_section_basic")}>
                   <div className="grid gap-4">
                     <div>
                       <Label htmlFor="name" className="text-xs font-semibold text-muted-foreground">
-                        {i18n.t("rules.create.field.name")}
+                        {browser.i18n.getMessage("rules_create_field_name")}
                         {" "}
                         *
                       </Label>
                       <Input
                         id="name"
-                        placeholder={i18n.t("rules.create.field.name.placeholder")}
+                        placeholder={browser.i18n.getMessage("rules_create_field_name_placeholder")}
                         value={formData.name || ""}
                         onChange={e => handleFormChange("name", e.target.value)}
                         className="mt-1"
@@ -359,13 +359,13 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                     </div>
                     <div>
                       <Label htmlFor="url" className="text-xs font-semibold text-muted-foreground">
-                        {i18n.t("rules.create.field.url")}
+                        {browser.i18n.getMessage("rules_create_field_url")}
                         {" "}
                         *
                       </Label>
                       <Input
                         id="url"
-                        placeholder={i18n.t("rules.create.field.url.placeholder")}
+                        placeholder={browser.i18n.getMessage("rules_create_field_url_placeholder")}
                         value={formData.url || ""}
                         onChange={e => handleFormChange("url", e.target.value)}
                         className="mt-1"
@@ -374,17 +374,17 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                   </div>
                 </FormSection>
 
-                <FormSection title={i18n.t("rules.create.section.search")}>
+                <FormSection title={browser.i18n.getMessage("rules_create_section_search")}>
                   <FieldGroup>
                     <div>
                       <Label htmlFor="search-url" className="text-xs font-semibold text-muted-foreground">
-                        {i18n.t("rules.create.field.searchUrl")}
+                        {browser.i18n.getMessage("rules_create_field_searchUrl")}
                         {" "}
                         *
                       </Label>
                       <Input
                         id="search-url"
-                        placeholder={i18n.t("rules.create.field.searchUrl.placeholder")}
+                        placeholder={browser.i18n.getMessage("rules_create_field_searchUrl_placeholder")}
                         value={formData.search?.url || ""}
                         onChange={e => handleFormChange("search.url", e.target.value)}
                         className="mt-1"
@@ -392,7 +392,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                     </div>
                     <div>
                       <Label htmlFor="search-method" className="text-xs font-semibold text-muted-foreground">
-                        {i18n.t("rules.create.field.method")}
+                        {browser.i18n.getMessage("rules_create_field_method")}
                         {" "}
                         *
                       </Label>
@@ -410,10 +410,10 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="search-data" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.payload")}</Label>
+                      <Label htmlFor="search-data" className="text-xs font-semibold text-muted-foreground">{browser.i18n.getMessage("rules_create_field_payload")}</Label>
                       <Input
                         id="search-data"
-                        placeholder={i18n.t("rules.create.field.payload.placeholder")}
+                        placeholder={browser.i18n.getMessage("rules_create_field_payload_placeholder")}
                         value={formData.search?.data || ""}
                         onChange={e => handleFormChange("search.data", e.target.value)}
                         className="mt-1"
@@ -421,13 +421,13 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                     </div>
                     <div>
                       <Label htmlFor="search-result" className="text-xs font-semibold text-muted-foreground">
-                        {i18n.t("rules.create.field.searchResult")}
+                        {browser.i18n.getMessage("rules_create_field_searchResult")}
                         {" "}
                         *
                       </Label>
                       <Input
                         id="search-result"
-                        placeholder={i18n.t("rules.create.field.searchResult.placeholder")}
+                        placeholder={browser.i18n.getMessage("rules_create_field_searchResult_placeholder")}
                         value={formData.search?.result || ""}
                         onChange={e => handleFormChange("search.result", e.target.value)}
                         className="mt-1"
@@ -436,7 +436,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="search-bookname" className="text-xs font-semibold text-muted-foreground">
-                          {i18n.t("rules.create.field.searchBookname")}
+                          {browser.i18n.getMessage("rules_create_field_searchBookname")}
                           {" "}
                           *
                         </Label>
@@ -450,7 +450,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                       </div>
                       <div>
                         <Label htmlFor="search-author" className="text-xs font-semibold text-muted-foreground">
-                          {i18n.t("rules.create.field.searchAuthor")}
+                          {browser.i18n.getMessage("rules_create_field_searchAuthor")}
                           {" "}
                           *
                         </Label>
@@ -465,7 +465,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="search-latest" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.searchLatest")}</Label>
+                        <Label htmlFor="search-latest" className="text-xs font-semibold text-muted-foreground">{browser.i18n.getMessage("rules_create_field_searchLatest")}</Label>
                         <Input
                           id="search-latest"
                           placeholder=".latest-chapter"
@@ -475,7 +475,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                         />
                       </div>
                       <div>
-                        <Label htmlFor="search-update" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.searchUpdate")}</Label>
+                        <Label htmlFor="search-update" className="text-xs font-semibold text-muted-foreground">{browser.i18n.getMessage("rules_create_field_searchUpdate")}</Label>
                         <Input
                           id="search-update"
                           placeholder=".update-time"
@@ -488,12 +488,12 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                   </FieldGroup>
                 </FormSection>
 
-                <FormSection title={i18n.t("rules.create.section.book")}>
+                <FormSection title={browser.i18n.getMessage("rules_create_section_book")}>
                   <FieldGroup>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="book-name" className="text-xs font-semibold text-muted-foreground">
-                          {i18n.t("rules.create.field.bookName")}
+                          {browser.i18n.getMessage("rules_create_field_bookName")}
                           {" "}
                           *
                         </Label>
@@ -507,7 +507,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                       </div>
                       <div>
                         <Label htmlFor="book-author" className="text-xs font-semibold text-muted-foreground">
-                          {i18n.t("rules.create.field.bookAuthor")}
+                          {browser.i18n.getMessage("rules_create_field_bookAuthor")}
                           {" "}
                           *
                         </Label>
@@ -522,7 +522,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                     </div>
                     <div>
                       <Label htmlFor="book-intro" className="text-xs font-semibold text-muted-foreground">
-                        {i18n.t("rules.create.field.bookIntro")}
+                        {browser.i18n.getMessage("rules_create_field_bookIntro")}
                         {" "}
                         *
                       </Label>
@@ -536,7 +536,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="book-category" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.bookCategory")}</Label>
+                        <Label htmlFor="book-category" className="text-xs font-semibold text-muted-foreground">{browser.i18n.getMessage("rules_create_field_bookCategory")}</Label>
                         <Input
                           id="book-category"
                           placeholder="meta[property='og:novel:category']"
@@ -546,7 +546,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                         />
                       </div>
                       <div>
-                        <Label htmlFor="book-cover" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.bookCover")}</Label>
+                        <Label htmlFor="book-cover" className="text-xs font-semibold text-muted-foreground">{browser.i18n.getMessage("rules_create_field_bookCover")}</Label>
                         <Input
                           id="book-cover"
                           placeholder="meta[property='og:image']"
@@ -559,13 +559,13 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                   </FieldGroup>
                 </FormSection>
 
-                <FormSection title={i18n.t("rules.create.section.toc")} className="border-b-0 pb-2">
+                <FormSection title={browser.i18n.getMessage("rules_create_section_toc")} className="border-b-0 pb-2">
                   <FieldGroup>
                     <div>
-                      <Label htmlFor="toc-url" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.tocUrl")}</Label>
+                      <Label htmlFor="toc-url" className="text-xs font-semibold text-muted-foreground">{browser.i18n.getMessage("rules_create_field_tocUrl")}</Label>
                       <Input
                         id="toc-url"
-                        placeholder={i18n.t("rules.create.field.tocUrl.placeholder")}
+                        placeholder={browser.i18n.getMessage("rules_create_field_tocUrl_placeholder")}
                         value={formData.toc?.url || ""}
                         onChange={e => handleFormChange("toc.url", e.target.value)}
                         className="mt-1"
@@ -573,7 +573,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                     </div>
                     <div>
                       <Label htmlFor="toc-item" className="text-xs font-semibold text-muted-foreground">
-                        {i18n.t("rules.create.field.tocItem")}
+                        {browser.i18n.getMessage("rules_create_field_tocItem")}
                         {" "}
                         *
                       </Label>
@@ -587,7 +587,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                     </div>
                     <div>
                       <Label htmlFor="chapter-title" className="text-xs font-semibold text-muted-foreground">
-                        {i18n.t("rules.create.field.chapterTitle")}
+                        {browser.i18n.getMessage("rules_create_field_chapterTitle")}
                         {" "}
                         *
                       </Label>
@@ -601,7 +601,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                     </div>
                     <div>
                       <Label htmlFor="chapter-content" className="text-xs font-semibold text-muted-foreground">
-                        {i18n.t("rules.create.field.chapterContent")}
+                        {browser.i18n.getMessage("rules_create_field_chapterContent")}
                         {" "}
                         *
                       </Label>
@@ -614,10 +614,10 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                       />
                     </div>
                     <div>
-                      <Label htmlFor="chapter-filter" className="text-xs font-semibold text-muted-foreground">{i18n.t("rules.create.field.chapterFilter")}</Label>
+                      <Label htmlFor="chapter-filter" className="text-xs font-semibold text-muted-foreground">{browser.i18n.getMessage("rules_create_field_chapterFilter")}</Label>
                       <Textarea
                         id="chapter-filter"
-                        placeholder={i18n.t("rules.create.field.chapterFilter.placeholder")}
+                        placeholder={browser.i18n.getMessage("rules_create_field_chapterFilter_placeholder")}
                         value={formData.chapter?.filterTxt || ""}
                         onChange={e => handleFormChange("chapter.filterTxt", e.target.value)}
                         className="mt-1 h-20 bg-background"
@@ -632,11 +632,11 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
               <div className="flex flex-col gap-4 pb-4 pr-2">
                 <div className="grid gap-2">
                   <Label htmlFor="json-content" className="text-xs font-semibold text-muted-foreground">
-                    {i18n.t("rules.create.jsonLabel")}
+                    {browser.i18n.getMessage("rules_create_jsonLabel")}
                   </Label>
                   <Textarea
                     id="json-content"
-                    placeholder={i18n.t("rules.create.jsonPlaceholder")}
+                    placeholder={browser.i18n.getMessage("rules_create_jsonPlaceholder")}
                     value={jsonContent}
                     onChange={e => setJsonContent(e.target.value)}
                     className="h-[400px] font-mono text-sm"
@@ -649,11 +649,11 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
               <div className="flex flex-col gap-4 pb-4 pr-2">
                 <div className="grid gap-2">
                   <Label htmlFor="import-json" className="text-xs font-semibold text-muted-foreground">
-                    {i18n.t("rules_import_label")}
+                    {browser.i18n.getMessage("rules_import_label")}
                   </Label>
                   <Textarea
                     id="import-json"
-                    placeholder={i18n.t("rules_import_placeholder")}
+                    placeholder={browser.i18n.getMessage("rules_import_placeholder")}
                     value={importContent}
                     onChange={e => setImportContent(e.target.value)}
                     className="h-[300px] font-mono text-xs"
@@ -664,7 +664,7 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
             {error && (
               <Alert variant="destructive" className="mt-4 shrink-0">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>{i18n.t("rules.create.validationErrorTitle")}</AlertTitle>
+                <AlertTitle>{browser.i18n.getMessage("rules_create_validationErrorTitle")}</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
@@ -673,10 +673,10 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
 
         <DialogFooter className="mt-4 shrink-0 border-t border-border pt-4">
           <Button variant="ghost" onClick={() => setOpen(false)}>
-            {i18n.t("rules.create.cancel")}
+            {browser.i18n.getMessage("rules_create_cancel")}
           </Button>
           <Button onClick={() => void (mode === "form" ? handleFormSubmit() : mode === "json" ? handleJsonSubmit() : handleImportSubmit())} className="shadow-sm">
-            {i18n.t("rules.create.submit")}
+            {browser.i18n.getMessage("rules_create_submit")}
           </Button>
         </DialogFooter>
       </DialogContent>

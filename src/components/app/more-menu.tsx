@@ -1,8 +1,8 @@
-import { i18n } from "#imports"
 import { Icon } from "@iconify/react"
 import { Ban } from "lucide-react"
 import { useEffect, useState } from "react"
 import { browser } from "wxt/browser"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -79,13 +79,14 @@ export function MoreMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 hover:bg-neutral-300 dark:hover:bg-neutral-700 transition-colors"
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 gap-1 text-xs"
         >
           <Icon icon="tabler:dots" className="size-4" strokeWidth={1.6} />
-          <span className="text-[13px] font-medium">{i18n.t("popup.more.title")}</span>
-        </button>
+          {browser.i18n.getMessage("popup_more_title")}
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="top" className="w-fit">
         {isHttpPage && currentDomain && (
@@ -95,7 +96,7 @@ export function MoreMenu() {
               className={`cursor-pointer ${isExcluded ? "text-orange-500 focus:text-orange-500" : ""}`}
             >
               <Ban className="size-4" />
-              {isExcluded ? i18n.t("popup_more_cancelExclude") : i18n.t("popup_more_excludeSite")}
+              {isExcluded ? browser.i18n.getMessage("popup_more_cancelExclude") : browser.i18n.getMessage("popup_more_excludeSite")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
@@ -106,7 +107,7 @@ export function MoreMenu() {
           className="cursor-pointer"
         >
           <Icon icon="tabler:help-circle" className="size-4" />
-          {i18n.t("popup.more.help")}
+          {browser.i18n.getMessage("popup_more_help")}
         </DropdownMenuItem>
 
         <DropdownMenuItem
@@ -114,7 +115,7 @@ export function MoreMenu() {
           className="cursor-pointer"
         >
           <Icon icon="fa7-brands:github" className="size-4" />
-          {i18n.t("popup.more.project")}
+          {browser.i18n.getMessage("popup_more_project")}
         </DropdownMenuItem>
 
         <DropdownMenuItem
@@ -122,7 +123,7 @@ export function MoreMenu() {
           className="cursor-pointer"
         >
           <Icon icon="tabler:mail" className="size-4" />
-          {i18n.t("popup.more.feedback")}
+          {browser.i18n.getMessage("popup_more_feedback")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

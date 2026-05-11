@@ -1,19 +1,21 @@
 import type { Book } from "@/types/novel"
-import { i18n } from "#imports"
+
 import { Download, FileText } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { EmptyState } from "@/components/app/empty-state"
-import { MiniCard } from "@/components/app/mini-card"
-import { StatCard, StatGrid } from "@/components/app/stat-card"
-import { PageLayout } from "@/components/layout/page-layout"
+import { browser } from "wxt/browser"
+import { PageLayout } from "@/components/app/page-layout"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Skeleton } from "@/components/ui/skeleton"
 import { EpubGenerator } from "@/lib/epub-generator"
 import { StorageManager } from "@/lib/storage"
 import { TxtGenerator } from "@/lib/txt-generator"
@@ -23,7 +25,7 @@ export function DownloadPage() {
   const [books, setBooks] = useState<Book[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
-  const [storageUsed, setStorageUsed] = useState<string>(i18n.t("download.stats.calculating"))
+  const [storageUsed, setStorageUsed] = useState<string>(browser.i18n.getMessage("download_stats_calculating"))
 
   const loadData = async () => {
     try {
@@ -36,7 +38,7 @@ export function DownloadPage() {
     }
     catch (error) {
       log.download.error("Load data failed", error)
-      toast.error(i18n.t("download.toast.loadFailed"))
+      toast.error(browser.i18n.getMessage("download_toast_loadFailed"))
     }
     finally {
       setIsLoading(false)
@@ -53,7 +55,7 @@ export function DownloadPage() {
       const chapters = await StorageManager.getBookChapters(book.id)
 
       if (!chapters || chapters.length === 0) {
-        toast.error(i18n.t("download.toast.emptyBook"))
+        toast.error(browser.i18n.getMessage("download_toast_emptyBook"))
         return
       }
 
@@ -66,11 +68,11 @@ export function DownloadPage() {
         await generator.generateAndDownload()
       }
 
-      toast.success(i18n.t("download.toast.exportSuccess", [book.title]))
+      toast.success(browser.i18n.getMessage("download_toast_exportSuccess", [book.title]))
     }
     catch (error) {
       log.download.error("Export failed", error)
-      toast.error(i18n.t("download.toast.exportFailed"))
+      toast.error(browser.i18n.getMessage("download_toast_exportFailed"))
     }
     finally {
       setDownloadingId(null)
@@ -79,74 +81,107 @@ export function DownloadPage() {
 
   return (
     <PageLayout
-      title={i18n.t("download.title")}
+      title={browser.i18n.getMessage("download_title")}
+      description={browser.i18n.getMessage("download_description")}
     >
       <div className="flex flex-col gap-6">
-        <StatGrid>
-          <StatCard label={i18n.t("download.stats.cached")} value={books.length} />
-          <StatCard label={i18n.t("download.stats.storage")} value={isLoading ? i18n.t("download.stats.ellipsis") : storageUsed} />
-        </StatGrid>
-
-        <div className="flex flex-col gap-4">
-          <h2 className="text-base font-semibold">{i18n.t("download.section.exportable")}</h2>
-
-          {books.length > 0
-            ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {books.map(book => (
-                    <MiniCard
-                      key={book.id}
-                      className="flex items-center justify-between gap-3 hover:border-primary/50 transition-colors"
-                    >
-                      <div className="min-w-0 pr-3">
-                        <h3
-                          className="font-medium text-sm truncate"
-                          title={book.title}
-                        >
-                          {book.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {book.author || i18n.t("common.unknown")}
-                          {" "}
-                          •
-                          {book.totalChapters}
-                          {" "}
-                          {i18n.t("download.unit.chapter")}
-                        </p>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="shrink-0 h-8 text-xs"
-                            disabled={downloadingId === book.id}
-                          >
-                            {downloadingId === book.id ? i18n.t("download.actions.exporting") : i18n.t("download.actions.export")}
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleDownloadBook(book, "epub")}>
-                            <Download />
-                            EPUB
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownloadBook(book, "txt")}>
-                            <FileText />
-                            TXT
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </MiniCard>
-                  ))}
-                </div>
-              )
-            : (
-                <EmptyState
-                  title={i18n.t("download.empty.exportable.title")}
-                  description={i18n.t("download.empty.exportable.desc")}
-                />
-              )}
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground">{browser.i18n.getMessage("download_stats_cached")}</p>
+              {isLoading
+                ? <Skeleton className="mt-2 h-7 w-16" />
+                : <p className="mt-1 text-2xl font-bold">{books.length}</p>}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground">{browser.i18n.getMessage("download_stats_storage")}</p>
+              {isLoading
+                ? <Skeleton className="mt-2 h-7 w-24" />
+                : <p className="mt-1 text-2xl font-bold">{storageUsed}</p>}
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Exportable Books */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{browser.i18n.getMessage("download_section_exportable")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading
+              ? (
+                  <div className="flex flex-col gap-2">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <Skeleton key={i} className="h-14 w-full rounded-lg" />
+                    ))}
+                  </div>
+                )
+              : books.length > 0
+                ? (
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {books.map(book => (
+                        <div
+                          key={book.id}
+                          className="flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors hover:border-primary/50"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium" title={book.title}>
+                              {book.title}
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {book.author || browser.i18n.getMessage("common_unknown")}
+                              {" "}
+                              &middot;
+                              {" "}
+                              <Badge variant="secondary" className="text-[10px]">
+                                {book.totalChapters}
+                                {" "}
+                                {browser.i18n.getMessage("download_unit_chapter")}
+                              </Badge>
+                            </p>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="shrink-0 text-xs"
+                                disabled={downloadingId === book.id}
+                              >
+                                {downloadingId === book.id ? browser.i18n.getMessage("download_actions_exporting") : browser.i18n.getMessage("download_actions_export")}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleDownloadBook(book, "epub")}>
+                                <Download data-icon="inline-start" />
+                                EPUB
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDownloadBook(book, "txt")}>
+                                <FileText data-icon="inline-start" />
+                                TXT
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                : (
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                          <Download />
+                        </EmptyMedia>
+                        <EmptyTitle>{browser.i18n.getMessage("download_empty_exportable_title")}</EmptyTitle>
+                        <EmptyDescription>{browser.i18n.getMessage("download_empty_exportable_desc")}</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  )}
+          </CardContent>
+        </Card>
       </div>
     </PageLayout>
   )

@@ -1,14 +1,15 @@
+import { browser } from "wxt/browser"
 import type { Book } from "@/types/novel"
-import { i18n } from "#imports"
 import { Grid2X2, List, Loader2, Plus } from "lucide-react"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { SearchInput } from "@/components/app/search-input"
-import { PageLayout } from "@/components/layout/page-layout"
+import { PageLayout } from "@/components/app/page-layout"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BookCard, useBookshelf } from "@/features/bookshelf"
+import { BookCard } from "@/features/bookshelf/bookshelf-card"
+import { useBookshelf } from "@/features/bookshelf/use-bookshelf"
 import { EpubGenerator } from "@/lib/epub-generator"
 import { EpubService } from "@/lib/epub-service"
 import { StorageManager } from "@/lib/storage"
@@ -54,26 +55,26 @@ export function BookshelfPage() {
     try {
       await StorageManager.switchBook(id)
       refresh()
-      toast.success(i18n.t("bookshelf.toast.switchSuccess"))
+      toast.success(browser.i18n.getMessage("bookshelf_toast_switchSuccess"))
     }
     catch {
-      toast.error(i18n.t("bookshelf.toast.switchFailed"))
+      toast.error(browser.i18n.getMessage("bookshelf_toast_switchFailed"))
     }
   }
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!await confirmAction(i18n.t("bookshelf.confirm.deleteBook"))) {
+    if (!await confirmAction(browser.i18n.getMessage("bookshelf_confirm_deleteBook"))) {
       return
     }
 
     try {
       await StorageManager.deleteBook(id)
       refresh()
-      toast.success(i18n.t("bookshelf.toast.deleteSuccess"))
+      toast.success(browser.i18n.getMessage("bookshelf_toast_deleteSuccess"))
     }
     catch {
-      toast.error(i18n.t("bookshelf.toast.deleteFailed"))
+      toast.error(browser.i18n.getMessage("bookshelf_toast_deleteFailed"))
     }
   }
 
@@ -88,10 +89,10 @@ export function BookshelfPage() {
         const generator = new EpubGenerator(book, chapters)
         await generator.generateAndDownload()
       }
-      toast.success(i18n.t("bookshelf.toast.exportSuccess"))
+      toast.success(browser.i18n.getMessage("bookshelf_toast_exportSuccess"))
     }
     catch {
-      toast.error(i18n.t("bookshelf.toast.exportFailed"))
+      toast.error(browser.i18n.getMessage("bookshelf_toast_exportFailed"))
     }
   }
 
@@ -104,11 +105,11 @@ export function BookshelfPage() {
       const { book, chapters } = await EpubService.parseEpub(file)
       await StorageManager.saveBook(book, chapters)
       refresh()
-      toast.success(i18n.t("bookshelf.toast.importSuccess"))
+      toast.success(browser.i18n.getMessage("bookshelf_toast_importSuccess"))
     }
     catch (error: unknown) {
-      const message = error instanceof Error ? error.message : i18n.t("common.unknownError")
-      toast.error(i18n.t("bookshelf.toast.importFailed", [message]))
+      const message = error instanceof Error ? error.message : browser.i18n.getMessage("common_unknownError")
+      toast.error(browser.i18n.getMessage("bookshelf_toast_importFailed", [message]))
     }
     finally {
       setIsImporting(false)
@@ -130,8 +131,8 @@ export function BookshelfPage() {
 
   return (
     <PageLayout
-      title={i18n.t("bookshelf.title")}
-      description={i18n.t("bookshelf.description", [books.length])}
+      title={browser.i18n.getMessage("bookshelf_title")}
+      description={browser.i18n.getMessage("bookshelf_description", [String(books.length)])}
       action={(
         <Button
           onClick={handleImportClick}
@@ -145,7 +146,7 @@ export function BookshelfPage() {
             : (
                 <Plus className="size-4" data-icon="inline-start" />
               )}
-          {i18n.t("bookshelf.actions.importOffline")}
+          {browser.i18n.getMessage("bookshelf_actions_importOffline")}
         </Button>
       )}
     >
@@ -153,7 +154,7 @@ export function BookshelfPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="min-w-0 flex-1">
             <SearchInput
-              placeholder={i18n.t("bookshelf.search.placeholder")}
+              placeholder={browser.i18n.getMessage("bookshelf_search_placeholder")}
               value={searchQuery}
               onChange={setSearchQuery}
             />

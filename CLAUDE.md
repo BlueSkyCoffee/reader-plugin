@@ -76,7 +76,7 @@ src/
 │   ├── popup/            # Extension popup (quick access)
 │   └── options/          # Options page (full app with routing)
 ├── features/             # Feature modules (vertical slices)
-│   └── <feature>/        # components/, hooks/, pages/, services/, index.ts
+│   └── <feature>/        # components/, hooks/, pages/, services/
 ├── hooks/                # Shared React hooks
 ├── locales/              # i18n: zh_CN.json, en.json (simplified JSON format)
 ├── lib/                  # Infrastructure
@@ -146,12 +146,24 @@ Atoms defined in `src/state/store.ts`:
 
 ## Patterns & Conventions
 
+### 代码规范
+
+- **整洁简洁**：代码必须简洁明了，避免冗余和过度抽象
+- **语法糖优先**：使用现代 JS/TS 语法糖（可选链 `?.`、空值合并 `??`、解构赋值、箭头函数等）
+- **统一 UI 组件**：全部使用 shadcn/ui 组件库，禁止使用原生 HTML 元素做交互控件
+- **组件化复用**：可复用的 UI 片段和业务逻辑必须抽取为组件/hooks，放到 `components/` 或 `hooks/` 目录，禁止复制粘贴重复代码
+- **目录扁平**：目录结构保持简洁，最多两层嵌套，不要创建过深的目录层级
+- **文件精简**：单个文件控制在 200 行以内，超过时应拆分为子组件或独立模块
+- **无需 index.ts**：feature 模块不需要 `index.ts` 导出文件，直接引用具体路径
+- **注释语言**：代码注释使用中文，且简洁明了，只在必要时添加（说明"为什么"而非"是什么"）
+- **控制台输出**：日志信息简洁，避免冗余输出
+- **禁止过度设计**：不为假设性需求预留扩展，三行相似代码优于过早抽象
+
 ### File Naming
 
 - **All files**: kebab-case (`bookshelf-page.tsx`, `use-reader-navigation.ts`)
 - **React hooks**: `use-` prefix (`use-shortcuts.ts`, `use-reader-navigation.ts`)
 - **Page components**: `-page` suffix (`bookshelf-page.tsx`, `about-page.tsx`)
-- **Feature exports**: `src/features/*/index.ts` re-exports public API
 
 ### Import Aliases
 
@@ -208,6 +220,5 @@ Each feature in `src/features/<feature>/` follows:
 ├── hooks/            # Feature-specific React hooks (optional)
 ├── pages/            # Page components (optional, or page at root)
 ├── services/         # Business logic, API calls
-├── index.ts          # Public API re-exports
 └── <feature>-page.tsx  # Main page component (at root)
 ```

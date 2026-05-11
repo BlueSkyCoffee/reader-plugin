@@ -1,5 +1,4 @@
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { cn } from "@/utils"
 
@@ -26,7 +25,6 @@ export function PageLayout({
         <div className="flex min-h-14 items-center justify-between gap-4 px-4 py-3">
           <div className="flex min-w-0 items-center gap-2">
             <SidebarTrigger />
-            <Separator orientation="vertical" className="mr-1.5 h-4" />
             <div className="min-w-0">
               <h1 className="font-semibold text-lg truncate">{title}</h1>
               {description && (

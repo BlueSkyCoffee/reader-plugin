@@ -2,8 +2,8 @@
  * 路由常量定义
  */
 
+import { browser } from "wxt/browser"
 import type { NavigationItem, RouteConfig } from "@/types/navigation"
-import { i18n } from "#imports"
 import { BookshelfPage } from "@/features/bookshelf/bookshelf-page"
 import { DownloadPage } from "@/features/download/download-page"
 import { LightNovelPage } from "@/features/lightnovel/lightnovel-page"
@@ -22,50 +22,50 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
   // 小说阅读组
   {
     path: "/",
-    label: i18n.t("nav.bookshelf"),
+    label: browser.i18n.getMessage("nav_bookshelf"),
     icon: "lucide:library",
     group: "reading",
   },
   {
     path: "/search",
-    label: i18n.t("nav.search"),
+    label: browser.i18n.getMessage("nav_search"),
     icon: "lucide:search",
     group: "reading",
   },
   {
     path: "/downloads",
-    label: i18n.t("nav.downloads"),
+    label: browser.i18n.getMessage("nav_downloads"),
     icon: "lucide:download",
     group: "reading",
   },
   {
     path: "/lightnovel",
-    label: i18n.t("nav.lightnovel"),
+    label: browser.i18n.getMessage("nav_lightnovel"),
     icon: "lucide:book-open",
     group: "reading",
   },
   {
     path: "/rules",
-    label: i18n.t("nav.rules"),
+    label: browser.i18n.getMessage("nav_rules"),
     icon: "lucide:book-key",
     group: "reading",
   },
   // 设置组
   {
     path: "/settings/general",
-    label: i18n.t("settings.general"),
+    label: browser.i18n.getMessage("settings_general"),
     icon: "tabler:adjustments-horizontal",
     group: "settings",
   },
   {
     path: "/settings/help",
-    label: i18n.t("settings.help"),
+    label: browser.i18n.getMessage("settings_help"),
     icon: "lucide:help-circle",
     group: "settings",
   },
   {
     path: "/settings/about",
-    label: i18n.t("settings.about"),
+    label: browser.i18n.getMessage("settings_about"),
     icon: "lucide:info",
     group: "settings",
   },

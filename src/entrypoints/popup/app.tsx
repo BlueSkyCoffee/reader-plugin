@@ -1,18 +1,14 @@
 import type { Book } from "@/types/novel"
-import { i18n } from "#imports"
-import { Icon } from "@iconify/react"
-import { BookOpen, ExternalLink, HelpCircle, Library } from "lucide-react"
+import { BookOpen, ExternalLink, Library } from "lucide-react"
 import { useEffect, useState } from "react"
 import { browser } from "wxt/browser"
-import { ModeToggle } from "@/components/app/mode-toggle"
-import { MoreMenu } from "@/components/app/more-menu"
+import { PopupLayout } from "@/components/layout/popup-layout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { StorageManager } from "@/lib/storage"
 import { log } from "@/utils/logger"
-import { version } from "../../../package.json"
 
 interface ActiveBookInfo {
   bookId: string
@@ -36,12 +32,11 @@ function PopupBookCard({
   const percent = total > 0 ? Math.round((current / total) * 100) : 0
 
   return (
-    <button
-      type="button"
-      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-muted/50 cursor-pointer"
+    <Button
+      variant="ghost"
+      className="w-full justify-start gap-2.5 rounded-lg px-2.5 py-2 h-auto"
       onClick={() => onSelect(book.id)}
     >
-      {/* 封面 */}
       <div className="relative size-10 shrink-0 overflow-hidden rounded-md bg-muted">
         {book.cover
           ? (
@@ -54,23 +49,22 @@ function PopupBookCard({
             )}
       </div>
 
-      {/* 信息 */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span className="text-xs font-medium truncate flex-1">{book.title}</span>
           {isActive && (
             <Badge variant="secondary" className="text-[9px] shrink-0 px-1 py-0">
-              {i18n.t("bookcard_active")}
+              {browser.i18n.getMessage("bookcard_active")}
             </Badge>
           )}
         </div>
         <div className="flex items-center gap-1.5 mt-0.5">
           <span className="text-[11px] text-muted-foreground truncate">
-            {book.author || i18n.t("common_unknown")}
+            {book.author || browser.i18n.getMessage("common_unknown")}
           </span>
           <span className="text-[10px] text-muted-foreground/60 shrink-0">
             {total}
-            {i18n.t("bookcard_chapters")}
+            {browser.i18n.getMessage("bookcard_chapters")}
           </span>
           {total > 0 && (
             <Badge variant="outline" className="text-[9px] shrink-0 px-1 py-0">
@@ -80,7 +74,7 @@ function PopupBookCard({
           )}
         </div>
       </div>
-    </button>
+    </Button>
   )
 }
 
@@ -166,107 +160,66 @@ function App() {
     void openOptions(`/reader?bookId=${bookId}`)
   }
 
-  return (
-    <>
-      <div className="bg-background flex flex-col gap-3 px-4 pt-4 pb-3">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h1 className="text-base font-bold leading-tight">Reader</h1>
-            <Badge variant="secondary" className="text-[9px]">Beta</Badge>
+  const sessionHeader = activeBook && isHttpPage
+    ? (
+        <div className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/20 px-3 py-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium truncate">{activeBook.title}</p>
+            <p className="text-[11px] text-muted-foreground truncate">
+              {activeBook.author}
+              {" · "}
+              {browser.i18n.getMessage("popup_reader_chapterProgress", [String(activeBook.chapterIndex + 1), String(activeBook.totalChapters)])}
+            </p>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7"
-              onClick={() => openOptions("/settings/help")}
-              aria-label="帮助中心"
-            >
-              <HelpCircle />
-            </Button>
-            <ModeToggle />
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 shrink-0 gap-1 text-xs"
+            onClick={handleOpenReader}
+          >
+            <ExternalLink />
+            {browser.i18n.getMessage("popup_reader_open")}
+          </Button>
         </div>
+      )
+    : undefined
 
-        {/* Active reader session */}
-        {activeBook && isHttpPage && (
-          <div className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/20 px-3 py-2">
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium truncate">{activeBook.title}</p>
-              <p className="text-[11px] text-muted-foreground truncate">
-                {activeBook.author}
-                {" · "}
-                {i18n.t("popup.reader.chapterProgress", [activeBook.chapterIndex + 1, activeBook.totalChapters])}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 shrink-0 gap-1 text-xs"
-              onClick={handleOpenReader}
-            >
-              <ExternalLink />
-              {i18n.t("popup.reader.open")}
-            </Button>
-          </div>
-        )}
+  return (
+    <PopupLayout header={sessionHeader}>
+      <Separator />
 
-        <Separator />
-
-        {/* Book list */}
-        {books.length > 0
-          ? (
-              <ScrollArea className="h-[340px] -mx-1 px-1">
-                <div className="flex flex-col gap-0.5">
-                  {books.map(book => (
-                    <PopupBookCard
-                      key={book.id}
-                      book={book}
-                      isActive={book.id === activeBookId}
-                      onSelect={handleSelectBook}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
-            )
-          : (
-              <div className="flex flex-col items-center justify-center gap-2 py-10">
-                <Library className="size-8 text-muted-foreground/30" />
-                <p className="text-xs text-muted-foreground text-center">
-                  {i18n.t("popup.reader.noActiveSession")}
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => openOptions("/search")}
-                >
-                  {i18n.t("popup.search")}
-                </Button>
+      {books.length > 0
+        ? (
+            <ScrollArea className="h-[340px] -mx-1 px-1">
+              <div className="flex flex-col gap-0.5">
+                {books.map(book => (
+                  <PopupBookCard
+                    key={book.id}
+                    book={book}
+                    isActive={book.id === activeBookId}
+                    onSelect={handleSelectBook}
+                  />
+                ))}
               </div>
-            )}
-      </div>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between bg-muted/50 px-3 py-1.5">
-        <button
-          type="button"
-          className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 hover:bg-muted transition-colors"
-          onClick={() => browser.runtime.openOptionsPage()}
-        >
-          <Icon icon="tabler:settings" className="size-3.5" strokeWidth={1.6} />
-          <span className="text-[11px] font-medium">
-            {i18n.t("popup.options")}
-          </span>
-        </button>
-        <span className="text-[10px] text-muted-foreground">
-          v
-          {version}
-        </span>
-        <MoreMenu />
-      </div>
-    </>
+            </ScrollArea>
+          )
+        : (
+            <div className="flex flex-col items-center justify-center gap-2 py-10">
+              <Library className="size-8 text-muted-foreground/30" />
+              <p className="text-xs text-muted-foreground text-center">
+                {browser.i18n.getMessage("popup_reader_noActiveSession")}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => openOptions("/search")}
+              >
+                {browser.i18n.getMessage("popup_search")}
+              </Button>
+            </div>
+          )}
+    </PopupLayout>
   )
 }
 

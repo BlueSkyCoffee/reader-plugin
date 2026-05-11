@@ -1,4 +1,4 @@
-import { i18n } from "#imports"
+import { browser } from "wxt/browser"
 import { useAtom } from "jotai"
 import { useCallback, useMemo } from "react"
 import { settingsAtom } from "@/state/store"
@@ -23,24 +23,24 @@ const MODIFIER_ORDER = [
 // 快捷键定义
 export const SHORTCUT_DEFINITIONS = {
   open_search: {
-    name: () => i18n.t("shortcuts_openSearch_name"),
-    description: () => i18n.t("shortcuts_openSearch_desc"),
+    name: () => browser.i18n.getMessage("shortcuts_openSearch_name"),
+    description: () => browser.i18n.getMessage("shortcuts_openSearch_desc"),
   },
   open_settings: {
-    name: () => i18n.t("shortcuts_openSettings_name"),
-    description: () => i18n.t("shortcuts_openSettings_desc"),
+    name: () => browser.i18n.getMessage("shortcuts_openSettings_name"),
+    description: () => browser.i18n.getMessage("shortcuts_openSettings_desc"),
   },
   toggle_theme: {
-    name: () => i18n.t("shortcuts_toggleTheme_name"),
-    description: () => i18n.t("shortcuts_toggleTheme_desc"),
+    name: () => browser.i18n.getMessage("shortcuts_toggleTheme_name"),
+    description: () => browser.i18n.getMessage("shortcuts_toggleTheme_desc"),
   },
   refresh_sources: {
-    name: () => i18n.t("shortcuts_refreshRules_name"),
-    description: () => i18n.t("shortcuts_refreshRules_desc"),
+    name: () => browser.i18n.getMessage("shortcuts_refreshRules_name"),
+    description: () => browser.i18n.getMessage("shortcuts_refreshRules_desc"),
   },
   toggle_reader: {
-    name: () => i18n.t("shortcuts_toggleReader_name"),
-    description: () => i18n.t("shortcuts_toggleReader_desc"),
+    name: () => browser.i18n.getMessage("shortcuts_toggleReader_name"),
+    description: () => browser.i18n.getMessage("shortcuts_toggleReader_desc"),
   },
 } as const
 

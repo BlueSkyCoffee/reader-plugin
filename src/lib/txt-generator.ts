@@ -1,5 +1,5 @@
+import { browser } from "wxt/browser"
 import type { Book, Chapter } from "@/types/novel"
-import { i18n } from "#imports"
 import { saveAs } from "file-saver"
 import { log } from "@/utils/logger"
 
@@ -25,7 +25,7 @@ export class TxtGenerator {
     // 书籍信息头
     lines.push(`${this.book.title}`)
     if (this.book.author) {
-      lines.push(`${i18n.t("common_author")}: ${this.book.author}`)
+      lines.push(`${browser.i18n.getMessage("common_author")}: ${this.book.author}`)
     }
     if (this.book.description) {
       lines.push(`${this.book.description}`)
@@ -35,7 +35,7 @@ export class TxtGenerator {
     lines.push("")
 
     // 目录
-    lines.push(`${i18n.t("epub_toc_title")}`)
+    lines.push(`${browser.i18n.getMessage("epub_toc_title")}`)
     lines.push("")
     this.chapters.forEach((chapter, index) => {
       lines.push(`${index + 1}. ${chapter.title}`)

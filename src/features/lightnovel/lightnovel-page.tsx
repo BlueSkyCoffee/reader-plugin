@@ -4,7 +4,7 @@
  */
 
 import type { LightNovelInfo } from "@/features/lightnovel/services"
-import { i18n } from "#imports"
+
 import {
   AlertCircle,
   Check,
@@ -20,14 +20,17 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import { browser } from "wxt/browser"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group"
 import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -71,10 +74,10 @@ function SourceSelector({
     <Tabs value={source} onValueChange={value => onSourceChange(value as "bili" | "wenku")}>
       <TabsList className="w-full">
         <TabsTrigger value="bili" className="flex-1">
-          {i18n.t("lightnovel.source.bili")}
+          {browser.i18n.getMessage("lightnovel_source_bili")}
         </TabsTrigger>
         <TabsTrigger value="wenku" className="flex-1">
-          {i18n.t("lightnovel.source.wenku")}
+          {browser.i18n.getMessage("lightnovel_source_wenku")}
         </TabsTrigger>
       </TabsList>
     </Tabs>
@@ -98,39 +101,42 @@ function SearchInput({
   source: "bili" | "wenku"
 }) {
   return (
-    <div className="flex gap-2">
-      <Input
+    <InputGroup>
+      <InputGroupAddon>
+        <Search />
+      </InputGroupAddon>
+      <InputGroupInput
         placeholder={
           source === "bili"
-            ? i18n.t("lightnovel.search.placeholder.bili")
-            : i18n.t("lightnovel.search.placeholder.wenku")
+            ? browser.i18n.getMessage("lightnovel_search_placeholder_bili")
+            : browser.i18n.getMessage("lightnovel_search_placeholder_wenku")
         }
         value={input}
         onChange={e => onInputChange(e.target.value)}
-        onKeyPress={e => e.key === "Enter" && onSearch()}
+        onKeyDown={e => e.key === "Enter" && onSearch()}
         disabled={isLoading}
-        className="flex-1"
       />
-      <Button
-        onClick={onSearch}
-        disabled={isLoading || !input.trim()}
-        className="gap-2"
-      >
-        {isLoading
-          ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                {i18n.t("lightnovel.search.parsing")}
-              </>
-            )
-          : (
-              <>
-                <Search className="size-4" />
-                {i18n.t("lightnovel.search.parse")}
-              </>
-            )}
-      </Button>
-    </div>
+      <InputGroupAddon align="inline-end">
+        <InputGroupButton
+          onClick={onSearch}
+          disabled={isLoading || !input.trim()}
+        >
+          {isLoading
+            ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  {browser.i18n.getMessage("lightnovel_search_parsing")}
+                </>
+              )
+            : (
+                <>
+                  <Search />
+                  {browser.i18n.getMessage("lightnovel_search_parse")}
+                </>
+              )}
+        </InputGroupButton>
+      </InputGroupAddon>
+    </InputGroup>
   )
 }
 
@@ -150,10 +156,10 @@ function UsageExample({ source }: { source: "bili" | "wenku" }) {
 
   return (
     <Alert>
-      <AlertCircle className="size-4" />
-      <AlertTitle>{i18n.t("lightnovel.example.title")}</AlertTitle>
+      <AlertCircle />
+      <AlertTitle>{browser.i18n.getMessage("lightnovel_example_title")}</AlertTitle>
       <AlertDescription className="flex items-center gap-2">
-        <code className="bg-muted px-2 py-1 rounded text-xs font-mono">
+        <code className="rounded bg-muted px-2 py-1 font-mono text-xs">
           {example}
         </code>
         <Button
@@ -163,8 +169,8 @@ function UsageExample({ source }: { source: "bili" | "wenku" }) {
           className="size-6 p-0"
         >
           {copied
-            ? <Check className="size-3" />
-            : <Copy className="size-3" />}
+            ? <Check />
+            : <Copy />}
         </Button>
       </AlertDescription>
     </Alert>
@@ -187,9 +193,9 @@ function NovelInfoCard({
   )
 
   const stats = [
-    novelInfo.status && `${i18n.t("lightnovel.info.status")}${novelInfo.status}`,
-    `${i18n.t("lightnovel.info.volumes")}${novelInfo.volumes.length}`,
-    `${i18n.t("lightnovel.info.chapters")}${totalChapters}`,
+    novelInfo.status && `${browser.i18n.getMessage("lightnovel_info_status")}${novelInfo.status}`,
+    `${browser.i18n.getMessage("lightnovel_info_volumes")}${novelInfo.volumes.length}`,
+    `${browser.i18n.getMessage("lightnovel_info_chapters")}${totalChapters}`,
   ].filter(Boolean) as string[]
 
   return (
@@ -218,7 +224,7 @@ function NovelInfoCard({
               )
             : (
                 <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                  {i18n.t("search.card.noCover")}
+                  {browser.i18n.getMessage("search_card_noCover")}
                 </div>
               )}
         </div>
@@ -230,7 +236,7 @@ function NovelInfoCard({
             <Badge variant="secondary">{novelInfo.source.toUpperCase()}</Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            {i18n.t("lightnovel.info.author")}
+            {browser.i18n.getMessage("lightnovel_info_author")}
             {novelInfo.author}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -276,18 +282,18 @@ function VolumeSelector({
 }) {
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between gap-3 p-4 pb-3">
-        <CardTitle className="text-base">{i18n.t("lightnovel.volume.title")}</CardTitle>
+      <CardHeader className="flex-row items-center justify-between gap-3">
+        <CardTitle className="text-base">{browser.i18n.getMessage("lightnovel_volume_title")}</CardTitle>
         <div className="flex shrink-0 gap-2">
           <Button size="sm" variant="outline" onClick={onSelectAll}>
-            {i18n.t("lightnovel.volume.selectAll")}
+            {browser.i18n.getMessage("lightnovel_volume_selectAll")}
           </Button>
           <Button size="sm" variant="outline" onClick={onClearSelection}>
-            {i18n.t("lightnovel.volume.clear")}
+            {browser.i18n.getMessage("lightnovel_volume_clear")}
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-4 pt-0">
+      <CardContent>
         <ScrollArea className="max-h-64">
           <div
             className={cn(
@@ -310,7 +316,7 @@ function VolumeSelector({
                 <Badge variant="secondary">
                   {volume.chapters.length}
                   {" "}
-                  {i18n.t("lightnovel.volume.chapterUnit")}
+                  {browser.i18n.getMessage("lightnovel_volume_chapterUnit")}
                 </Badge>
               </label>
             ))}
@@ -348,13 +354,13 @@ function ChapterRangeInput({
 
   return (
     <Card>
-      <CardHeader className="p-4 pb-3">
-        <CardTitle className="text-base">{i18n.t("lightnovel.range.title")}</CardTitle>
+      <CardHeader>
+        <CardTitle className="text-base">{browser.i18n.getMessage("lightnovel_range_title")}</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 p-4 pt-0">
+      <CardContent className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">{i18n.t("lightnovel.range.start")}</Label>
+            <Label className="text-sm font-medium">{browser.i18n.getMessage("lightnovel_range_start")}</Label>
             <span className="text-xs text-muted-foreground tabular-nums">{startChapter}</span>
           </div>
           <Slider
@@ -367,7 +373,7 @@ function ChapterRangeInput({
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">{i18n.t("lightnovel.range.end")}</Label>
+            <Label className="text-sm font-medium">{browser.i18n.getMessage("lightnovel_range_end")}</Label>
             <span className="text-xs text-muted-foreground tabular-nums">{endChapter}</span>
           </div>
           <Slider
@@ -405,55 +411,48 @@ function DownloadProgressBar({
 
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between gap-3 p-4 pb-3">
-        <CardTitle className="text-base">{i18n.t("lightnovel.download.title")}</CardTitle>
+      <CardHeader className="flex-row items-center justify-between gap-3">
+        <div>
+          <CardTitle className="text-base">{browser.i18n.getMessage("lightnovel_download_title")}</CardTitle>
+          <CardDescription>
+            {progress.current}
+            {" / "}
+            {progress.total}
+            {" ("}
+            {Math.round(percentage)}
+            %)
+          </CardDescription>
+        </div>
         <div className="flex gap-2">
           {isDownloading && (
             <>
               {isPaused
                 ? (
                     <Button size="sm" variant="outline" onClick={onResume} className="gap-2">
-                      <Play className="size-4" data-icon="inline-start" />
-                      {i18n.t("lightnovel.download.resume")}
+                      <Play data-icon="inline-start" />
+                      {browser.i18n.getMessage("lightnovel_download_resume")}
                     </Button>
                   )
                 : (
                     <Button size="sm" variant="outline" onClick={onPause} className="gap-2">
-                      <Pause className="size-4" data-icon="inline-start" />
-                      {i18n.t("lightnovel.download.pause")}
+                      <Pause data-icon="inline-start" />
+                      {browser.i18n.getMessage("lightnovel_download_pause")}
                     </Button>
                   )}
               <Button size="sm" variant="outline" onClick={onStop} className="gap-2">
-                <X className="size-4" data-icon="inline-start" />
-                {i18n.t("lightnovel.download.stop")}
+                <X data-icon="inline-start" />
+                {browser.i18n.getMessage("lightnovel_download_stop")}
               </Button>
             </>
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-2 p-4 pt-0">
-        <div className="flex items-center justify-between text-sm">
-          <span>
-            {progress.current}
-            {" "}
-            /
-            {progress.total}
-          </span>
-          <span>
-            {Math.round(percentage)}
-            %
-          </span>
-        </div>
-        <div className="w-full bg-muted rounded-full h-2">
-          <div
-            className="bg-primary h-2 rounded-full transition-all"
-            style={{ width: `${percentage}%` }}
-          />
-        </div>
+      <CardContent className="flex flex-col gap-2">
+        <Progress value={percentage} />
         {progress.currentChapter && (
           <p className="text-xs text-muted-foreground">
-            {i18n.t("lightnovel.download.current")}
+            {browser.i18n.getMessage("lightnovel_download_current")}
             {progress.currentChapter}
           </p>
         )}
@@ -507,7 +506,7 @@ export function LightNovelPage() {
 
   const handleSearch = async () => {
     if (!input.trim()) {
-      toast.error(i18n.t("lightnovel.toast.inputRequired"))
+      toast.error(browser.i18n.getMessage("lightnovel_toast_inputRequired"))
       return
     }
 
@@ -525,11 +524,11 @@ export function LightNovelPage() {
 
   const handleDownload = async () => {
     if (!novelInfo || selectedVolumes.size === 0) {
-      toast.error(i18n.t("lightnovel.toast.selectVolume"))
+      toast.error(browser.i18n.getMessage("lightnovel_toast_selectVolume"))
       return
     }
     if (!packer) {
-      toast.error(i18n.t("lightnovel.toast.parseFirst"))
+      toast.error(browser.i18n.getMessage("lightnovel_toast_parseFirst"))
       return
     }
 
@@ -542,7 +541,7 @@ export function LightNovelPage() {
       )
 
       if (totalChapters === 0) {
-        toast.error(i18n.t("lightnovel.toast.noChapters"))
+        toast.error(browser.i18n.getMessage("lightnovel_toast_noChapters"))
         return
       }
 
@@ -560,7 +559,7 @@ export function LightNovelPage() {
         },
       )
 
-      toast.success(i18n.t("lightnovel.toast.downloadComplete"))
+      toast.success(browser.i18n.getMessage("lightnovel_toast_downloadComplete"))
     }
     catch (error) {
       log.lightnovel.error("Download failed", error)
@@ -568,12 +567,12 @@ export function LightNovelPage() {
   }
 
   return (
-    <div className="p-6 flex flex-col gap-6">
+    <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="mb-2 text-3xl font-bold">{i18n.t("lightnovel.title")}</h1>
+          <h1 className="mb-2 text-3xl font-bold">{browser.i18n.getMessage("lightnovel_title")}</h1>
           <p className="text-muted-foreground">
-            {i18n.t("lightnovel.description")}
+            {browser.i18n.getMessage("lightnovel_description")}
           </p>
         </div>
         <Tabs
@@ -582,10 +581,10 @@ export function LightNovelPage() {
         >
           <TabsList>
             <TabsTrigger value="grid">
-              <Grid2X2 className="size-4" />
+              <Grid2X2 />
             </TabsTrigger>
             <TabsTrigger value="list">
-              <List className="size-4" />
+              <List />
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -633,15 +632,15 @@ export function LightNovelPage() {
 
           {/* 打包选项 */}
           <Card>
-            <CardHeader className="p-4 pb-3">
-              <CardTitle className="text-base">{i18n.t("lightnovel.options.title")}</CardTitle>
+            <CardHeader>
+              <CardTitle className="text-base">{browser.i18n.getMessage("lightnovel_options_title")}</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col gap-3 p-4 pt-0">
+            <CardContent className="flex flex-col gap-3">
               <div className="flex items-center justify-between gap-4 text-sm">
                 <div>
-                  <p className="font-medium">{i18n.t("lightnovel.options.combineVolume")}</p>
+                  <p className="font-medium">{browser.i18n.getMessage("lightnovel_options_combineVolume")}</p>
                   <p className="text-xs text-muted-foreground">
-                    {i18n.t("lightnovel.options.combineVolume.desc")}
+                    {browser.i18n.getMessage("lightnovel_options_combineVolume_desc")}
                   </p>
                 </div>
                 <Switch
@@ -650,11 +649,12 @@ export function LightNovelPage() {
                   disabled={selectedVolumes.size <= 1}
                 />
               </div>
+              <Separator />
               <div className="flex items-center justify-between gap-4 text-sm">
                 <div>
-                  <p className="font-medium">{i18n.t("lightnovel.options.chapterTitle")}</p>
+                  <p className="font-medium">{browser.i18n.getMessage("lightnovel_options_chapterTitle")}</p>
                   <p className="text-xs text-muted-foreground">
-                    {i18n.t("lightnovel.options.chapterTitle.desc")}
+                    {browser.i18n.getMessage("lightnovel_options_chapterTitle_desc")}
                   </p>
                 </div>
                 <Switch
@@ -681,20 +681,20 @@ export function LightNovelPage() {
           <Button
             onClick={handleDownload}
             disabled={isDownloading || selectedVolumes.size === 0}
-            className="w-full gap-2 h-10"
+            className="w-full gap-2"
             size="lg"
           >
             {isDownloading
               ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" />
-                    {i18n.t("lightnovel.download.downloading")}
+                    <Loader2 className="animate-spin" />
+                    {browser.i18n.getMessage("lightnovel_download_downloading")}
                   </>
                 )
               : (
                   <>
-                    <Download className="size-4" data-icon="inline-start" />
-                    {i18n.t("lightnovel.download.button")}
+                    <Download data-icon="inline-start" />
+                    {browser.i18n.getMessage("lightnovel_download_button")}
                   </>
                 )}
           </Button>

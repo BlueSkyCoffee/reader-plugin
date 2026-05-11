@@ -1,4 +1,3 @@
-import { i18n } from "#imports"
 import {
   AlertCircle,
   BookOpen,
@@ -10,7 +9,8 @@ import {
   ShieldCheck,
   Wrench,
 } from "lucide-react"
-import { PageLayout } from "@/components/layout/page-layout"
+import { browser } from "wxt/browser"
+import { PageLayout } from "@/components/app/page-layout"
 import {
   Accordion,
   AccordionContent,
@@ -19,13 +19,14 @@ import {
 } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 
 const SECTIONS = [
   {
     id: "overview",
-    title: i18n.t("help_section_overview_title"),
-    description: i18n.t("help_section_overview_desc"),
+    title: browser.i18n.getMessage("help_section_overview_title"),
+    description: browser.i18n.getMessage("help_section_overview_desc"),
     icon: BookOpen,
     items: [
       {
@@ -47,20 +48,20 @@ const SECTIONS = [
   },
   {
     id: "quickstart",
-    title: i18n.t("help_section_quickstart_title"),
-    description: i18n.t("help_section_quickstart_desc"),
+    title: browser.i18n.getMessage("help_section_quickstart_title"),
+    description: browser.i18n.getMessage("help_section_quickstart_desc"),
     icon: Wrench,
     steps: [
-      i18n.t("help_section_quickstart_step1"),
-      i18n.t("help_section_quickstart_step2"),
-      i18n.t("help_section_quickstart_step3"),
-      i18n.t("help_section_quickstart_step4"),
+      browser.i18n.getMessage("help_section_quickstart_step1"),
+      browser.i18n.getMessage("help_section_quickstart_step2"),
+      browser.i18n.getMessage("help_section_quickstart_step3"),
+      browser.i18n.getMessage("help_section_quickstart_step4"),
     ],
   },
   {
     id: "rules",
-    title: i18n.t("help_section_rules_title"),
-    description: i18n.t("help_section_rules_desc"),
+    title: browser.i18n.getMessage("help_section_rules_title"),
+    description: browser.i18n.getMessage("help_section_rules_desc"),
     icon: FileText,
     items: [
       {
@@ -82,8 +83,8 @@ const SECTIONS = [
   },
   {
     id: "lightnovel",
-    title: i18n.t("help_section_lightnovel_title"),
-    description: i18n.t("help_section_lightnovel_desc"),
+    title: browser.i18n.getMessage("help_section_lightnovel_title"),
+    description: browser.i18n.getMessage("help_section_lightnovel_desc"),
     icon: Download,
     items: [
       {
@@ -105,8 +106,8 @@ const SECTIONS = [
   },
   {
     id: "troubleshoot",
-    title: i18n.t("help_section_troubleshoot_title"),
-    description: i18n.t("help_section_troubleshoot_desc"),
+    title: browser.i18n.getMessage("help_section_troubleshoot_title"),
+    description: browser.i18n.getMessage("help_section_troubleshoot_desc"),
     icon: AlertCircle,
     items: [
       {
@@ -130,18 +131,18 @@ const SECTIONS = [
 
 export function HelpPage() {
   return (
-    <PageLayout title={i18n.t("help_title")} description={i18n.t("help_description")}>
+    <PageLayout title={browser.i18n.getMessage("help_title")} description={browser.i18n.getMessage("help_description")}>
       <div className="flex flex-col gap-6">
         {/* Quick Nav */}
         <Card>
-          <CardHeader className="p-6 pb-4">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <HelpCircle className="size-5 text-primary" />
-              {i18n.t("help_toc_title")}
+              {browser.i18n.getMessage("help_toc_title")}
             </CardTitle>
-            <p className="text-sm text-muted-foreground">{i18n.t("help_toc_desc")}</p>
+            <CardDescription>{browser.i18n.getMessage("help_toc_desc")}</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2 p-6 pt-0">
+          <CardContent className="flex flex-wrap gap-2">
             {SECTIONS.map((section, index) => (
               <Button
                 key={section.id}
@@ -198,8 +199,8 @@ export function HelpPage() {
                             >
                               <item.icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                               <div>
-                                <p className="text-sm font-medium">{i18n.t(item.titleKey)}</p>
-                                <p className="text-xs text-muted-foreground">{i18n.t(item.descKey)}</p>
+                                <p className="text-sm font-medium">{browser.i18n.getMessage(item.titleKey)}</p>
+                                <p className="text-xs text-muted-foreground">{browser.i18n.getMessage(item.descKey)}</p>
                               </div>
                             </div>
                           ))}
@@ -215,19 +216,19 @@ export function HelpPage() {
 
         {/* Contact */}
         <Card>
-          <CardHeader className="p-6 pb-4">
-            <CardTitle className="text-base">{i18n.t("help_contact_title")}</CardTitle>
-            <p className="text-sm text-muted-foreground">{i18n.t("help_contact_desc")}</p>
+          <CardHeader>
+            <CardTitle className="text-base">{browser.i18n.getMessage("help_contact_title")}</CardTitle>
+            <CardDescription>{browser.i18n.getMessage("help_contact_desc")}</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-3 p-6 pt-0">
+          <CardContent className="flex flex-wrap gap-3">
             <Button
               variant="outline"
               size="sm"
               className="gap-2"
               onClick={() => window.open("https://github.com", "_blank", "noopener,noreferrer")}
             >
-              <ExternalLink className="size-4" data-icon="inline-start" />
-              {i18n.t("popup_more_project")}
+              <ExternalLink data-icon="inline-start" />
+              {browser.i18n.getMessage("popup_more_project")}
             </Button>
             <Button
               variant="outline"
@@ -235,14 +236,16 @@ export function HelpPage() {
               className="gap-2"
               onClick={() => window.open("mailto:support@example.com", "_blank")}
             >
-              <Mail className="size-4" data-icon="inline-start" />
-              {i18n.t("help_contact_email")}
+              <Mail data-icon="inline-start" />
+              {browser.i18n.getMessage("help_contact_email")}
             </Button>
           </CardContent>
         </Card>
 
+        <Separator />
+
         <p className="text-center text-xs text-muted-foreground">
-          {i18n.t("help_contact_hint")}
+          {browser.i18n.getMessage("help_contact_hint")}
         </p>
       </div>
     </PageLayout>

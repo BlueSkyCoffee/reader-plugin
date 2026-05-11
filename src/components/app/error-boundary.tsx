@@ -1,4 +1,4 @@
-import { i18n } from "#imports"
+import { browser } from "wxt/browser"
 import { AlertTriangle, RefreshCcw } from "lucide-react"
 import { Component } from "react"
 import { Button } from "@/components/ui/button"
@@ -50,21 +50,21 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <div className="flex flex-col items-center justify-center h-full p-8">
           <AlertTriangle className="size-12 text-destructive mb-4" />
           <h2 className="text-lg font-semibold mb-2">
-            {i18n.t("error_boundary_title")}
+            {browser.i18n.getMessage("error_boundary_title")}
           </h2>
           <p className="text-sm text-muted-foreground mb-4 max-w-md text-center">
-            {i18n.t("error_boundary_description")}
+            {browser.i18n.getMessage("error_boundary_description")}
           </p>
           <div className="flex gap-2">
             <Button variant="outline" onClick={this.handleReset} className="gap-2">
               <RefreshCcw className="size-4" />
-              {i18n.t("error_boundary_retry")}
+              {browser.i18n.getMessage("error_boundary_retry")}
             </Button>
           </div>
           {this.state.error && (
             <details className="mt-4 text-xs text-muted-foreground max-w-lg">
               <summary className="cursor-pointer hover:text-foreground">
-                {i18n.t("error_boundary_details")}
+                {browser.i18n.getMessage("error_boundary_details")}
               </summary>
               <pre className="mt-2 p-2 bg-muted rounded overflow-auto whitespace-pre-wrap">
                 {this.state.error.message}

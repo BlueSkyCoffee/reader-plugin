@@ -1,6 +1,6 @@
 import { useAtom } from "jotai"
 import * as React from "react"
-import { ContentDisplay, ReaderBar, ReaderControls } from "@/features/reader"
+import { ContentDisplay, ReaderBar, ReaderControls } from "@/features/reader/components/reader-bar"
 import { readerSessionAtom, readerVisibleAtom } from "@/state/store"
 import { DEFAULT_USER_SETTINGS } from "@/types/config"
 import { useChapterFetcher } from "../hooks/use-chapter-fetcher"

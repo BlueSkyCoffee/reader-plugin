@@ -1,5 +1,6 @@
 import { BookOpen } from "lucide-react"
 import * as React from "react"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/utils"
 
 interface NovelCardCover {
@@ -55,14 +56,14 @@ function ListCard({
   className,
 }: Omit<NovelCardBaseProps, "layout" | "actionsOverlay">) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <Button
+      variant="ghost"
       className={cn(
-        "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-muted/50 cursor-pointer",
+        "w-full justify-start gap-2.5 rounded-lg px-2.5 py-2 h-auto",
         activeIndicator && "border-l-[3px] border-l-primary bg-primary/5",
         className,
       )}
+      onClick={onClick}
     >
       <div className="relative">
         <CoverImage cover={cover} size="list" />
@@ -81,7 +82,7 @@ function ListCard({
       <div className="shrink-0">
         {actions}
       </div>
-    </button>
+    </Button>
   )
 }
 

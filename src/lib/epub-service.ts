@@ -1,5 +1,5 @@
+import { browser } from "wxt/browser"
 import type { Book, Chapter } from "@/types/novel"
-import { i18n } from "#imports"
 import JSZip from "jszip"
 
 export class EpubService {
@@ -13,13 +13,13 @@ export class EpubService {
       contents = await zip.loadAsync(file)
     }
     catch {
-      throw new Error(i18n.t("epub_error_readFailed"))
+      throw new Error(browser.i18n.getMessage("epub_error_readFailed"))
     }
 
     // 1. 寻找 container.xml 然后定位到 OPF
     const containerItem = contents.file("META-INF/container.xml")
     if (!containerItem)
-      throw new Error(i18n.t("epub_error_containerNotFound"))
+      throw new Error(browser.i18n.getMessage("epub_error_containerNotFound"))
 
     const containerXml = await containerItem.async("text")
     const containerDoc = new DOMParser().parseFromString(containerXml, "text/xml")
@@ -27,11 +27,11 @@ export class EpubService {
     const opfPath = rootfileNode?.getAttribute("full-path")
 
     if (!opfPath)
-      throw new Error(i18n.t("epub_error_opfPathNotFound"))
+      throw new Error(browser.i18n.getMessage("epub_error_opfPathNotFound"))
 
     const opfItem = contents.file(opfPath)
     if (!opfItem)
-      throw new Error(i18n.t("epub_error_opfNotFound", [opfPath]))
+      throw new Error(browser.i18n.getMessage("epub_error_opfNotFound", [opfPath]))
 
     const opfXml = await opfItem.async("text")
     const opfDoc = new DOMParser().parseFromString(opfXml, "text/xml")
@@ -42,7 +42,7 @@ export class EpubService {
     const idNode = opfDoc.querySelector("identifier")
 
     const title = titleNode?.textContent?.trim() || file.name.replace(".epub", "")
-    const author = authorNode?.textContent?.trim() || i18n.t("common_unknown")
+    const author = authorNode?.textContent?.trim() || browser.i18n.getMessage("common_unknown")
     const baseId
       = idNode?.textContent?.trim()
         || `local_${Math.random().toString(36).substring(2, 9)}`
@@ -104,7 +104,7 @@ export class EpubService {
       const htmlText = await chapterFile.async("text")
       const htmlDoc = new DOMParser().parseFromString(htmlText, "text/html")
 
-      const chapterTitle = htmlDoc.querySelector("title")?.textContent?.trim() || i18n.t("epub_default_chapterTitle", [chapterOrder])
+      const chapterTitle = htmlDoc.querySelector("title")?.textContent?.trim() || browser.i18n.getMessage("epub_default_chapterTitle", [chapterOrder])
       const bodyNode = htmlDoc.querySelector("body")
 
       chapters.push({

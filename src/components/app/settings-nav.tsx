@@ -3,8 +3,8 @@
  * 显示侧边栏导航菜单
  */
 
+import { browser } from "wxt/browser"
 import type { NavigationItem } from "@/types/navigation"
-import { i18n } from "#imports"
 import { Icon } from "@iconify/react"
 import { Link } from "react-router"
 import {
@@ -68,8 +68,8 @@ export function SettingsNav() {
 
   return (
     <>
-      <NavigationGroup label={i18n.t("sidebar.group.reading")} items={reading} />
-      <NavigationGroup label={i18n.t("sidebar.group.settings")} items={settings} />
+      <NavigationGroup label={browser.i18n.getMessage("sidebar_group_reading")} items={reading} />
+      <NavigationGroup label={browser.i18n.getMessage("sidebar_group_settings")} items={settings} />
     </>
   )
 }

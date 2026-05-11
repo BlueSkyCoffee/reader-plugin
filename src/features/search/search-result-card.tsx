@@ -1,5 +1,5 @@
+import { browser } from "wxt/browser"
 import type { SearchResult } from "@/types/novel"
-import { i18n } from "#imports"
 import { BookOpen, Download, ExternalLink, Loader2 } from "lucide-react"
 import * as React from "react"
 import { NovelCardBase } from "@/components/app/novel-card-base"
@@ -62,7 +62,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
   const listMeta = (
     <div className="flex items-center gap-1.5">
       <span className="text-[11px] text-muted-foreground truncate">
-        {result.author || i18n.t("common_anonymous")}
+        {result.author || browser.i18n.getMessage("common_anonymous")}
       </span>
       {result.latestChapter && (
         <span className="text-[10px] text-muted-foreground/60 truncate shrink-0 max-w-32" title={result.latestChapter}>
@@ -90,7 +90,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
               : <BookOpen />}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>{i18n.t("search_actions_addToShelf")}</TooltipContent>
+        <TooltipContent>{browser.i18n.getMessage("search_actions_addToShelf")}</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -120,7 +120,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
         {result.bookName}
       </h3>
       <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
-        {result.author || i18n.t("common_anonymous")}
+        {result.author || browser.i18n.getMessage("common_anonymous")}
       </p>
     </div>
   )
@@ -131,7 +131,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
     <div className="flex flex-col gap-1.5">
       {result.latestChapter && (
         <p className="line-clamp-1 text-[11px] text-muted-foreground" title={result.latestChapter}>
-          <span className="text-muted-foreground/70">{i18n.t("search_result_latest")}</span>
+          <span className="text-muted-foreground/70">{browser.i18n.getMessage("search_result_latest")}</span>
           {result.latestChapter}
         </p>
       )}
@@ -168,7 +168,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
         {isLoading
           ? <Loader2 className="size-4 animate-spin" data-icon="inline-start" />
           : <BookOpen data-icon="inline-start" />}
-        {i18n.t("search_actions_addToShelf")}
+        {browser.i18n.getMessage("search_actions_addToShelf")}
       </Button>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -196,7 +196,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
             </a>
           </Button>
         </TooltipTrigger>
-        <TooltipContent>{i18n.t("search_actions_sourceSite")}</TooltipContent>
+        <TooltipContent>{browser.i18n.getMessage("search_actions_sourceSite")}</TooltipContent>
       </Tooltip>
     </div>
   )

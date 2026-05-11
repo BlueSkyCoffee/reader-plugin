@@ -1,5 +1,5 @@
+import { browser } from "wxt/browser"
 import type { UserSettings } from "@/types/config"
-import { i18n } from "#imports"
 import { useAtom } from "jotai"
 import { Ban, Globe, Plus, Trash2 } from "lucide-react"
 import * as React from "react"
@@ -36,11 +36,11 @@ export function ExcludedSitesSettings() {
   const handleAdd = () => {
     const domain = normalizeDomain(inputValue)
     if (!isValidDomain(domain)) {
-      toast.error(i18n.t("settings_general_excludedSites_toast_invalid"))
+      toast.error(browser.i18n.getMessage("settings_general_excludedSites_toast_invalid"))
       return
     }
     if (excludedSites.includes(domain)) {
-      toast.error(i18n.t("settings_general_excludedSites_toast_duplicate"))
+      toast.error(browser.i18n.getMessage("settings_general_excludedSites_toast_duplicate"))
       return
     }
     setSettings((prev: UserSettings) => ({
@@ -48,7 +48,7 @@ export function ExcludedSitesSettings() {
       excludedSites: [...(prev.excludedSites ?? []), domain],
     }))
     setInputValue("")
-    toast.success(i18n.t("settings_general_excludedSites_toast_added"))
+    toast.success(browser.i18n.getMessage("settings_general_excludedSites_toast_added"))
   }
 
   const handleRemove = (domain: string) => {
@@ -56,7 +56,7 @@ export function ExcludedSitesSettings() {
       ...prev,
       excludedSites: (prev.excludedSites ?? []).filter((site: string) => site !== domain),
     }))
-    toast.success(i18n.t("settings_general_excludedSites_toast_removed"))
+    toast.success(browser.i18n.getMessage("settings_general_excludedSites_toast_removed"))
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -73,7 +73,7 @@ export function ExcludedSitesSettings() {
           value={inputValue}
           onChange={e => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={i18n.t("settings_general_excludedSites_addPlaceholder")}
+          placeholder={browser.i18n.getMessage("settings_general_excludedSites_addPlaceholder")}
           className="h-9"
         />
         <Button
@@ -84,7 +84,7 @@ export function ExcludedSitesSettings() {
           disabled={!inputValue.trim()}
         >
           <Plus className="size-4" data-icon="inline-start" />
-          {i18n.t("settings_general_excludedSites_addButton")}
+          {browser.i18n.getMessage("settings_general_excludedSites_addButton")}
         </Button>
       </div>
 
@@ -92,7 +92,7 @@ export function ExcludedSitesSettings() {
         ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
               <Ban className="size-4" />
-              {i18n.t("settings_general_excludedSites_empty")}
+              {browser.i18n.getMessage("settings_general_excludedSites_empty")}
             </div>
           )
         : (
@@ -113,7 +113,7 @@ export function ExcludedSitesSettings() {
                       onClick={() => handleRemove(domain)}
                     >
                       <Trash2 className="size-3" data-icon="inline-start" />
-                      {i18n.t("settings_general_excludedSites_removeButton")}
+                      {browser.i18n.getMessage("settings_general_excludedSites_removeButton")}
                     </Button>
                   </div>
                 </Card>

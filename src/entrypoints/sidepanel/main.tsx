@@ -2,9 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Provider as JotaiProvider } from "jotai"
 import * as React from "react"
 import ReactDOM from "react-dom/client"
-import { HashRouter } from "react-router"
-import { OptionsLayout } from "@/components/layout/options-layout"
 import { ThemeProvider } from "@/components/providers/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
 import App from "./app.tsx"
 import "@/assets/styles/theme.css"
 
@@ -17,13 +16,10 @@ ReactDOM.createRoot(root).render(
   <React.StrictMode>
     <JotaiProvider>
       <QueryClientProvider client={queryClient}>
-        <HashRouter>
-          <ThemeProvider>
-            <OptionsLayout>
-              <App />
-            </OptionsLayout>
-          </ThemeProvider>
-        </HashRouter>
+        <ThemeProvider>
+          <App />
+          <Toaster />
+        </ThemeProvider>
       </QueryClientProvider>
     </JotaiProvider>
   </React.StrictMode>,

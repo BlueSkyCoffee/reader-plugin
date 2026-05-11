@@ -1,7 +1,9 @@
+import { browser } from "wxt/browser"
 import type { Chapter } from "@/types/novel"
-import { i18n } from "#imports"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { cn } from "@/utils"
 
 interface ChapterListProps {
   chapters: Chapter[]
@@ -21,7 +23,7 @@ export function ChapterList({
   if (chapters.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
-        <p className="text-sm">{i18n.t("reader_list_noMatch")}</p>
+        <p className="text-sm">{browser.i18n.getMessage("reader_list_noMatch")}</p>
       </div>
     )
   }
@@ -30,14 +32,14 @@ export function ChapterList({
     <ScrollArea className="h-full">
       <div className="flex flex-col gap-1 p-4">
         {chapters.map((chapter, index) => (
-          <button
+          <Button
             key={chapter.url}
+            variant="ghost"
+            className={cn(
+              "w-full justify-start rounded-md px-3 py-2.5 h-auto text-sm",
+              index === currentIndex && "bg-primary text-primary-foreground shadow-sm",
+            )}
             onClick={() => onSelect(index)}
-            className={`w-full text-left px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
-              index === currentIndex
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "hover:bg-muted text-foreground"
-            }`}
           >
             <div className="flex items-center justify-between gap-2">
               <span className="line-clamp-2 flex-1 text-xs leading-relaxed">
@@ -45,11 +47,11 @@ export function ChapterList({
               </span>
               {index === currentIndex && (
                 <Badge variant="secondary" className="ml-2 shrink-0">
-                  {i18n.t("reader_list_reading")}
+                  {browser.i18n.getMessage("reader_list_reading")}
                 </Badge>
               )}
             </div>
-          </button>
+          </Button>
         ))}
       </div>
     </ScrollArea>

@@ -1,4 +1,4 @@
-import { i18n } from "#imports"
+import { browser } from "wxt/browser"
 import { Keyboard, RotateCcw } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -53,7 +53,7 @@ export function ShortcutsSettings() {
       return
 
     if (!isValidKeyCombo(recordingKeys)) {
-      toast.error(i18n.t("settings.shortcuts.toast.invalid"))
+      toast.error(browser.i18n.getMessage("settings_shortcuts_toast_invalid"))
       return
     }
 
@@ -64,12 +64,12 @@ export function ShortcutsSettings() {
     )
 
     if (isDuplicate) {
-      toast.error(i18n.t("settings.shortcuts.toast.conflict"))
+      toast.error(browser.i18n.getMessage("settings_shortcuts_toast_conflict"))
       return
     }
 
     updateShortcut(editingId, recordingKeys)
-    toast.success(i18n.t("settings.shortcuts.toast.updated"))
+    toast.success(browser.i18n.getMessage("settings_shortcuts_toast_updated"))
     setEditingId(null)
     setIsRecording(false)
     setRecordingKeys([])
@@ -83,7 +83,7 @@ export function ShortcutsSettings() {
 
   const handleResetAll = () => {
     resetToDefaults()
-    toast.success(i18n.t("settings.shortcuts.toast.reset"))
+    toast.success(browser.i18n.getMessage("settings_shortcuts_toast_reset"))
   }
 
   const currentShortcut = editingId
@@ -94,9 +94,9 @@ export function ShortcutsSettings() {
     <div className="flex flex-col gap-4">
       <Alert>
         <Keyboard className="h-4 w-4" />
-        <AlertTitle>{i18n.t("settings.shortcuts.alertTitle")}</AlertTitle>
+        <AlertTitle>{browser.i18n.getMessage("settings_shortcuts_alertTitle")}</AlertTitle>
         <AlertDescription>
-          {i18n.t("settings.shortcuts.alertDesc")}
+          {browser.i18n.getMessage("settings_shortcuts_alertDesc")}
         </AlertDescription>
       </Alert>
 
@@ -123,7 +123,7 @@ export function ShortcutsSettings() {
                   variant="outline"
                   onClick={() => handleStartRecording(shortcut.id)}
                 >
-                  {i18n.t("settings.shortcuts.edit")}
+                  {browser.i18n.getMessage("settings_shortcuts_edit")}
                 </Button>
               </div>
             </SettingItem>
@@ -139,7 +139,7 @@ export function ShortcutsSettings() {
           className="gap-2"
         >
           <RotateCcw className="size-4" />
-          {i18n.t("settings.shortcuts.reset")}
+          {browser.i18n.getMessage("settings_shortcuts_reset")}
         </Button>
       </div>
 
@@ -147,25 +147,25 @@ export function ShortcutsSettings() {
       <Dialog open={isRecording} onOpenChange={setIsRecording}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>{i18n.t("settings.shortcuts.editDialogTitle")}</DialogTitle>
+            <DialogTitle>{browser.i18n.getMessage("settings_shortcuts_editDialogTitle")}</DialogTitle>
             <DialogDescription>
               {currentShortcut
-                ? i18n.t("settings.shortcuts.editDialogDesc", [SHORTCUT_DEFINITIONS[currentShortcut.id as keyof typeof SHORTCUT_DEFINITIONS]?.name()])
-                : i18n.t("settings.shortcuts.editDialogTitle")}
+                ? browser.i18n.getMessage("settings_shortcuts_editDialogDesc", [SHORTCUT_DEFINITIONS[currentShortcut.id as keyof typeof SHORTCUT_DEFINITIONS]?.name()])
+                : browser.i18n.getMessage("settings_shortcuts_editDialogTitle")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col gap-4 py-4">
             <div>
               <label className="text-sm font-medium mb-2 block">
-                {i18n.t("settings.shortcuts.editDialogDesc")}
+                {browser.i18n.getMessage("settings_shortcuts_editDialogDesc")}
               </label>
               <Input
                 autoFocus
                 onKeyDown={handleKeyDown}
                 value={formatKeyCombo(recordingKeys)}
                 readOnly
-                placeholder={i18n.t("settings.shortcuts.editDialogPlaceholder")}
+                placeholder={browser.i18n.getMessage("settings_shortcuts_editDialogPlaceholder")}
                 className="text-center font-mono text-lg h-12"
               />
             </div>
@@ -182,20 +182,20 @@ export function ShortcutsSettings() {
 
             <Alert>
               <AlertDescription className="text-xs">
-                {i18n.t("settings.shortcuts.editDialogHint")}
+                {browser.i18n.getMessage("settings_shortcuts_editDialogHint")}
               </AlertDescription>
             </Alert>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={handleCancel}>
-              {i18n.t("settings.shortcuts.editDialogCancel")}
+              {browser.i18n.getMessage("settings_shortcuts_editDialogCancel")}
             </Button>
             <Button
               onClick={handleSaveShortcut}
               disabled={recordingKeys.length === 0}
             >
-              {i18n.t("settings.shortcuts.editDialogSave")}
+              {browser.i18n.getMessage("settings_shortcuts_editDialogSave")}
             </Button>
           </DialogFooter>
         </DialogContent>

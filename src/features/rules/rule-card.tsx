@@ -1,5 +1,5 @@
+import { browser } from "wxt/browser"
 import type { ScraperRule } from "@/types/novel"
-import { i18n } from "#imports"
 import { Check, ChevronDown, ChevronUp, Copy, ExternalLink, Globe, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -49,7 +49,7 @@ export function RuleCard({
               </span>
               {isDefault && (
                 <Badge variant="secondary" className="text-[10px] shrink-0">
-                  {i18n.t("rules.card.builtin")}
+                  {browser.i18n.getMessage("rules_card_builtin")}
                 </Badge>
               )}
             </div>
@@ -90,17 +90,17 @@ export function RuleCard({
               <div className="flex gap-1.5 flex-wrap">
                 {rule.search && (
                   <Badge variant="outline" className="text-[10px]">
-                    {i18n.t("rules.card.search")}
+                    {browser.i18n.getMessage("rules_card_search")}
                   </Badge>
                 )}
                 {rule.toc && (
                   <Badge variant="outline" className="text-[10px]">
-                    {i18n.t("rules.card.toc")}
+                    {browser.i18n.getMessage("rules_card_toc")}
                   </Badge>
                 )}
                 {rule.chapter && (
                   <Badge variant="outline" className="text-[10px]">
-                    {i18n.t("rules.card.content")}
+                    {browser.i18n.getMessage("rules_card_content")}
                   </Badge>
                 )}
               </div>
@@ -108,14 +108,15 @@ export function RuleCard({
               {/* URL */}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground w-10 shrink-0">URL:</span>
-                <button
-                  type="button"
-                  className="flex-1 min-w-0 text-xs text-foreground/80 hover:text-primary truncate font-mono bg-muted/50 px-2 py-1 rounded text-left"
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 min-w-0 h-7 text-xs font-mono justify-start truncate"
                   onClick={() => onOpenUrl(rule.url)}
                   title={rule.url}
                 >
                   {rule.url}
-                </button>
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -129,17 +130,18 @@ export function RuleCard({
               {/* ID */}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground w-10 shrink-0">ID:</span>
-                <button
-                  type="button"
-                  className="flex-1 min-w-0 text-xs font-mono text-foreground/80 hover:text-primary truncate bg-muted/50 px-2 py-1 rounded flex items-center gap-1"
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 min-w-0 h-7 text-xs font-mono justify-start gap-1 truncate"
                   onClick={() => onCopyId(rule.id)}
-                  title={i18n.t("rules.card.copyId")}
+                  title={browser.i18n.getMessage("rules_card_copyId")}
                 >
                   {copiedId === rule.id
                     ? (
                         <>
                           <Check className="size-3 text-primary shrink-0" />
-                          <span className="text-primary">{i18n.t("rules.card.copied")}</span>
+                          <span className="text-primary">{browser.i18n.getMessage("rules_card_copied")}</span>
                         </>
                       )
                     : (
@@ -148,13 +150,13 @@ export function RuleCard({
                           <span className="truncate">{rule.id}</span>
                         </>
                       )}
-                </button>
+                </Button>
               </div>
 
               {/* 搜索配置 */}
               {rule.search && (
                 <div className="flex flex-col gap-1">
-                  <span className="text-xs font-medium text-muted-foreground">{i18n.t("rules.create.section.search")}</span>
+                  <span className="text-xs font-medium text-muted-foreground">{browser.i18n.getMessage("rules_create_section_search")}</span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1 text-xs">
                     <div className="flex items-center gap-1 min-w-0">
                       <span className="text-muted-foreground shrink-0">URL:</span>
@@ -183,7 +185,7 @@ export function RuleCard({
               {/* 目录配置 */}
               {rule.toc && (
                 <div className="flex flex-col gap-1">
-                  <span className="text-xs font-medium text-muted-foreground">{i18n.t("rules.card.toc")}</span>
+                  <span className="text-xs font-medium text-muted-foreground">{browser.i18n.getMessage("rules_card_toc")}</span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1 text-xs">
                     {rule.toc.item && (
                       <div className="flex items-center gap-1 min-w-0">
@@ -204,7 +206,7 @@ export function RuleCard({
               {/* 章节配置 */}
               {rule.chapter && (
                 <div className="flex flex-col gap-1">
-                  <span className="text-xs font-medium text-muted-foreground">{i18n.t("rules.card.content")}</span>
+                  <span className="text-xs font-medium text-muted-foreground">{browser.i18n.getMessage("rules_card_content")}</span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1 text-xs">
                     {rule.chapter.content && (
                       <div className="flex items-center gap-1 min-w-0">
@@ -267,7 +269,7 @@ export function RuleCard({
                       onClick={() => onDelete(rule.id, rule.name)}
                     >
                       <Trash2 className="size-3" />
-                      {i18n.t("rules.actions.delete")}
+                      {browser.i18n.getMessage("rules_actions_delete")}
                     </Button>
                   </div>
                 </div>

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ParserProvider } from "@/features/lightnovel/services"
-import { useNovelFetcher } from "@/features/search"
+import { useNovelFetcher } from "@/features/search/use-novel-fetcher"
 import { requestMessage } from "@/lib/messaging"
 import { notifyAction } from "@/utils/browser-dialog"
 

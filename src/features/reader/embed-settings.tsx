@@ -1,4 +1,4 @@
-import { i18n } from "#imports"
+import { browser } from "wxt/browser"
 import { useAtom } from "jotai"
 import { BookOpenText, Eye, Move, Palette, Ruler } from "lucide-react"
 import * as React from "react"
@@ -71,13 +71,13 @@ function ReaderStylePreview({
 
   return (
     <div className="rounded-xl border border-dashed border-border bg-muted/30 p-4">
-      <div className="text-xs text-muted-foreground mb-2">{i18n.t("settings.readerEmbed.preview.label")}</div>
+      <div className="text-xs text-muted-foreground mb-2">{browser.i18n.getMessage("settings_readerEmbed_preview_label")}</div>
       <div className="relative flex justify-center">
         <div className="border shadow-sm flex flex-col" style={previewStyle}>
           {isFloating && (
             <div className="flex items-center justify-between border-b px-3 py-1 text-[10px] uppercase tracking-wide">
-              <span className="opacity-70">{i18n.t("settings.readerEmbed.preview.dragZone")}</span>
-              <span className="opacity-50">{i18n.t("settings.readerEmbed.preview.floatingMode")}</span>
+              <span className="opacity-70">{browser.i18n.getMessage("settings_readerEmbed_preview_dragZone")}</span>
+              <span className="opacity-50">{browser.i18n.getMessage("settings_readerEmbed_preview_floatingMode")}</span>
             </div>
           )}
           <div
@@ -85,12 +85,12 @@ function ReaderStylePreview({
             style={{ fontSize: `${fontSize}px`, lineHeight }}
           >
             <p className="line-clamp-3">
-              {i18n.t("settings.readerEmbed.preview.content")}
+              {browser.i18n.getMessage("settings_readerEmbed_preview_content")}
             </p>
           </div>
           <div className="border-t px-3 py-1 text-[10px] flex items-center justify-between">
             <span>1 / 80</span>
-            <span style={{ color: styleConfig.accent }}>{i18n.t("settings.readerEmbed.preview.nav")}</span>
+            <span style={{ color: styleConfig.accent }}>{browser.i18n.getMessage("settings_readerEmbed_preview_nav")}</span>
           </div>
         </div>
       </div>
@@ -141,13 +141,13 @@ export function ReaderEmbedSettings() {
 
   return (
     <ConfigCard
-      title={i18n.t("settings.readerEmbed.title")}
-      description={i18n.t("settings.readerEmbed.desc")}
+      title={browser.i18n.getMessage("settings_readerEmbed_title")}
+      description={browser.i18n.getMessage("settings_readerEmbed_desc")}
     >
       <SettingItem
         icon={<Eye className="size-4" />}
-        title={i18n.t("settings.readerEmbed.autoShow.title")}
-        description={i18n.t("settings.readerEmbed.autoShow.desc")}
+        title={browser.i18n.getMessage("settings_readerEmbed_autoShow_title")}
+        description={browser.i18n.getMessage("settings_readerEmbed_autoShow_desc")}
       >
         <Switch
           checked={settings.autoShowReader ?? false}
@@ -157,8 +157,8 @@ export function ReaderEmbedSettings() {
 
       <SettingItem
         icon={<Move className="size-4" />}
-        title={i18n.t("settings.readerEmbed.position.title")}
-        description={i18n.t("settings.readerEmbed.position.desc")}
+        title={browser.i18n.getMessage("settings_readerEmbed_position_title")}
+        description={browser.i18n.getMessage("settings_readerEmbed_position_desc")}
       >
         <Tabs
           value={settings.position ?? DEFAULT_USER_SETTINGS.position}
@@ -166,21 +166,21 @@ export function ReaderEmbedSettings() {
           className="w-[260px]"
         >
           <TabsList className="w-full grid grid-cols-3">
-            <TabsTrigger value="top">{i18n.t("settings.readerEmbed.position.top")}</TabsTrigger>
-            <TabsTrigger value="bottom">{i18n.t("settings.readerEmbed.position.bottom")}</TabsTrigger>
-            <TabsTrigger value="floating">{i18n.t("settings.readerEmbed.position.floating")}</TabsTrigger>
+            <TabsTrigger value="top">{browser.i18n.getMessage("settings_readerEmbed_position_top")}</TabsTrigger>
+            <TabsTrigger value="bottom">{browser.i18n.getMessage("settings_readerEmbed_position_bottom")}</TabsTrigger>
+            <TabsTrigger value="floating">{browser.i18n.getMessage("settings_readerEmbed_position_floating")}</TabsTrigger>
           </TabsList>
         </Tabs>
       </SettingItem>
 
       <SettingItem
         icon={<Palette className="size-4" />}
-        title={i18n.t("settings.readerEmbed.colors.title")}
-        description={i18n.t("settings.readerEmbed.colors.desc")}
+        title={browser.i18n.getMessage("settings_readerEmbed_colors_title")}
+        description={browser.i18n.getMessage("settings_readerEmbed_colors_desc")}
       >
         <Select value={currentPreset ?? ""} onValueChange={handleThemeChange}>
           <SelectTrigger className="w-[260px]">
-            <SelectValue placeholder={i18n.t("settings.readerEmbed.colors.placeholder")} />
+            <SelectValue placeholder={browser.i18n.getMessage("settings_readerEmbed_colors_placeholder")} />
           </SelectTrigger>
           <SelectContent>
             {READER_THEME_PRESETS.map(preset => (
@@ -201,13 +201,13 @@ export function ReaderEmbedSettings() {
 
       <SettingItem
         icon={<Palette className="size-4" />}
-        title={i18n.t("settings.readerEmbed.styleAdjust.title")}
-        description={i18n.t("settings.readerEmbed.styleAdjust.desc")}
+        title={browser.i18n.getMessage("settings_readerEmbed_styleAdjust_title")}
+        description={browser.i18n.getMessage("settings_readerEmbed_styleAdjust_desc")}
       >
         <div className="flex flex-col gap-4 w-[260px]">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">{i18n.t("settings.readerEmbed.colors.opacity")}</Label>
+              <Label className="text-xs">{browser.i18n.getMessage("settings_readerEmbed_colors_opacity")}</Label>
               <span className="text-xs text-muted-foreground tabular-nums">{resolvedStyle.opacity}</span>
             </div>
             <Slider
@@ -220,7 +220,7 @@ export function ReaderEmbedSettings() {
           </div>
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">{i18n.t("settings.readerEmbed.colors.radius")}</Label>
+              <Label className="text-xs">{browser.i18n.getMessage("settings_readerEmbed_colors_radius")}</Label>
               <span className="text-xs text-muted-foreground tabular-nums">
                 {resolvedStyle.radius}
                 px
@@ -239,13 +239,13 @@ export function ReaderEmbedSettings() {
 
       <SettingItem
         icon={<Ruler className="size-4" />}
-        title={i18n.t("settings.readerEmbed.size.title")}
-        description={i18n.t("settings.readerEmbed.size.desc")}
+        title={browser.i18n.getMessage("settings_readerEmbed_size_title")}
+        description={browser.i18n.getMessage("settings_readerEmbed_size_desc")}
       >
         <div className="flex flex-col gap-4 w-[260px]">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">{i18n.t("settings.readerEmbed.size.barHeight")}</Label>
+              <Label className="text-xs">{browser.i18n.getMessage("settings_readerEmbed_size_barHeight")}</Label>
               <span className="text-xs text-muted-foreground tabular-nums">
                 {resolvedStyle.barHeight}
                 px
@@ -261,7 +261,7 @@ export function ReaderEmbedSettings() {
           </div>
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">{i18n.t("settings.readerEmbed.size.floatingWidth")}</Label>
+              <Label className="text-xs">{browser.i18n.getMessage("settings_readerEmbed_size_floatingWidth")}</Label>
               <span className="text-xs text-muted-foreground tabular-nums">
                 {resolvedStyle.floatingWidth}
                 px
@@ -277,7 +277,7 @@ export function ReaderEmbedSettings() {
           </div>
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">{i18n.t("settings.readerEmbed.size.floatingHeight")}</Label>
+              <Label className="text-xs">{browser.i18n.getMessage("settings_readerEmbed_size_floatingHeight")}</Label>
               <span className="text-xs text-muted-foreground tabular-nums">
                 {resolvedStyle.floatingHeight}
                 px
@@ -293,7 +293,7 @@ export function ReaderEmbedSettings() {
           </div>
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">{i18n.t("settings.readerEmbed.size.fontSize")}</Label>
+              <Label className="text-xs">{browser.i18n.getMessage("settings_readerEmbed_size_fontSize")}</Label>
               <span className="text-xs text-muted-foreground tabular-nums">
                 {fontSize}
                 px
@@ -309,7 +309,7 @@ export function ReaderEmbedSettings() {
           </div>
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">{i18n.t("settings.readerEmbed.size.lineHeight")}</Label>
+              <Label className="text-xs">{browser.i18n.getMessage("settings_readerEmbed_size_lineHeight")}</Label>
               <span className="text-xs text-muted-foreground tabular-nums">{lineHeight}</span>
             </div>
             <Slider
@@ -325,8 +325,8 @@ export function ReaderEmbedSettings() {
 
       <SettingItem
         icon={<BookOpenText className="size-4" />}
-        title={i18n.t("settings.readerEmbed.preview.title")}
-        description={i18n.t("settings.readerEmbed.preview.desc")}
+        title={browser.i18n.getMessage("settings_readerEmbed_preview_title")}
+        description={browser.i18n.getMessage("settings_readerEmbed_preview_desc")}
       >
         <ReaderStylePreview
           position={settings.position ?? DEFAULT_USER_SETTINGS.position}

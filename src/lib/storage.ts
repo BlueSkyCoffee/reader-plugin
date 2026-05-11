@@ -1,6 +1,5 @@
 import type { UserSettings } from "@/types/config"
 import type { Book, Chapter, DownloadRecord, ScraperRule } from "@/types/novel"
-import { i18n } from "#imports"
 import { browser } from "wxt/browser"
 import { STORAGE_KEYS } from "@/constants/storage"
 import { DEFAULT_USER_SETTINGS, userSettingsSchema } from "@/types/config"
@@ -119,7 +118,7 @@ export const StorageManager = {
   async getStorageInfo() {
     const books = await IndexedDBManager.getBooks()
     const totalChapters = books.reduce((sum, book) => sum + (book.totalChapters || 0), 0)
-    let estimatedSize = i18n.t("storage_unknown")
+    let estimatedSize = browser.i18n.getMessage("storage_unknown")
 
     try {
       if (navigator?.storage?.estimate) {

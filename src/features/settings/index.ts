@@ -1,5 +1,0 @@
-export { AboutPage } from "./about-page"
-export { ExcludedSitesSettings } from "./excluded-sites-settings"
-export { GeneralPage } from "./general-page"
-export { HelpPage } from "./help-page"
-export { ShortcutsSettings } from "./shortcuts-settings"

@@ -1,13 +1,13 @@
+import { browser } from "wxt/browser"
 import type { Book, Chapter, ScraperRule, SearchResult as ScraperSearchResult } from "@/types/novel"
 
-import { i18n } from "#imports"
 import { Grid2X2, Info, List, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
-import { EmptyState } from "@/components/app/empty-state"
 import { SearchBar } from "@/components/app/search-bar"
-import { PageLayout } from "@/components/layout/page-layout"
+import { PageLayout } from "@/components/app/page-layout"
 import { Button } from "@/components/ui/button"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DownloadManager } from "@/features/download/download-manager"
 import { BUILTIN_RULES, ScraperEngine } from "@/features/scraper/services"
@@ -55,7 +55,7 @@ export function SearchPage() {
 
   const handleSearch = async () => {
     if (!query.trim()) {
-      toast.error(i18n.t("search.toast.emptyQuery"))
+      toast.error(browser.i18n.getMessage("search_toast_emptyQuery"))
       return
     }
 
@@ -76,7 +76,7 @@ export function SearchPage() {
         const engine = new ScraperEngine(directRule)
         const { info, toc } = await engine.getBookInfo(trimmedQuery)
         if (!toc || toc.length === 0) {
-          toast.error(i18n.t("search.toast.tocFailedBlocked"))
+          toast.error(browser.i18n.getMessage("search_toast_tocFailedBlocked"))
           return
         }
 
@@ -85,7 +85,7 @@ export function SearchPage() {
             sourceId: directRule.id,
             url: trimmedQuery,
             bookName: info.bookName,
-            author: info.author || i18n.t("common.unknown"),
+            author: info.author || browser.i18n.getMessage("common_unknown"),
             latestChapter: info.latestChapter,
             lastUpdateTime: info.lastUpdateTime,
             category: info.category,
@@ -93,7 +93,7 @@ export function SearchPage() {
             wordCount: info.wordCount,
           },
         ])
-        toast.success(i18n.t("search.toast.parsedToc", [info.bookName, toc.length]))
+        toast.success(browser.i18n.getMessage("search_toast_parsedToc", [info.bookName, String(toc.length)]))
         return
       }
 
@@ -131,19 +131,19 @@ export function SearchPage() {
 
       if (allResults.length === 0) {
         if (failedSources.length > 0) {
-          toast.error(i18n.t("search.toast.searchFailed", [failedSources.join(", ")]))
+          toast.error(browser.i18n.getMessage("search_toast_searchFailed", [failedSources.join(", ")]))
         }
         else {
-          toast.info(i18n.t("search.toast.noResults"))
+          toast.info(browser.i18n.getMessage("search_toast_noResults"))
         }
       }
       else {
-        toast.success(i18n.t("search.toast.resultsFound", [allResults.length]))
+        toast.success(browser.i18n.getMessage("search_toast_resultsFound", [String(allResults.length)]))
       }
     }
     catch (error) {
       log.search.error("Search failed", error)
-      toast.error(i18n.t("search.toast.error"))
+      toast.error(browser.i18n.getMessage("search_toast_error"))
     }
     finally {
       setIsLoading(false)
@@ -157,18 +157,18 @@ export function SearchPage() {
         || BUILTIN_RULES.find(r => r.id === result.sourceId)
 
     if (!rule) {
-      toast.error(i18n.t("search.toast.ruleNotFound"))
+      toast.error(browser.i18n.getMessage("search_toast_ruleNotFound"))
       return
     }
 
-    toast.info(i18n.t("search.toast.fetchInfo", [result.bookName]))
+    toast.info(browser.i18n.getMessage("search_toast_fetchInfo", [result.bookName]))
 
     try {
       const engine = new ScraperEngine(rule)
       const { info, toc } = await engine.getBookInfo(result.url)
 
       if (!toc || !toc.length) {
-        toast.error(i18n.t("search.toast.tocFailedBlocked"))
+        toast.error(browser.i18n.getMessage("search_toast_tocFailedBlocked"))
         return
       }
 
@@ -179,7 +179,7 @@ export function SearchPage() {
           b => b.title === info.bookName && b.author === info.author,
         )
       ) {
-        toast.warning(i18n.t("search.toast.duplicateBook"))
+        toast.warning(browser.i18n.getMessage("search_toast_duplicateBook"))
         return
       }
 
@@ -209,12 +209,12 @@ export function SearchPage() {
       await StorageManager.saveBook(newBook, unifiedChapters)
       await StorageManager.switchBook(newBookId)
 
-      toast.success(i18n.t("search.toast.addedToShelf", [info.bookName]))
+      toast.success(browser.i18n.getMessage("search_toast_addedToShelf", [info.bookName]))
       void DownloadManager.getInstance().startDownload(newBook, result.sourceId)
     }
     catch (error) {
       log.search.error("Add to shelf failed", error)
-      toast.error(i18n.t("search.toast.addFailed"))
+      toast.error(browser.i18n.getMessage("search_toast_addFailed"))
     }
   }
 
@@ -225,19 +225,19 @@ export function SearchPage() {
         || BUILTIN_RULES.find(r => r.id === result.sourceId)
 
     if (!rule) {
-      toast.error(i18n.t("search.toast.ruleNotFound"))
+      toast.error(browser.i18n.getMessage("search_toast_ruleNotFound"))
       return
     }
 
     setDownloadingId(result.url)
-    toast.info(i18n.t("search.toast.prepareDownload", [result.bookName]))
+    toast.info(browser.i18n.getMessage("search_toast_prepareDownload", [result.bookName]))
 
     try {
       const engine = new ScraperEngine(rule)
       const { info, toc } = await engine.getBookInfo(result.url)
 
       if (!toc || !toc.length) {
-        toast.error(i18n.t("search.toast.tocFailed"))
+        toast.error(browser.i18n.getMessage("search_toast_tocFailed"))
         return
       }
 
@@ -281,14 +281,14 @@ export function SearchPage() {
           }
           else {
             toast.message(
-              i18n.t("search.toast.downloading", [task.downloadedChapters, task.totalChapters]),
+              browser.i18n.getMessage("search_toast_downloading", [String(task.downloadedChapters), String(task.totalChapters)]),
               { id: "direct-download" },
             )
           }
         })
       })
 
-      toast.success(i18n.t("search.toast.packEpub"), { id: "direct-download" })
+      toast.success(browser.i18n.getMessage("search_toast_packEpub"), { id: "direct-download" })
 
       const fullChapters = await StorageManager.getBookChapters(tempBookId)
       const generator = new EpubGenerator(book, fullChapters)
@@ -296,11 +296,11 @@ export function SearchPage() {
 
       await StorageManager.deleteBook(tempBookId)
 
-      toast.success(i18n.t("search.toast.exported", [info.bookName]))
+      toast.success(browser.i18n.getMessage("search_toast_exported", [info.bookName]))
     }
     catch (error) {
       log.search.error("Direct download failed", error)
-      toast.error(i18n.t("search.toast.downloadFailed"))
+      toast.error(browser.i18n.getMessage("search_toast_downloadFailed"))
     }
     finally {
       setDownloadingId(null)
@@ -308,12 +308,12 @@ export function SearchPage() {
   }
 
   return (
-    <PageLayout title={i18n.t("search.title")}>
+    <PageLayout title={browser.i18n.getMessage("search_title")} description={browser.i18n.getMessage("search_description")}>
       <div className="flex flex-col gap-6">
         <SearchBar
           value={query}
           onChange={setQuery}
-          placeholder={i18n.t("search.placeholder")}
+          placeholder={browser.i18n.getMessage("search_placeholder")}
           className="w-full"
           inputClassName="w-full pr-24 py-6 text-base bg-background"
           onSubmit={(event) => {
@@ -327,7 +327,7 @@ export function SearchPage() {
               size="sm"
               type="submit"
             >
-              {isLoading ? <Loader2 className="size-4 animate-spin" /> : i18n.t("search.action")}
+              {isLoading ? <Loader2 className="size-4 animate-spin" /> : browser.i18n.getMessage("search_action")}
             </Button>
           )}
         />
@@ -336,7 +336,7 @@ export function SearchPage() {
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-base font-semibold">
-                {i18n.t("search.results.title")}
+                {browser.i18n.getMessage("search_results_title")}
                 {" "}
                 <span className="text-muted-foreground">
                   (
@@ -348,7 +348,7 @@ export function SearchPage() {
                 <div className="flex items-center gap-2">
                   <Loader2 className="size-4 animate-spin" />
                   <span className="text-xs text-muted-foreground">
-                    {i18n.t("search.results.loading")}
+                    {browser.i18n.getMessage("search_results_loading")}
                   </span>
                 </div>
               )}
@@ -379,7 +379,7 @@ export function SearchPage() {
                     {results.map((result) => {
                       const sourceName
                         = BUILTIN_RULES.find(r => r.id === result.sourceId)?.name
-                          || i18n.t("search.source.custom")
+                          || browser.i18n.getMessage("search_source_custom")
                       return (
                         <SearchResultCard
                           key={`${result.sourceId}-${result.url}`}
@@ -396,11 +396,15 @@ export function SearchPage() {
                 )
               : (
                   !isLoading && (
-                    <EmptyState
-                      title={i18n.t("search.empty.title")}
-                      description={i18n.t("search.empty.description")}
-                      icon={<Info className="size-8 opacity-50" />}
-                    />
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                          <Info />
+                        </EmptyMedia>
+                        <EmptyTitle>{browser.i18n.getMessage("search_empty_title")}</EmptyTitle>
+                        <EmptyDescription>{browser.i18n.getMessage("search_empty_description")}</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
                   )
                 )}
           </div>

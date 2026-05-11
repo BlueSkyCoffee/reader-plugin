@@ -1,4 +1,3 @@
-import { i18n } from "#imports"
 import {
   BookOpen,
   Download,
@@ -11,10 +10,11 @@ import {
   Zap,
 } from "lucide-react"
 import { browser } from "wxt/browser"
-import { PageLayout } from "@/components/layout/page-layout"
+import { PageLayout } from "@/components/app/page-layout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 
 const MANIFEST_VERSION = browser?.runtime?.getManifest?.().version ?? "dev"
 
@@ -39,7 +39,7 @@ const TECH_STACK = [
 
 export function AboutPage() {
   return (
-    <PageLayout title={i18n.t("settings_about")} description={i18n.t("about_description")}>
+    <PageLayout title={browser.i18n.getMessage("settings_about")} description={browser.i18n.getMessage("about_description")}>
       <div className="flex flex-col gap-6">
         {/* Hero */}
         <Card>
@@ -56,14 +56,14 @@ export function AboutPage() {
                 </Badge>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
-                {i18n.t("about_app_desc")}
+                {browser.i18n.getMessage("about_app_desc")}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Badge variant="outline">
-                  {i18n.t("about_app_runtime")}
+                  {browser.i18n.getMessage("about_app_runtime")}
                   :
                   {" "}
-                  {i18n.t("about_app_runtimeValue")}
+                  {browser.i18n.getMessage("about_app_runtimeValue")}
                 </Badge>
               </div>
             </div>
@@ -72,11 +72,11 @@ export function AboutPage() {
 
         {/* Features */}
         <Card>
-          <CardHeader className="p-6 pb-4">
-            <CardTitle className="text-base">{i18n.t("about_scope_title")}</CardTitle>
-            <p className="text-sm text-muted-foreground">{i18n.t("about_scope_desc")}</p>
+          <CardHeader>
+            <CardTitle className="text-base">{browser.i18n.getMessage("about_scope_title")}</CardTitle>
+            <CardDescription>{browser.i18n.getMessage("about_scope_desc")}</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4 p-6 pt-0 sm:grid-cols-2 lg:grid-cols-3">
+          <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map(feature => (
               <div
                 key={feature.titleKey}
@@ -84,8 +84,8 @@ export function AboutPage() {
               >
                 <feature.icon className="mt-0.5 size-5 shrink-0 text-primary" />
                 <div>
-                  <p className="text-sm font-medium">{i18n.t(feature.titleKey)}</p>
-                  <p className="text-xs text-muted-foreground">{i18n.t(feature.descKey)}</p>
+                  <p className="text-sm font-medium">{browser.i18n.getMessage(feature.titleKey as any)}</p>
+                  <p className="text-xs text-muted-foreground">{browser.i18n.getMessage(feature.descKey)}</p>
                 </div>
               </div>
             ))}
@@ -94,10 +94,10 @@ export function AboutPage() {
 
         {/* Tech Stack */}
         <Card>
-          <CardHeader className="p-6 pb-4">
-            <CardTitle className="text-base">{i18n.t("about_app_title")}</CardTitle>
+          <CardHeader>
+            <CardTitle className="text-base">{browser.i18n.getMessage("about_app_title")}</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2 p-6 pt-0">
+          <CardContent className="flex flex-wrap gap-2">
             {TECH_STACK.map(tech => (
               <Badge key={tech} variant="secondary">{tech}</Badge>
             ))}
@@ -106,32 +106,30 @@ export function AboutPage() {
 
         {/* Privacy */}
         <Card>
-          <CardHeader className="p-6 pb-4">
-            <CardTitle className="text-base">{i18n.t("about_privacy_title")}</CardTitle>
-            <p className="text-sm text-muted-foreground">{i18n.t("about_privacy_desc")}</p>
+          <CardHeader>
+            <CardTitle className="text-base">{browser.i18n.getMessage("about_privacy_title")}</CardTitle>
+            <CardDescription>{browser.i18n.getMessage("about_privacy_desc")}</CardDescription>
           </CardHeader>
-          <CardContent className="p-6 pt-0">
-            <div className="grid gap-3">
-              <div className="flex gap-3 rounded-lg border p-3">
-                <ShieldCheck className="mt-0.5 size-5 shrink-0 text-green-600" />
-                <div>
-                  <p className="text-sm font-medium">{i18n.t("about_privacy_local_title")}</p>
-                  <p className="text-xs text-muted-foreground">{i18n.t("about_privacy_local_desc")}</p>
-                </div>
+          <CardContent className="flex flex-col gap-3">
+            <div className="flex gap-3 rounded-lg border p-3">
+              <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm font-medium">{browser.i18n.getMessage("about_privacy_local_title")}</p>
+                <p className="text-xs text-muted-foreground">{browser.i18n.getMessage("about_privacy_local_desc")}</p>
               </div>
-              <div className="flex gap-3 rounded-lg border p-3">
-                <Globe className="mt-0.5 size-5 shrink-0 text-blue-600" />
-                <div>
-                  <p className="text-sm font-medium">{i18n.t("about_privacy_network_title")}</p>
-                  <p className="text-xs text-muted-foreground">{i18n.t("about_privacy_network_desc")}</p>
-                </div>
+            </div>
+            <div className="flex gap-3 rounded-lg border p-3">
+              <Globe className="mt-0.5 size-5 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm font-medium">{browser.i18n.getMessage("about_privacy_network_title")}</p>
+                <p className="text-xs text-muted-foreground">{browser.i18n.getMessage("about_privacy_network_desc")}</p>
               </div>
-              <div className="flex gap-3 rounded-lg border p-3">
-                <Info className="mt-0.5 size-5 shrink-0 text-orange-600" />
-                <div>
-                  <p className="text-sm font-medium">{i18n.t("about_privacy_permissions_title")}</p>
-                  <p className="text-xs text-muted-foreground">{i18n.t("about_privacy_permissions_desc")}</p>
-                </div>
+            </div>
+            <div className="flex gap-3 rounded-lg border p-3">
+              <Info className="mt-0.5 size-5 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm font-medium">{browser.i18n.getMessage("about_privacy_permissions_title")}</p>
+                <p className="text-xs text-muted-foreground">{browser.i18n.getMessage("about_privacy_permissions_desc")}</p>
               </div>
             </div>
           </CardContent>
@@ -139,32 +137,30 @@ export function AboutPage() {
 
         {/* Guidelines */}
         <Card>
-          <CardHeader className="p-6 pb-4">
-            <CardTitle className="text-base">{i18n.t("about_guidelines_title")}</CardTitle>
-            <p className="text-sm text-muted-foreground">{i18n.t("about_guidelines_desc")}</p>
+          <CardHeader>
+            <CardTitle className="text-base">{browser.i18n.getMessage("about_guidelines_title")}</CardTitle>
+            <CardDescription>{browser.i18n.getMessage("about_guidelines_desc")}</CardDescription>
           </CardHeader>
-          <CardContent className="p-6 pt-0">
-            <div className="grid gap-3">
-              <div className="flex gap-3 rounded-lg border p-3">
-                <Zap className="mt-0.5 size-5 shrink-0 text-yellow-600" />
-                <div>
-                  <p className="text-sm font-medium">{i18n.t("about_guidelines_rate_title")}</p>
-                  <p className="text-xs text-muted-foreground">{i18n.t("about_guidelines_rate_desc")}</p>
-                </div>
+          <CardContent className="flex flex-col gap-3">
+            <div className="flex gap-3 rounded-lg border p-3">
+              <Zap className="mt-0.5 size-5 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm font-medium">{browser.i18n.getMessage("about_guidelines_rate_title")}</p>
+                <p className="text-xs text-muted-foreground">{browser.i18n.getMessage("about_guidelines_rate_desc")}</p>
               </div>
-              <div className="flex gap-3 rounded-lg border p-3">
-                <BookOpen className="mt-0.5 size-5 shrink-0 text-purple-600" />
-                <div>
-                  <p className="text-sm font-medium">{i18n.t("about_guidelines_rules_title")}</p>
-                  <p className="text-xs text-muted-foreground">{i18n.t("about_guidelines_rules_desc")}</p>
-                </div>
+            </div>
+            <div className="flex gap-3 rounded-lg border p-3">
+              <BookOpen className="mt-0.5 size-5 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm font-medium">{browser.i18n.getMessage("about_guidelines_rules_title")}</p>
+                <p className="text-xs text-muted-foreground">{browser.i18n.getMessage("about_guidelines_rules_desc")}</p>
               </div>
-              <div className="flex gap-3 rounded-lg border p-3">
-                <Mail className="mt-0.5 size-5 shrink-0 text-cyan-600" />
-                <div>
-                  <p className="text-sm font-medium">{i18n.t("about_guidelines_feedback_title")}</p>
-                  <p className="text-xs text-muted-foreground">{i18n.t("about_guidelines_feedback_desc")}</p>
-                </div>
+            </div>
+            <div className="flex gap-3 rounded-lg border p-3">
+              <Mail className="mt-0.5 size-5 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm font-medium">{browser.i18n.getMessage("about_guidelines_feedback_title")}</p>
+                <p className="text-xs text-muted-foreground">{browser.i18n.getMessage("about_guidelines_feedback_desc")}</p>
               </div>
             </div>
           </CardContent>
@@ -172,19 +168,19 @@ export function AboutPage() {
 
         {/* Support */}
         <Card>
-          <CardHeader className="p-6 pb-4">
-            <CardTitle className="text-base">{i18n.t("about_support_title")}</CardTitle>
-            <p className="text-sm text-muted-foreground">{i18n.t("about_support_desc")}</p>
+          <CardHeader>
+            <CardTitle className="text-base">{browser.i18n.getMessage("about_support_title")}</CardTitle>
+            <CardDescription>{browser.i18n.getMessage("about_support_desc")}</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-3 p-6 pt-0">
+          <CardContent className="flex flex-wrap gap-3">
             <Button
               variant="outline"
               size="sm"
               className="gap-2"
               onClick={() => window.open("mailto:support@example.com", "_blank")}
             >
-              <Mail className="size-4" data-icon="inline-start" />
-              {i18n.t("about_support_contact")}
+              <Mail data-icon="inline-start" />
+              {browser.i18n.getMessage("about_support_contact")}
             </Button>
             <Button
               variant="outline"
@@ -192,14 +188,16 @@ export function AboutPage() {
               className="gap-2"
               onClick={() => window.open("https://github.com", "_blank", "noopener,noreferrer")}
             >
-              <ExternalLink className="size-4" data-icon="inline-start" />
+              <ExternalLink data-icon="inline-start" />
               GitHub
             </Button>
           </CardContent>
         </Card>
 
+        <Separator />
+
         <p className="text-center text-xs text-muted-foreground">
-          {i18n.t("about_support_hint")}
+          {browser.i18n.getMessage("about_support_hint")}
         </p>
       </div>
     </PageLayout>

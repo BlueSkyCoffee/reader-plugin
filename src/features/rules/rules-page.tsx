@@ -1,17 +1,19 @@
 import type { ScraperRule } from "@/types/novel"
-import { i18n } from "#imports"
+
 import {
   AlertCircle,
+  Search,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { EmptyState } from "@/components/app/empty-state"
-import { SearchInput } from "@/components/app/search-input"
-import { StatCard, StatGrid } from "@/components/app/stat-card"
-import { PageLayout } from "@/components/layout/page-layout"
+import { browser } from "wxt/browser"
+import { PageLayout } from "@/components/app/page-layout"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Card, CardContent } from "@/components/ui/card"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Skeleton } from "@/components/ui/skeleton"
-import { CreateRuleDialog } from "@/features/rules"
+import { CreateRuleDialog } from "@/features/rules/create-rule-dialog"
 import { RuleCard } from "@/features/rules/rule-card"
 import { isDefaultRule } from "@/features/scraper/services/default-rules"
 import { StorageManager } from "@/lib/storage"
@@ -32,7 +34,7 @@ export function RulesPage() {
     }
     catch (error) {
       log.rules.error("Load rules failed", error)
-      toast.error(i18n.t("rules_error_loadFailed"))
+      toast.error(browser.i18n.getMessage("rules_error_loadFailed"))
     }
     finally {
       setLoading(false)
@@ -59,17 +61,17 @@ export function RulesPage() {
 
     await StorageManager.saveRules(mergedRules)
     setRules(mergedRules)
-    toast.success(i18n.t("rules_import_toast_success", [newRules.length]))
+    toast.success(browser.i18n.getMessage("rules_import_toast_success", [String(newRules.length)]))
   }
 
   const handleDelete = async (id: string, name: string) => {
-    if (!await confirmAction(i18n.t("rules_delete_confirm", [name])))
+    if (!await confirmAction(browser.i18n.getMessage("rules_delete_confirm", [name])))
       return
 
     const newRules = rules.filter(r => r.id !== id)
     await StorageManager.saveRules(newRules)
     setRules(newRules)
-    toast.success(i18n.t("rules_delete_success"))
+    toast.success(browser.i18n.getMessage("rules_delete_success"))
   }
 
   const handleRuleCreate = async (newRule: ScraperRule) => {
@@ -81,11 +83,11 @@ export function RulesPage() {
 
       if (existingIndex >= 0) {
         mergedRules[existingIndex] = newRule
-        toast.success(i18n.t("rules_update_success"))
+        toast.success(browser.i18n.getMessage("rules_update_success"))
       }
       else {
         mergedRules.push(newRule)
-        toast.success(i18n.t("rules_create_success"))
+        toast.success(browser.i18n.getMessage("rules_create_success"))
       }
 
       await StorageManager.saveRules(mergedRules)
@@ -93,7 +95,7 @@ export function RulesPage() {
     }
     catch (error) {
       log.rules.error("Create rule failed", error)
-      toast.error(i18n.t("rules_create_error"))
+      toast.error(browser.i18n.getMessage("rules_create_error"))
     }
   }
 
@@ -103,7 +105,7 @@ export function RulesPage() {
     )
     await StorageManager.saveRules(newRules)
     setRules(newRules)
-    toast.success(i18n.t(enabled ? "rules_toggle_enabled" : "rules_toggle_disabled", { name }))
+    toast.success(browser.i18n.getMessage(enabled ? "rules_toggle_enabled" : "rules_toggle_disabled", [name]))
   }
 
   const handleCopyId = (id: string) => {
@@ -122,24 +124,42 @@ export function RulesPage() {
   const customRulesCount = rules.length - defaultRulesCount
 
   return (
-    <PageLayout title={i18n.t("rules_title")}>
+    <PageLayout title={browser.i18n.getMessage("rules_title")} description={browser.i18n.getMessage("rules_description")}>
       <div className="flex flex-col gap-6">
         {/* Stats */}
-        <StatGrid className="grid-cols-1 md:grid-cols-3">
-          <StatCard label={i18n.t("rules_stats_total")} value={rules.length} />
-          <StatCard label={i18n.t("rules_stats_builtin")} value={defaultRulesCount} valueClassName="text-primary" />
-          <StatCard label={i18n.t("rules_stats_custom")} value={customRulesCount} valueClassName="text-success" />
-        </StatGrid>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground">{browser.i18n.getMessage("rules_stats_total")}</p>
+              <p className="mt-1 text-2xl font-bold">{rules.length}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground">{browser.i18n.getMessage("rules_stats_builtin")}</p>
+              <p className="mt-1 text-2xl font-bold text-primary">{defaultRulesCount}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground">{browser.i18n.getMessage("rules_stats_custom")}</p>
+              <p className="mt-1 text-2xl font-bold text-success">{customRulesCount}</p>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Actions */}
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <SearchInput
-            className="w-full md:max-w-64 md:flex-1"
-            inputClassName="h-10"
-            placeholder={i18n.t("rules_search_placeholder")}
-            value={searchTerm}
-            onChange={setSearchTerm}
-          />
+          <InputGroup className="w-full md:flex-1">
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              placeholder={browser.i18n.getMessage("rules_search_placeholder")}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </InputGroup>
           <CreateRuleDialog onRuleCreate={handleRuleCreate} onRulesImport={handleImport} />
         </div>
 
@@ -168,20 +188,25 @@ export function RulesPage() {
                 ))}
 
                 {filteredRules.length === 0 && (
-                  <EmptyState
-                    title={i18n.t("rules_empty_title")}
-                    description={i18n.t("rules_empty_description")}
-                  />
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon">
+                        <AlertCircle />
+                      </EmptyMedia>
+                      <EmptyTitle>{browser.i18n.getMessage("rules_empty_title")}</EmptyTitle>
+                      <EmptyDescription>{browser.i18n.getMessage("rules_empty_description")}</EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
                 )}
               </div>
             )}
 
         {/* Help */}
         <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{i18n.t("rules_hint_title")}</AlertTitle>
+          <AlertCircle />
+          <AlertTitle>{browser.i18n.getMessage("rules_hint_title")}</AlertTitle>
           <AlertDescription>
-            {i18n.t("rules_hint_description", [defaultRulesCount])}
+            {browser.i18n.getMessage("rules_hint_description", [String(defaultRulesCount)])}
           </AlertDescription>
         </Alert>
       </div>

@@ -1,5 +1,5 @@
+import { browser } from "wxt/browser"
 import type { Book, Chapter } from "@/types/novel"
-import { i18n } from "#imports"
 import { BookOpen, ChevronLeft, ChevronRight, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -28,21 +28,21 @@ export function ReaderPage({ bookId, onClose }: ReaderPageProps) {
       const targetBookId = bookId || (await StorageManager.getActiveBookId())
 
       if (!targetBookId) {
-        toast.error(i18n.t("reader_error_noBookSelected"))
+        toast.error(browser.i18n.getMessage("reader_error_noBookSelected"))
         return
       }
 
       const activeBook = await StorageManager.getBook(targetBookId)
 
       if (!activeBook) {
-        toast.error(i18n.t("reader_error_bookNotFound"))
+        toast.error(browser.i18n.getMessage("reader_error_bookNotFound"))
         return
       }
 
       const bookChapters = await StorageManager.getBookChapters(activeBook.id)
 
       if (!bookChapters || bookChapters.length === 0) {
-        toast.error(i18n.t("reader_error_emptyContent"))
+        toast.error(browser.i18n.getMessage("reader_error_emptyContent"))
         return
       }
 
@@ -52,7 +52,7 @@ export function ReaderPage({ bookId, onClose }: ReaderPageProps) {
     }
     catch (error) {
       log.reader.error("Load book failed", error)
-      toast.error(i18n.t("reader_error_loadFailed"))
+      toast.error(browser.i18n.getMessage("reader_error_loadFailed"))
     }
     finally {
       setIsLoading(false)
@@ -120,7 +120,7 @@ export function ReaderPage({ bookId, onClose }: ReaderPageProps) {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <BookOpen className="size-12 opacity-30 mx-auto mb-4" />
-          <p className="text-muted-foreground">{i18n.t("reader_error_notFound")}</p>
+          <p className="text-muted-foreground">{browser.i18n.getMessage("reader_error_notFound")}</p>
         </div>
       </div>
     )
@@ -151,7 +151,7 @@ export function ReaderPage({ bookId, onClose }: ReaderPageProps) {
               variant="ghost"
               size="icon"
               onClick={onClose}
-              title={i18n.t("reader_nav_closeReader")}
+              title={browser.i18n.getMessage("reader_nav_closeReader")}
             >
               <X className="size-5" />
             </Button>
@@ -184,7 +184,7 @@ export function ReaderPage({ bookId, onClose }: ReaderPageProps) {
             className="gap-2"
           >
             <ChevronLeft className="size-4" data-icon="inline-start" />
-            {i18n.t("reader_nav_prevChapter")}
+            {browser.i18n.getMessage("reader_nav_prevChapter")}
           </Button>
 
           <div className="text-sm text-muted-foreground text-center">
@@ -200,7 +200,7 @@ export function ReaderPage({ bookId, onClose }: ReaderPageProps) {
             disabled={currentChapterIndex === chapters.length - 1}
             className="gap-2"
           >
-            {i18n.t("reader_nav_nextChapter")}
+            {browser.i18n.getMessage("reader_nav_nextChapter")}
             <ChevronRight className="size-4" data-icon="inline-end" />
           </Button>
         </div>
