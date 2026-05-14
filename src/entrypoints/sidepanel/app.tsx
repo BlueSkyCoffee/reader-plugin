@@ -1,7 +1,6 @@
-import type { Book, Chapter, SearchResult } from "@/types/novel"
-import type { ScraperRule } from "@/types/novel"
-import { BookOpen, ChevronLeft, ChevronRight, Library, Search } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import type { Book, Chapter, ScraperRule, SearchResult } from "@/types/novel"
+import { BookOpen, ChevronLeft, ChevronRight, ExternalLink, Info, Library, Play, Search, Settings } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
 import { browser } from "wxt/browser"
 import { SidePanelLayout } from "@/components/layout/sidepanel-layout"
 import { SearchBar } from "@/components/app/search-bar"
@@ -14,42 +13,57 @@ import { BUILTIN_RULES, ScraperEngine } from "@/features/scraper/services"
 import { StorageManager } from "@/lib/storage"
 import { log } from "@/utils/logger"
 
-type TabValue = "bookshelf" | "search" | "reader"
+type TabValue = "bookshelf" | "search"
+
+function openSettingsPage() {
+  const url = browser.runtime.getURL("/options.html#/settings/general")
+  void browser.tabs.create({ url })
+}
 
 function App() {
   const [tab, setTab] = useState<TabValue>("bookshelf")
+  const [readerBookId, setReaderBookId] = useState<string | null>(null)
+
+  if (readerBookId) {
+    return (
+      <ReaderView
+        bookId={readerBookId}
+        onBack={() => setReaderBookId(null)}
+      />
+    )
+  }
 
   return (
     <SidePanelLayout
       nav={(
-        <Tabs value={tab} onValueChange={v => setTab(v as TabValue)}>
-          <TabsList className="w-full grid grid-cols-3 h-8">
-            <TabsTrigger value="bookshelf" className="gap-1 text-xs">
-              <Library className="size-3" />
-              {browser.i18n.getMessage("bookshelf_title")}
-            </TabsTrigger>
-            <TabsTrigger value="search" className="gap-1 text-xs">
-              <Search className="size-3" />
-              {browser.i18n.getMessage("search_title")}
-            </TabsTrigger>
-            <TabsTrigger value="reader" className="gap-1 text-xs">
-              <BookOpen className="size-3" />
-              {browser.i18n.getMessage("reader_bar_title")}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-1">
+          <Tabs value={tab} onValueChange={v => setTab(v as TabValue)} className="flex-1">
+            <TabsList className="w-full grid grid-cols-2 h-8">
+              <TabsTrigger value="bookshelf" className="gap-1 text-xs">
+                <Library className="size-3" />
+                {browser.i18n.getMessage("bookshelf_title")}
+              </TabsTrigger>
+              <TabsTrigger value="search" className="gap-1 text-xs">
+                <Search className="size-3" />
+                {browser.i18n.getMessage("search_title")}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Button variant="ghost" size="icon" className="size-7 shrink-0" onClick={openSettingsPage}>
+            <Settings className="size-3.5" />
+          </Button>
+        </div>
       )}
     >
-      {tab === "bookshelf" && <BookshelfView onNavigateToReader={() => setTab("reader")} />}
-      {tab === "search" && <SearchView />}
-      {tab === "reader" && <ReaderView />}
+      {tab === "bookshelf" && <BookshelfView onRead={setReaderBookId} />}
+      {tab === "search" && <SearchView onRead={setReaderBookId} />}
     </SidePanelLayout>
   )
 }
 
 // === 书架视图 ===
 
-function BookshelfView({ onNavigateToReader }: { onNavigateToReader: () => void }) {
+function BookshelfView({ onRead }: { onRead: (bookId: string) => void }) {
   const [books, setBooks] = useState<Book[]>([])
   const [activeBookId, setActiveBookId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -76,15 +90,20 @@ function BookshelfView({ onNavigateToReader }: { onNavigateToReader: () => void 
     void loadBooks()
   }, [loadBooks])
 
-  const handleSelect = async (bookId: string) => {
+  const handleStartReading = async (bookId: string) => {
     try {
       await StorageManager.switchBook(bookId)
       setActiveBookId(bookId)
-      onNavigateToReader()
+      onRead(bookId)
     }
     catch (e) {
       log.bookshelf.error("Switch book failed", e)
     }
+  }
+
+  const handleDetails = async (bookId: string) => {
+    const url = browser.runtime.getURL(`/options.html#/reader?bookId=${bookId}`)
+    await browser.tabs.create({ url })
   }
 
   if (isLoading) {
@@ -105,11 +124,19 @@ function BookshelfView({ onNavigateToReader }: { onNavigateToReader: () => void 
 
   if (books.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16">
+      <div className="flex flex-col items-center justify-center gap-3 py-16 px-4">
         <Library className="size-10 text-muted-foreground/30" />
         <p className="text-sm text-muted-foreground text-center">
           {browser.i18n.getMessage("popup_reader_noActiveSession")}
         </p>
+        <Button variant="outline" size="sm" className="text-xs" onClick={() => {
+          const url = browser.runtime.getURL("/options.html#/search")
+          void browser.tabs.create({ url })
+        }}
+        >
+          <Search className="size-3" />
+          {browser.i18n.getMessage("popup_search")}
+        </Button>
       </div>
     )
   }
@@ -122,7 +149,8 @@ function BookshelfView({ onNavigateToReader }: { onNavigateToReader: () => void 
             key={book.id}
             book={book}
             isActive={book.id === activeBookId}
-            onSelect={() => void handleSelect(book.id)}
+            onRead={() => void handleStartReading(book.id)}
+            onDetails={() => void handleDetails(book.id)}
           />
         ))}
       </div>
@@ -130,17 +158,24 @@ function BookshelfView({ onNavigateToReader }: { onNavigateToReader: () => void 
   )
 }
 
-function BookItem({ book, isActive, onSelect }: { book: Book, isActive: boolean, onSelect: () => void }) {
+function BookItem({
+  book,
+  isActive,
+  onRead,
+  onDetails,
+}: {
+  book: Book
+  isActive: boolean
+  onRead: () => void
+  onDetails: () => void
+}) {
   const total = book.totalChapters || 0
   const current = book.progress?.chapterIndex || 0
   const percent = total > 0 ? Math.round((current / total) * 100) : 0
+  const hasProgress = current > 0
 
   return (
-    <button
-      type="button"
-      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-muted/50 cursor-pointer"
-      onClick={onSelect}
-    >
+    <div className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 hover:bg-muted/50 transition-colors">
       <div className="relative size-10 shrink-0 overflow-hidden rounded-md bg-muted">
         {book.cover
           ? <img src={book.cover} alt={book.title} className="size-full object-cover" />
@@ -150,6 +185,7 @@ function BookItem({ book, isActive, onSelect }: { book: Book, isActive: boolean,
               </div>
             )}
       </div>
+
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span className="text-xs font-medium truncate flex-1">{book.title}</span>
@@ -174,14 +210,25 @@ function BookItem({ book, isActive, onSelect }: { book: Book, isActive: boolean,
             </Badge>
           )}
         </div>
+        {/* 操作按钮 */}
+        <div className="flex items-center gap-1.5 mt-1.5">
+          <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 gap-1" onClick={onDetails}>
+            <Info className="size-3" />
+            {browser.i18n.getMessage("bookcard_details")}
+          </Button>
+          <Button size="sm" className="h-6 text-[10px] px-2 gap-1" onClick={onRead}>
+            <Play className="size-3" />
+            {hasProgress ? browser.i18n.getMessage("bookcard_continueReading") : browser.i18n.getMessage("bookcard_startReading")}
+          </Button>
+        </div>
       </div>
-    </button>
+    </div>
   )
 }
 
 // === 搜索视图 ===
 
-function SearchView() {
+function SearchView({ onRead }: { onRead: (bookId: string) => void }) {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<SearchResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -202,7 +249,6 @@ function SearchView() {
     setHasSearched(true)
 
     const searchableRules = activeRules.filter(r => r.search && !r.search.disabled && !r.disabled)
-    const failedSources: string[] = []
     const allResults: SearchResult[] = []
 
     try {
@@ -213,7 +259,6 @@ function SearchView() {
         }
         catch (e) {
           log.scraper.error(`${rule.name} search failed`, e)
-          failedSources.push(rule.name)
           return []
         }
       })
@@ -276,6 +321,13 @@ function SearchView() {
     }
   }
 
+  const handleDetails = async (result: SearchResult) => {
+    const rule = activeRules.find(r => r.id === result.sourceId)
+    if (rule) {
+      void browser.tabs.create({ url: result.url })
+    }
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="p-3 border-b shrink-0">
@@ -324,6 +376,7 @@ function SearchView() {
                         key={`${result.url}-${index}`}
                         result={result}
                         onSave={() => void handleAddToShelf(result)}
+                        onDetails={() => void handleDetails(result)}
                       />
                     ))}
                   </div>
@@ -351,7 +404,15 @@ function SearchView() {
   )
 }
 
-function SearchResultItem({ result, onSave }: { result: SearchResult, onSave: () => void }) {
+function SearchResultItem({
+  result,
+  onSave,
+  onDetails,
+}: {
+  result: SearchResult
+  onSave: () => void
+  onDetails: () => void
+}) {
   return (
     <div className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 hover:bg-muted/50 transition-colors">
       <div className="size-10 shrink-0 overflow-hidden rounded-md bg-muted flex items-center justify-center">
@@ -362,17 +423,23 @@ function SearchResultItem({ result, onSave }: { result: SearchResult, onSave: ()
       <div className="min-w-0 flex-1">
         <p className="text-xs font-medium truncate">{result.bookName}</p>
         <p className="text-[11px] text-muted-foreground truncate">{result.author || browser.i18n.getMessage("common_unknown")}</p>
+        <div className="flex items-center gap-1.5 mt-1.5">
+          <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 gap-1" onClick={onDetails}>
+            <ExternalLink className="size-3" />
+            {browser.i18n.getMessage("bookcard_details")}
+          </Button>
+          <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 gap-1" onClick={onSave}>
+            {browser.i18n.getMessage("search_actions_addToShelf")}
+          </Button>
+        </div>
       </div>
-      <Button variant="outline" size="sm" className="h-6 text-xs shrink-0" onClick={onSave}>
-        {browser.i18n.getMessage("search_actions_addToShelf")}
-      </Button>
     </div>
   )
 }
 
-// === 阅读视图 ===
+// === 阅读视图（覆盖模式） ===
 
-function ReaderView() {
+function ReaderView({ bookId, onBack }: { bookId: string, onBack: () => void }) {
   const [activeBook, setActiveBook] = useState<Book | null>(null)
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -384,9 +451,6 @@ function ReaderView() {
     const loadActiveBook = async () => {
       setIsLoading(true)
       try {
-        const bookId = await StorageManager.getActiveBookId()
-        if (!bookId) return
-
         const book = await StorageManager.getBook(bookId)
         if (!book) return
 
@@ -399,9 +463,7 @@ function ReaderView() {
         if (bookChapters.length > 0) {
           const idx = Math.min(book.progress?.chapterIndex || 0, bookChapters.length - 1)
           const chapter = bookChapters[idx]
-          if (chapter?.content) {
-            setContent(chapter.content)
-          }
+          if (chapter?.content) setContent(chapter.content)
           setCurrentIndex(idx)
         }
       }
@@ -414,7 +476,7 @@ function ReaderView() {
     }
 
     void loadActiveBook()
-  }, [])
+  }, [bookId])
 
   const loadChapter = useCallback(async (index: number) => {
     if (!activeBook || index < 0 || index >= chapters.length) return
@@ -430,7 +492,6 @@ function ReaderView() {
       }
       setCurrentIndex(index)
 
-      // 保存进度
       await StorageManager.saveBook({
         ...activeBook,
         progress: { chapterIndex: index, scroll: 0 },
@@ -454,39 +515,51 @@ function ReaderView() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-3 p-3">
-        <Skeleton className="h-4 w-2/3" />
-        <Skeleton className="h-3 w-1/3" />
-        <Skeleton className="h-40 w-full" />
-      </div>
+      <SidePanelLayout>
+        <div className="flex flex-col gap-3 p-3">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-3 w-1/3" />
+          <Skeleton className="h-40 w-full" />
+        </div>
+      </SidePanelLayout>
     )
   }
 
   if (!activeBook) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16">
-        <BookOpen className="size-10 text-muted-foreground/30" />
-        <p className="text-sm text-muted-foreground text-center">
-          {browser.i18n.getMessage("popup_reader_noActiveSession")}
-        </p>
-      </div>
+      <SidePanelLayout>
+        <div className="flex flex-col items-center justify-center gap-3 py-16">
+          <BookOpen className="size-10 text-muted-foreground/30" />
+          <p className="text-sm text-muted-foreground text-center">
+            {browser.i18n.getMessage("popup_reader_noActiveSession")}
+          </p>
+          <Button variant="outline" size="sm" className="text-xs" onClick={onBack}>
+            {browser.i18n.getMessage("reader_nav_prevChapter")}
+          </Button>
+        </div>
+      </SidePanelLayout>
     )
   }
 
   const percent = chapters.length > 0 ? Math.round((currentIndex / chapters.length) * 100) : 0
 
   return (
-    <div className="flex flex-col h-full">
-      {/* 章节信息 */}
-      <div className="border-b px-3 py-2 shrink-0">
-        <p className="text-xs font-medium truncate">{activeBook.title}</p>
-        <p className="text-[11px] text-muted-foreground truncate">
-          {chapters[currentIndex]?.title || `${browser.i18n.getMessage("reader_nav_prevChapter")} ${currentIndex + 1}`}
-        </p>
-      </div>
-
+    <SidePanelLayout
+      header={(
+        <div className="border-b px-3 py-2 shrink-0">
+          <Button variant="ghost" size="sm" className="h-6 text-xs gap-1 -ml-1" onClick={onBack}>
+            <ChevronLeft className="size-3" />
+            {browser.i18n.getMessage("bookshelf_title")}
+          </Button>
+          <p className="text-xs font-medium truncate mt-1">{activeBook.title}</p>
+          <p className="text-[11px] text-muted-foreground truncate">
+            {chapters[currentIndex]?.title || `${browser.i18n.getMessage("reader_nav_prevChapter")} ${currentIndex + 1}`}
+          </p>
+        </div>
+      )}
+    >
       {/* 内容 */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1" style={{ height: "calc(100vh - 180px)" }}>
         <div className="px-3 py-3 whitespace-pre-wrap text-sm leading-relaxed">
           {isFetching
             ? <span className="text-muted-foreground">{browser.i18n.getMessage("reader_loading")}</span>
@@ -495,7 +568,7 @@ function ReaderView() {
       </ScrollArea>
 
       {/* 底部控制 */}
-      <div className="border-t px-3 py-2 flex items-center justify-between shrink-0">
+      <div className="border-t px-3 py-2 flex items-center justify-between shrink-0 bg-background">
         <div className="flex items-center gap-2 text-xs tabular-nums text-muted-foreground">
           <span>
             {percent}
@@ -517,7 +590,6 @@ function ReaderView() {
             onClick={handlePrev}
           >
             <ChevronLeft className="size-3" />
-            {browser.i18n.getMessage("reader_nav_prevChapter")}
           </Button>
           <Button
             variant="ghost"
@@ -526,12 +598,11 @@ function ReaderView() {
             disabled={currentIndex >= chapters.length - 1}
             onClick={handleNext}
           >
-            {browser.i18n.getMessage("reader_nav_nextChapter")}
             <ChevronRight className="size-3" />
           </Button>
         </div>
       </div>
-    </div>
+    </SidePanelLayout>
   )
 }
 

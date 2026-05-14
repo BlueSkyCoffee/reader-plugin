@@ -656,6 +656,12 @@
   "bookcard_noCover": {
     "message": "暂无封面"
   },
+  "bookcard_startReading": {
+    "message": "开始阅读"
+  },
+  "bookcard_details": {
+    "message": "详情"
+  },
   "rules_title": {
     "message": "书源规则中心"
   },

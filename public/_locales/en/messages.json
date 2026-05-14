@@ -656,6 +656,12 @@
   "bookcard_noCover": {
     "message": "No Cover"
   },
+  "bookcard_startReading": {
+    "message": "Start Reading"
+  },
+  "bookcard_details": {
+    "message": "Details"
+  },
   "rules_title": {
     "message": "Rule Center"
   },
