@@ -108,17 +108,19 @@ function BookshelfView({ onRead }: { onRead: (bookId: string) => void }) {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-2 p-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-2.5 px-2.5 py-2">
-            <Skeleton className="size-10 shrink-0 rounded-md" />
-            <div className="flex-1 flex flex-col gap-1.5">
-              <Skeleton className="h-3.5 w-2/3" />
-              <Skeleton className="h-3 w-1/3" />
+      <ScrollArea className="h-full">
+        <div className="flex flex-col gap-2 p-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-2.5 px-2.5 py-2">
+              <Skeleton className="size-10 shrink-0 rounded-md" />
+              <div className="flex-1 flex flex-col gap-1.5">
+                <Skeleton className="h-3.5 w-2/3" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </ScrollArea>
     )
   }
 
@@ -330,7 +332,7 @@ function SearchView({ onRead }: { onRead: (bookId: string) => void }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-3 border-b shrink-0">
+      <div className="p-3 shrink-0">
         <SearchBar
           value={query}
           onChange={setQuery}
