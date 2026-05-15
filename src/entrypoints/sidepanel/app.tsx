@@ -332,7 +332,7 @@ function SearchView({ onRead }: { onRead: (bookId: string) => void }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-3 shrink-0">
+      <div className="p-3 border-b shrink-0">
         <SearchBar
           value={query}
           onChange={setQuery}
@@ -354,54 +354,56 @@ function SearchView({ onRead }: { onRead: (bookId: string) => void }) {
         />
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="p-3">
-          {isLoading
-            ? (
-                <div className="flex flex-col gap-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-2.5 px-2.5 py-2">
-                      <Skeleton className="size-10 shrink-0 rounded-md" />
-                      <div className="flex-1 flex flex-col gap-1.5">
-                        <Skeleton className="h-3.5 w-2/3" />
-                        <Skeleton className="h-3 w-1/3" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )
-            : results.length > 0
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full w-full">
+          <div className="p-3">
+            {isLoading
               ? (
-                  <div className="flex flex-col gap-1">
-                    {results.map((result, index) => (
-                      <SearchResultItem
-                        key={`${result.url}-${index}`}
-                        result={result}
-                        onSave={() => void handleAddToShelf(result)}
-                        onDetails={() => void handleDetails(result)}
-                      />
+                  <div className="flex flex-col gap-2">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-2.5 px-2.5 py-2">
+                        <Skeleton className="size-10 shrink-0 rounded-md" />
+                        <div className="flex-1 flex flex-col gap-1.5">
+                          <Skeleton className="h-3.5 w-2/3" />
+                          <Skeleton className="h-3 w-1/3" />
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )
-              : hasSearched
+              : results.length > 0
                 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-16">
-                      <Search className="size-10 text-muted-foreground/30" />
-                      <p className="text-sm text-muted-foreground text-center">
-                        {browser.i18n.getMessage("search_empty_title")}
-                      </p>
+                    <div className="flex flex-col gap-1">
+                      {results.map((result, index) => (
+                        <SearchResultItem
+                          key={`${result.url}-${index}`}
+                          result={result}
+                          onSave={() => void handleAddToShelf(result)}
+                          onDetails={() => void handleDetails(result)}
+                        />
+                      ))}
                     </div>
                   )
-                : (
-                    <div className="flex flex-col items-center justify-center gap-3 py-16">
-                      <Search className="size-10 text-muted-foreground/30" />
-                      <p className="text-sm text-muted-foreground text-center">
-                        {browser.i18n.getMessage("search_placeholder")}
-                      </p>
-                    </div>
-                  )}
-        </div>
-      </ScrollArea>
+                : hasSearched
+                  ? (
+                      <div className="flex flex-col items-center justify-center gap-3 py-16">
+                        <Search className="size-10 text-muted-foreground/30" />
+                        <p className="text-sm text-muted-foreground text-center">
+                          {browser.i18n.getMessage("search_empty_title")}
+                        </p>
+                      </div>
+                    )
+                  : (
+                      <div className="flex flex-col items-center justify-center gap-3 py-16">
+                        <Search className="size-10 text-muted-foreground/30" />
+                        <p className="text-sm text-muted-foreground text-center">
+                          {browser.i18n.getMessage("search_placeholder")}
+                        </p>
+                      </div>
+                    )}
+          </div>
+        </ScrollArea>
+      </div>
     </div>
   )
 }
