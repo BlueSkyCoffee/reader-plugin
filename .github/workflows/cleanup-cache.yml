@@ -1,0 +1,40 @@
+name: Cleanup Actions Cache
+
+on:
+  schedule:
+    # 每月第一天 00:00 UTC 清理缓存
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear GitHub Actions Cache
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const caches = await github.rest.actions.listCachesForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            for (const cache of caches.data.actions_caches) {
+              // 保留最近 7 天的缓存
+              const createdAt = new Date(cache.created_at);
+              const daysOld = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+
+              if (daysOld > 7) {
+                console.log(`Deleting cache ${cache.key} (${daysOld.toFixed(1)} days old)`);
+                await github.rest.actions.deleteActionsCacheByKey({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  key: cache.key,
+                });
+              }
+            }
+
+            console.log(`Cache cleanup completed. Remaining caches: ${caches.data.total_count}`);

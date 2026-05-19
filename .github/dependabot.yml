@@ -1,0 +1,42 @@
+version: 2
+updates:
+  # 自动更新 GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    # 限制 PR 数量防止泛洪
+    limit: 5
+    # 自动合并安全更新
+    allow:
+      - dependency-type: "all"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+
+  # 自动更新 npm/pnpm 依赖
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    limit: 10
+    # 仅自动合并安全补丁更新
+    allow:
+      - update-type: "security-patch"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    # 忽略主要版本变更（手动处理）
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
