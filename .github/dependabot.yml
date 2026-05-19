@@ -8,10 +8,7 @@ updates:
       day: "monday"
       time: "06:00"
     # 限制 PR 数量防止泛洪
-    limit: 5
-    # 自动合并安全更新
-    allow:
-      - dependency-type: "all"
+    open-pulls-limit: 5
     labels:
       - "dependencies"
       - "security"
@@ -26,10 +23,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "06:00"
-    limit: 10
-    # 仅自动合并安全补丁更新
-    allow:
-      - update-type: "security-patch"
+    open-pulls-limit: 10
     labels:
       - "dependencies"
       - "security"
@@ -39,4 +33,5 @@ updates:
     # 忽略主要版本变更（手动处理）
     ignore:
       - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+        update-types:
+          - "version-update:semver-major"
