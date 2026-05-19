@@ -20,7 +20,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # 限制历史深度，减少攻击面
           fetch-depth: 1
