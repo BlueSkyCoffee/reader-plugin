@@ -1,36 +1,22 @@
 version: 2
 updates:
-  # 自动更新 GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "06:00"
-    # 限制 PR 数量防止泛洪
-    open-pulls-limit: 5
     labels:
       - "dependencies"
-      - "security"
     commit-message:
       prefix: "ci"
-      include: "scope"
 
-  # 自动更新 npm/pnpm 依赖
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "06:00"
-    open-pulls-limit: 10
     labels:
       - "dependencies"
-      - "security"
     commit-message:
       prefix: "deps"
-      include: "scope"
-    # 忽略主要版本变更（手动处理）
     ignore:
       - dependency-name: "*"
         update-types:
