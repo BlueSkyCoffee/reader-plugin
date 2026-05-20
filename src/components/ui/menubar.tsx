@@ -1,7 +1,7 @@
 "use client"
 
 import { CheckIcon, ChevronRightIcon } from "lucide-react"
-import { Menubar as MenubarPrimitive } from "radix-ui"
+import * as MenubarPrimitive from "@radix-ui/react-menubar"
 
 import * as React from "react"
 import { cn } from "@/utils"

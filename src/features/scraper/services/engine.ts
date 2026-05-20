@@ -1,5 +1,6 @@
 import type { BookInfo, Chapter, ScraperRule, SearchResult } from "@/types/novel"
 import type { ChineseLocale } from "@/utils/chinese-converter"
+import { SandboxService } from "@/lib/sandbox"
 import { requestMessage } from "@/lib/messaging"
 import { convertChinese } from "@/utils/chinese-converter"
 import { log } from "@/utils/logger"
@@ -140,10 +141,79 @@ export class ScraperEngine {
     }
 
     if (jsCode && result !== undefined) {
-      result = this.runRuleJs(jsCode, result)
+      // 同步版本：仅用于不需要沙箱隔离的场景
+      // 注意：此版本在 Worker 环境中使用受限执行上下文
+      result = this.runRuleJsSync(jsCode, result)
     }
 
     return result
+  }
+
+  /**
+   * 异步版本的 DOM 解析器，使用沙箱执行 JavaScript 代码
+   * 推荐在所有前端上下文（Options、Popup、Content Script）中使用
+   */
+  async parseContentAsync(
+    html: string | HTMLElement | Document | Element,
+    query: string,
+    type: ContentType = "text",
+    attrName?: string,
+    baseUri?: string,
+  ): Promise<string> {
+    if (!query)
+      return ""
+
+    const { selector, jsCode, attrSuffix } = this.parseRuleQuery(query)
+    let result = ""
+
+    const root = typeof html === "string"
+      ? new DOMParser().parseFromString(html, "text/html")
+      : (html as Document | Element)
+
+    const selectorTrim = selector.trim()
+    let effectiveType = type
+    let effectiveAttr = attrSuffix || attrName
+
+    if (effectiveType === "text" && selectorTrim.startsWith("meta[")) {
+      effectiveType = "attr"
+      effectiveAttr = "content"
+    }
+    else if (attrSuffix) {
+      effectiveType = "attr"
+    }
+
+    const elements = this.selectAll(root, selectorTrim)
+    const element = elements[0]
+
+    if (element) {
+      if (effectiveType === "text") {
+        result = element.textContent?.trim() || ""
+      }
+      else if (effectiveType === "html") {
+        result = element.innerHTML?.trim() || ""
+      }
+      else if (effectiveType === "attr" && effectiveAttr) {
+        const attrValue = element.getAttribute(effectiveAttr) || ""
+        result = this.resolveAttr(attrValue, effectiveAttr, baseUri)
+      }
+    }
+    else if (!selectorTrim && jsCode) {
+      result = typeof html === "string" ? html : (root as Element).innerHTML || ""
+    }
+
+    // 使用沙箱执行 JS 代码
+    if (jsCode && result !== undefined) {
+      result = await this.runRuleJsSandboxed(jsCode, result)
+    }
+
+    return result
+  }
+
+  /**
+   * 判断查询是否包含 JavaScript 代码
+   */
+  hasJsCode(query: string): boolean {
+    return query.includes(RULE_JS_SEPARATOR)
   }
 
   private parseRuleQuery(query: string) {
@@ -244,17 +314,62 @@ export class ScraperEngine {
       .replaceAll("&amp;", "&")
   }
 
-  private runRuleJs(jsCode: string, input: string) {
+  /**
+   * 在沙箱中安全执行 JavaScript 代码
+   * 所有爬虫规则的 JS 代码都必须通过沙箱执行
+   */
+  private async runRuleJsSandboxed(jsCode: string, input: string): Promise<string> {
     try {
-      // eslint-disable-next-line no-new-func
-      const fn = new Function(
-        "r",
-        `var result = r; ${jsCode}; return typeof r !== 'undefined' ? r : result;`,
-      )
-      return fn(input)
+      const sandbox = SandboxService.getInstance()
+      await sandbox.initialize()
+      return await sandbox.executeJs(jsCode, input)
     }
     catch (error) {
-      log.scraper.error(`Custom rule JS failed: ${jsCode}`, error)
+      log.scraper.error(`Sandbox JS execution failed: ${jsCode}`, error)
+      return input
+    }
+  }
+
+  /**
+   * 同步执行 JavaScript 代码（仅用于无 DOM 访问的简单场景）
+   * 注意：此方法在后台 Worker 中使用，因为 Worker 无法创建 iframe 沙箱
+   * Worker 本身已经是隔离环境，但仍需限制危险 API
+   */
+  private runRuleJsSync(jsCode: string, input: string): string {
+    try {
+      // 在 Worker 环境中，创建受限的执行上下文
+      const blockedApis = {
+        fetch: undefined,
+        XMLHttpRequest: undefined,
+        WebSocket: undefined,
+        localStorage: undefined,
+        sessionStorage: undefined,
+        indexedDB: undefined,
+        caches: undefined,
+        navigator: undefined,
+        location: undefined,
+        window: undefined,
+        document: undefined,
+        chrome: undefined,
+        browser: undefined,
+      }
+
+      // 创建受限的 Function
+      const fn = new Function(
+        ...Object.keys(blockedApis),
+        'r',
+        `with (this) {
+          var result = r;
+          ${jsCode};
+          return typeof r !== 'undefined' ? r : result;
+        }`
+      )
+
+      const boundFn = fn.bind(blockedApis)
+      return boundFn(...Object.values(blockedApis), input)
+    }
+    catch (error) {
+      log.scraper.error(`Sync JS execution failed: ${jsCode}`, error)
       return input
     }
   }
@@ -293,7 +408,7 @@ export class ScraperEngine {
     }
 
     const doc = new DOMParser().parseFromString(html, "text/html")
-    const results = this.parseSearchResults(doc, searchUrl)
+    const results = await this.parseSearchResultsAsync(doc, searchUrl)
 
     if (!searchRule.pagination || !searchRule.nextPage)
       return results
@@ -311,7 +426,7 @@ export class ScraperEngine {
             cookies: searchRule.cookies,
           })
           const pageDoc = new DOMParser().parseFromString(pageHtml, "text/html")
-          return this.parseSearchResults(pageDoc, url)
+          return this.parseSearchResultsAsync(pageDoc, url)
         }
         catch (error) {
           log.scraper.warn(`Pagination search failed: ${url}`, error)
@@ -323,7 +438,7 @@ export class ScraperEngine {
     return [...results, ...extraResults.flat()]
   }
 
-  private parseSearchResults(doc: Document, pageUrl: string): SearchResult[] {
+  private async parseSearchResultsAsync(doc: Document, pageUrl: string): Promise<SearchResult[]> {
     const searchRule = this.rule.search
     if (!searchRule)
       return []
@@ -332,18 +447,18 @@ export class ScraperEngine {
     const results: SearchResult[] = []
 
     if (items.length === 0) {
-      const bookName = this.parseContent(doc, this.rule.book.bookName, "text", undefined, this.rule.book.baseUri)
+      const bookName = await this.parseContentAsync(doc, this.rule.book.bookName, "text", undefined, this.rule.book.baseUri)
       if (bookName) {
         results.push({
           sourceId: this.rule.id,
           bookName: bookName.trim(),
           url: pageUrl,
-          author: this.parseContent(doc, this.rule.book.author, "text", undefined, this.rule.book.baseUri) || "未知",
+          author: await this.parseContentAsync(doc, this.rule.book.author, "text", undefined, this.rule.book.baseUri) || "未知",
           latestChapter: this.rule.book.latestChapter
-            ? this.parseContent(doc, this.rule.book.latestChapter, "text", undefined, this.rule.book.baseUri)
+            ? await this.parseContentAsync(doc, this.rule.book.latestChapter, "text", undefined, this.rule.book.baseUri)
             : undefined,
           lastUpdateTime: this.rule.book.lastUpdateTime
-            ? this.parseContent(doc, this.rule.book.lastUpdateTime, "text", undefined, this.rule.book.baseUri)
+            ? await this.parseContentAsync(doc, this.rule.book.lastUpdateTime, "text", undefined, this.rule.book.baseUri)
             : undefined,
         })
       }
@@ -352,10 +467,10 @@ export class ScraperEngine {
 
     for (const item of items) {
       try {
-        const bookName = this.parseContent(item, searchRule.bookName, "text", undefined, searchRule.baseUri)
-        const bookUrlAttribute = this.parseContent(item, searchRule.bookName, "attr", "href", searchRule.baseUri)
+        const bookName = await this.parseContentAsync(item, searchRule.bookName, "text", undefined, searchRule.baseUri)
+        const bookUrlAttribute = await this.parseContentAsync(item, searchRule.bookName, "attr", "href", searchRule.baseUri)
         const author = searchRule.author
-          ? this.parseContent(item, searchRule.author, "text", undefined, searchRule.baseUri)
+          ? await this.parseContentAsync(item, searchRule.author, "text", undefined, searchRule.baseUri)
           : ""
 
         if (!bookName || !bookName.trim() || !bookUrlAttribute)
@@ -366,11 +481,11 @@ export class ScraperEngine {
           bookName: bookName.trim(),
           url: bookUrlAttribute,
           author: author?.trim() || "未知",
-          latestChapter: searchRule.latestChapter ? this.parseContent(item, searchRule.latestChapter, "text", undefined, searchRule.baseUri) : undefined,
-          lastUpdateTime: searchRule.lastUpdateTime ? this.parseContent(item, searchRule.lastUpdateTime, "text", undefined, searchRule.baseUri) : undefined,
-          category: searchRule.category ? this.parseContent(item, searchRule.category, "text", undefined, searchRule.baseUri) : undefined,
-          status: searchRule.status ? this.parseContent(item, searchRule.status, "text", undefined, searchRule.baseUri) : undefined,
-          wordCount: searchRule.wordCount ? this.parseContent(item, searchRule.wordCount, "text", undefined, searchRule.baseUri) : undefined,
+          latestChapter: searchRule.latestChapter ? await this.parseContentAsync(item, searchRule.latestChapter, "text", undefined, searchRule.baseUri) : undefined,
+          lastUpdateTime: searchRule.lastUpdateTime ? await this.parseContentAsync(item, searchRule.lastUpdateTime, "text", undefined, searchRule.baseUri) : undefined,
+          category: searchRule.category ? await this.parseContentAsync(item, searchRule.category, "text", undefined, searchRule.baseUri) : undefined,
+          status: searchRule.status ? await this.parseContentAsync(item, searchRule.status, "text", undefined, searchRule.baseUri) : undefined,
+          wordCount: searchRule.wordCount ? await this.parseContentAsync(item, searchRule.wordCount, "text", undefined, searchRule.baseUri) : undefined,
         })
       }
       catch (error) {
@@ -393,17 +508,27 @@ export class ScraperEngine {
     const bookRule = this.rule.book
     const sourceLanguage = this.rule.language as ChineseLocale || "cn"
 
+    // 使用异步沙箱版本解析内容
+    const bookName = await this.parseContentAsync(doc, bookRule.bookName, "text", undefined, bookRule.baseUri)
+    const author = await this.parseContentAsync(doc, bookRule.author, "text", undefined, bookRule.baseUri)
+    const intro = await this.parseContentAsync(doc, bookRule.intro, "text", undefined, bookRule.baseUri)
+    const category = bookRule.category ? await this.parseContentAsync(doc, bookRule.category, "text", undefined, bookRule.baseUri) : undefined
+    const latestChapter = bookRule.latestChapter ? await this.parseContentAsync(doc, bookRule.latestChapter, "text", undefined, bookRule.baseUri) : undefined
+    const lastUpdateTime = bookRule.lastUpdateTime ? await this.parseContentAsync(doc, bookRule.lastUpdateTime, "text", undefined, bookRule.baseUri) : undefined
+    const status = bookRule.status ? await this.parseContentAsync(doc, bookRule.status, "text", undefined, bookRule.baseUri) : undefined
+    const wordCount = bookRule.wordCount ? await this.parseContentAsync(doc, bookRule.wordCount, "text", undefined, bookRule.baseUri) : undefined
+
     const info: BookInfo = {
       url: bookUrl,
-      bookName: this.parseContent(doc, bookRule.bookName, "text", undefined, bookRule.baseUri),
-      author: this.parseContent(doc, bookRule.author, "text", undefined, bookRule.baseUri),
-      intro: this.parseContent(doc, bookRule.intro, "text", undefined, bookRule.baseUri),
-      coverUrl: this.extractCoverUrl(doc, bookRule.coverUrl, bookUrl),
-      category: bookRule.category ? this.parseContent(doc, bookRule.category, "text", undefined, bookRule.baseUri) : undefined,
-      latestChapter: bookRule.latestChapter ? this.parseContent(doc, bookRule.latestChapter, "text", undefined, bookRule.baseUri) : undefined,
-      lastUpdateTime: bookRule.lastUpdateTime ? this.parseContent(doc, bookRule.lastUpdateTime, "text", undefined, bookRule.baseUri) : undefined,
-      status: bookRule.status ? this.parseContent(doc, bookRule.status, "text", undefined, bookRule.baseUri) : undefined,
-      wordCount: bookRule.wordCount ? this.parseContent(doc, bookRule.wordCount, "text", undefined, bookRule.baseUri) : undefined,
+      bookName,
+      author,
+      intro,
+      coverUrl: await this.extractCoverUrlAsync(doc, bookRule.coverUrl, bookUrl),
+      category,
+      latestChapter,
+      lastUpdateTime,
+      status,
+      wordCount,
     }
 
     // 应用简繁转换
@@ -420,7 +545,7 @@ export class ScraperEngine {
     }
 
     const tocPages = await this.fetchTocPages(bookUrl, doc)
-    const toc = this.extractToc(tocPages, bookUrl, sourceLanguage, targetLanguage)
+    const toc = await this.extractTocAsync(tocPages, bookUrl, sourceLanguage, targetLanguage)
 
     return { info, toc }
   }
@@ -443,6 +568,44 @@ export class ScraperEngine {
     }
 
     return undefined
+  }
+
+  private async extractCoverUrlAsync(doc: Document, coverRule: string | undefined, bookUrl: string): Promise<string | undefined> {
+    const baseUri = this.rule.book.baseUri || bookUrl
+
+    if (coverRule) {
+      const explicitCover = await this.extractCoverFromSelectorAsync(doc, coverRule, baseUri)
+      if (explicitCover) {
+        return explicitCover
+      }
+    }
+
+    for (const selector of COVER_FALLBACK_SELECTORS) {
+      const cover = await this.extractCoverFromSelectorAsync(doc, selector, baseUri)
+      if (cover) {
+        return cover
+      }
+    }
+
+    return undefined
+  }
+
+  private async extractCoverFromSelectorAsync(doc: Document, selector: string, baseUri: string): Promise<string> {
+    const textOrExplicitAttr = await this.parseContentAsync(doc, selector, "text", undefined, baseUri)
+    const normalizedTextOrExplicitAttr = this.normalizeCoverUrl(textOrExplicitAttr, baseUri)
+    if (normalizedTextOrExplicitAttr) {
+      return normalizedTextOrExplicitAttr
+    }
+
+    for (const attr of COVER_ATTR_CANDIDATES) {
+      const attrValue = await this.parseContentAsync(doc, selector, "attr", attr, baseUri)
+      const normalizedAttrValue = this.normalizeCoverUrl(attrValue, baseUri)
+      if (normalizedAttrValue) {
+        return normalizedAttrValue
+      }
+    }
+
+    return ""
   }
 
   private extractCoverFromSelector(doc: Document, selector: string, baseUri: string) {
@@ -566,6 +729,70 @@ export class ScraperEngine {
     return toc
   }
 
+  private async extractTocAsync(
+    pages: Array<{ url: string, doc: Document }>,
+    bookUrl: string,
+    sourceLanguage?: ChineseLocale,
+    targetLanguage?: ChineseLocale,
+  ): Promise<Chapter[]> {
+    const tocRule = this.rule.toc
+    const toc: Chapter[] = []
+    const seen = new Set<string>()
+
+    for (const [pageIndex, page] of pages.entries()) {
+      const container = await this.buildTocContainerAsync(page.doc)
+      const items = this.selectAll(container, tocRule.item)
+
+      for (const item of items) {
+        let title = item.textContent?.trim() || ""
+        const rawUrl = item.getAttribute("href") || item.getAttribute("value") || ""
+        const resolvedUrl = this.resolveUrl(rawUrl, tocRule.baseUri || page.url || bookUrl)
+
+        if (!title || !resolvedUrl || seen.has(resolvedUrl))
+          continue
+
+        seen.add(resolvedUrl)
+
+        // 应用简繁转换到章节标题
+        if (targetLanguage && sourceLanguage && sourceLanguage !== targetLanguage) {
+          title = convertChinese(title, sourceLanguage, targetLanguage)
+        }
+
+        toc.push({
+          bookId: this.rule.name,
+          title,
+          url: resolvedUrl,
+          order: toc.length + 1,
+        })
+      }
+
+      if (items.length === 0 && pageIndex === 0) {
+        log.scraper.warn(`TOC items empty: ${page.url}`)
+      }
+    }
+
+    if (tocRule.isDesc) {
+      toc.reverse()
+    }
+
+    return toc
+  }
+
+  private async buildTocContainerAsync(doc: Document): Promise<Document | Element> {
+    const tocRule = this.rule.toc
+    if (!tocRule.list) {
+      return doc
+    }
+
+    const listHtml = await this.parseContentAsync(doc, tocRule.list, "html", undefined, tocRule.baseUri)
+    if (!listHtml)
+      return doc
+
+    const temp = document.createElement("div")
+    temp.innerHTML = listHtml
+    return temp
+  }
+
   private buildTocContainer(doc: Document): Document | Element {
     const tocRule = this.rule.toc
     if (!tocRule.list) {
@@ -622,7 +849,7 @@ export class ScraperEngine {
     const html = await this.fetchHtml(chapterUrl, "get", undefined, { baseUri })
     const doc = new DOMParser().parseFromString(html, "text/html")
 
-    let content = this.parseContent(doc, chapterRule.content, "html", undefined, baseUri)
+    let content = await this.parseContentAsync(doc, chapterRule.content, "html", undefined, baseUri)
     if (!content) {
       throw new Error("正文内容为空")
     }
@@ -656,14 +883,14 @@ export class ScraperEngine {
       visited.add(nextUrl)
       const html = await this.fetchHtml(nextUrl, "get", undefined, { baseUri })
       const doc = new DOMParser().parseFromString(html, "text/html")
-      const pageContent = this.parseContent(doc, chapterRule.content, "html", undefined, baseUri)
+      const pageContent = await this.parseContentAsync(doc, chapterRule.content, "html", undefined, baseUri)
 
       if (pageContent) {
         contentParts.push(pageContent)
       }
 
-      const nextCandidate = this.resolveNextPageUrl(doc, baseUri)
-      if (this.isLastPage(nextCandidate, doc)) {
+      const nextCandidate = await this.resolveNextPageUrlAsync(doc, baseUri)
+      if (await this.isLastPageAsync(nextCandidate, doc)) {
         break
       }
 
@@ -684,6 +911,55 @@ export class ScraperEngine {
     }
 
     return content
+  }
+
+  private async resolveNextPageUrlAsync(doc: Document, baseUri: string): Promise<string | null> {
+    const chapterRule = this.rule.chapter
+
+    if (chapterRule.nextPageInJs) {
+      const jsValue = await this.parseContentAsync(doc, chapterRule.nextPageInJs, "html", undefined, baseUri)
+      const resolved = this.resolveUrl(jsValue, baseUri)
+      return resolved || null
+    }
+
+    if (!chapterRule.nextPage) {
+      return null
+    }
+
+    const nextEls = this.selectAll(doc, chapterRule.nextPage)
+    if (nextEls.length === 0) {
+      return null
+    }
+
+    const rawUrl = nextEls[0].getAttribute("href") || nextEls[0].getAttribute("value") || ""
+    return this.resolveUrl(rawUrl, baseUri) || null
+  }
+
+  private async isLastPageAsync(nextUrl: string | null, doc: Document): Promise<boolean> {
+    if (!nextUrl)
+      return true
+
+    const chapterRule = this.rule.chapter
+    if (chapterRule.nextChapterLink) {
+      try {
+        const regex = new RegExp(chapterRule.nextChapterLink)
+        if (regex.test(nextUrl)) {
+          return true
+        }
+      }
+      catch {
+        // ignore invalid regex
+      }
+    }
+
+    const nextEls = chapterRule.nextPage ? this.selectAll(doc, chapterRule.nextPage) : []
+    const nextText = nextEls.map(el => el.textContent || "").join(" ")
+
+    if (!NEXT_PAGE_URL_REGEX.test(nextUrl) && NEXT_PAGE_TEXT_REGEX.test(nextText)) {
+      return true
+    }
+
+    return false
   }
 
   private resolveNextPageUrl(doc: Document, baseUri: string): string | null {
