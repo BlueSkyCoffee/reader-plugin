@@ -1,0 +1,90 @@
+name: Supply Chain Security
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+  pull_request:
+    paths:
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+  schedule:
+    # 每周一 00:00 UTC 运行
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+# 限制工作流权限
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  artifacts: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: supply-chain-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit for Vulnerabilities
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Verify Package Signatures
+        run: pnpm audit signatures
+
+      - name: Check for License Issues
+        run: npx license-checker --summary --excludePrivatePackages
+        continue-on-error: true
+
+  trustdep:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: trustdep-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Trustdep Scan
+        run: npx trustdep scan --fail-on high --json --output trustdep-report.json
+
+      - name: Upload Trustdep Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trustdep-report
+          path: trustdep-report.json
+          retention-days: 30
+        if: always()

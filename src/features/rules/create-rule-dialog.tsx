@@ -1,6 +1,7 @@
 import { browser } from "wxt/browser"
+import type { SecurityWarning } from "@/lib/rule-security"
 import type { ScraperRule } from "@/types/novel"
-import { AlertCircle, Plus } from "lucide-react"
+import { AlertCircle, Plus, ShieldAlert, ShieldCheck, ShieldQuestion } from "lucide-react"
 import { useState } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -25,6 +26,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { FieldGroup, FormSection } from "@/components/settings/form-section"
+import {
+  getSecuritySummary,
+  validateRulesSecurity,
+} from "@/lib/rule-security"
 
 interface CreateRuleDialogProps {
   onRuleCreate: (rule: ScraperRule) => Promise<void> | void
@@ -82,6 +87,9 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
   const [mode, setMode] = useState<"form" | "json" | "import">("form")
   const [importContent, setImportContent] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [securityWarnings, setSecurityWarnings] = useState<Map<string, SecurityWarning[]> | null>(null)
+  const [showSecurityReview, setShowSecurityReview] = useState(false)
+  const [pendingRules, setPendingRules] = useState<ScraperRule[]>([])
 
   const [formData, setFormData] = useState<RuleFormData>({
     name: "",
@@ -209,6 +217,9 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
 
   const handleImportSubmit = async () => {
     setError(null)
+    setSecurityWarnings(null)
+    setShowSecurityReview(false)
+
     if (!importContent.trim()) {
       setError(browser.i18n.getMessage("rules_import_toast_error"))
       return
@@ -233,21 +244,50 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
         throw new Error(browser.i18n.getMessage("rules_import_toast_invalidFormat"))
       }
 
+      // 为规则生成 ID
       newRules.forEach((rule) => {
         if (!rule.id) {
           rule.id = `custom_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
         }
       })
 
-      if (onRulesImport) {
-        await onRulesImport(newRules)
+      // 安全验证：检查规则中的 JavaScript 代码
+      const warnings = validateRulesSecurity(newRules)
+
+      if (warnings.size > 0) {
+        // 存储待审核的规则和警告
+        setPendingRules(newRules)
+        setSecurityWarnings(warnings)
+        setShowSecurityReview(true)
       }
-      resetForm()
-      setOpen(false)
+      else {
+        // 没有安全警告，直接导入
+        if (onRulesImport) {
+          await onRulesImport(newRules)
+        }
+        resetForm()
+        setOpen(false)
+      }
     }
     catch (e: unknown) {
       setError(getErrorMessage(e) || browser.i18n.getMessage("rules_import_toast_parseFailed"))
     }
+  }
+
+  const handleConfirmSecurityReview = async () => {
+    // 用户确认导入，尽管存在安全警告
+    if (onRulesImport && pendingRules.length > 0) {
+      await onRulesImport(pendingRules)
+    }
+    resetForm()
+    setOpen(false)
+  }
+
+  const handleCancelSecurityReview = () => {
+    // 用户取消导入
+    setShowSecurityReview(false)
+    setPendingRules([])
+    setSecurityWarnings(null)
   }
 
   const handleJsonSubmit = async () => {
@@ -313,6 +353,9 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
     setImportContent("")
     setError(null)
     setMode("form")
+    setSecurityWarnings(null)
+    setShowSecurityReview(false)
+    setPendingRules([])
   }
 
   return (
@@ -667,6 +710,82 @@ export function CreateRuleDialog({ onRuleCreate, onRulesImport }: CreateRuleDial
                 <AlertTitle>{browser.i18n.getMessage("rules_create_validationErrorTitle")}</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
+            )}
+
+            {/* 安全审核 UI */}
+            {showSecurityReview && securityWarnings && (
+              <div className="mt-4 shrink-0 border border-border rounded-lg p-4 bg-muted/30">
+                <div className="flex items-center gap-2 mb-3">
+                  <ShieldAlert className="h-5 w-5 text-orange-500" />
+                  <h3 className="font-semibold text-sm">{browser.i18n.getMessage("rules_security_title")}</h3>
+                </div>
+
+                <div className="text-xs text-muted-foreground mb-3">
+                  {browser.i18n.getMessage("rules_security_description", String(pendingRules.length))}
+                </div>
+
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                  {Array.from(securityWarnings.entries()).map(([ruleId, warnings]) => {
+                    const rule = pendingRules.find(r => r.id === ruleId)
+                    const summary = getSecuritySummary(warnings)
+
+                    return (
+                      <div key={ruleId} className="border border-border rounded p-2 bg-background">
+                        <div className="flex items-center gap-2 mb-1">
+                          {summary.critical > 0
+                            ? (
+                                <ShieldAlert className="h-4 w-4 text-red-500" />
+                              )
+                            : summary.warning > 0
+                              ? (
+                                  <ShieldQuestion className="h-4 w-4 text-orange-500" />
+                                )
+                              : (
+                                  <ShieldCheck className="h-4 w-4 text-green-500" />
+                                )}
+                          <span className="font-medium text-sm">{rule?.name || ruleId}</span>
+                        </div>
+
+                        {warnings.map(warning => (
+                          <div key={`${warning.field}-${warning.pattern}`} className="text-xs text-muted-foreground pl-6 mb-1">
+                            <span className={`font-medium ${warning.level === "critical" ? "text-red-500" : "text-orange-500"}`}>
+                              [
+                              {browser.i18n.getMessage(`rules_security_level_${warning.level}` as never)}
+                              ]
+                            </span>
+                            {" "}
+                            <span className="text-muted-foreground">
+                              {warning.field}
+                              :
+                            </span>
+                            {" "}
+                            {warning.message}
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelSecurityReview}
+                    className="flex-1"
+                  >
+                    {browser.i18n.getMessage("rules_security_cancelImport")}
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => void handleConfirmSecurityReview()}
+                    className="flex-1"
+                  >
+                    {browser.i18n.getMessage("rules_security_confirmImport")}
+                  </Button>
+                </div>
+              </div>
             )}
           </Tabs>
         </div>
