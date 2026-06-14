@@ -76,7 +76,7 @@
     "franc": "^6.2.0",
     "hotkeys-js": "^4.0.1",
     "input-otp": "^1.4.2",
-    "jotai": "^2.18.0",
+    "jotai": "^2.20.0",
     "jotai-family": "^1.0.1",
     "json5": "^2.2.3",
     "jszip": "^3.10.1",
