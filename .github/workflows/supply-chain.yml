@@ -82,7 +82,7 @@ jobs:
         run: npx trustdep scan --fail-on high --json --output trustdep-report.json
 
       - name: Upload Trustdep Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: trustdep-report
           path: trustdep-report.json
